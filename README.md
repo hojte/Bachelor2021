@@ -3,7 +3,7 @@
 To Track and follow objects with an iOS or Android phone.
 
 ## Components
-- Flutter with OpenCV
+- Flutter with OpenCV / ML Kit
 - Arduino microcontroller
 - Steppermotor actuator
 
