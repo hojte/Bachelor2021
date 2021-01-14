@@ -1,0 +1,8 @@
+Arduino (NodeMCU v0.9 w/ ESP8266 module):
+https://randomnerdtutorials.com/how-to-install-esp8266-board-arduino-ide/  
+Tools -> Serial monitor -> 115200 baudrate. (for print-outs-debugging)
+espcomm_open failed -> USB ud og ind igen.
+
+ESP32:
+add https://dl.espressif.com/dl/package_esp32_index.json to boards manager.
+Tools -> Board -> ESP32 Dev Module
