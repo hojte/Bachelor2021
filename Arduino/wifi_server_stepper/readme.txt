@@ -1,0 +1,4 @@
+- Sample from the tut on https://www.engineersgarage.com/esp8266/nodemcu-esp8266-stepper-motor-interfacing/
+- For the NodeMCU. Step=> D3, Dir=> D4.
+- Creates a server, prints out the IP to serial. 
+- From the webpage of the IP, the motor can be controlled.

@@ -13,3 +13,8 @@ TBC
 ## Contributors
 - Mathias Højte Olsen, Frderik Mads Pil & Mathias Dashtbani Mikkelsen
 - Supervised by: Andres Faina. Co-supervisor: Fabricio Narcizo 
+
+## Installation
+TBC
+
+

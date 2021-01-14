@@ -1,0 +1,2 @@
+- Blink an LED connected to D7 (GPIO13) on the NodeMCU
+- Use a resistor between LED and D7...idk why

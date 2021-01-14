@@ -1,0 +1,1 @@
+-  Basic WiFi sample for NodeMCU. Log into my network and prints out the retrieved IP. And then just blinks.

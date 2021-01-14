@@ -1,0 +1,4 @@
+- code from https://howtomechatronics.com/tutorials/arduino/how-to-control-stepper-motor-with-a4988-driver-and-arduino/
+- Rotates one rev clockwise then two revs counter clockwise
+- StepPin -> D3, dir -> D4, NodeMCU!
+- Altered to printOut as well as turn build in LED on and off when shifting between clocks.
