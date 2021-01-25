@@ -1,4 +1,3 @@
-adme
 /*     Simple Stepper Motor Control Exaple Code
  *      
  *  by Dejan Nedelkovski, www.HowToMechatronics.com
