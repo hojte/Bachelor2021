@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "777644858930",
+    "project_id": "vidit-44500",
+    "storage_bucket": "vidit-44500.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777644858930:android:96b5b66e1efc3f7d2f662b",
+        "android_client_info": {
+          "package_name": "itu.vid_it"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "777644858930-ofk7l0bggrhm25pnhunbpnmoqq73uphm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2gUNOJaJsUZ33u2StN8GUyu8c1m0tvMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "777644858930-ofk7l0bggrhm25pnhunbpnmoqq73uphm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "777644858930-9701av50qgli2qk5elspvfpo0cep3ia4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "itu.vidIt"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
