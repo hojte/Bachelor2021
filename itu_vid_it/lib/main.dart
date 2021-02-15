@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
 
+import 'colors.dart';
+
 void main() => runApp(HomeScreen());
 
 
@@ -17,10 +19,14 @@ class HomeScreen extends StatelessWidget {
           flexibleSpace: CustomAppBarDesign(),
         ),
         endDrawer: CustomDrawer(),
-        body: Center(
+        body: Container(
+          color: appHomeBackground,
+          child:
+            Center(
           child:
           //todo --> Replace the text widget to test!
           Text("Hello world!"),
+        ),
         ),
       ),
     );

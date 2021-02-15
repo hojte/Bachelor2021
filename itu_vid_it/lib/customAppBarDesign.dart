@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'colors.dart';
+import 'colors.dart';
+
 class CustomAppBarDesign extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
@@ -9,8 +12,8 @@ class CustomAppBarDesign extends StatelessWidget{
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: <Color>[
-                    Color(0xdce35b),
-                    Color(0x45b649)
+                    appBarPrimary,
+                    appBarSecondary
                   ]
               )
           ),
