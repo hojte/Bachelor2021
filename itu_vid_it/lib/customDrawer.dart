@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-class CustomDrawer extends StatelessWidget{
+class CustomDrawer extends HookWidget{
+
   @override
   Widget build(BuildContext context) {
+    final switchValue = useState(true);
     return Drawer(
       child: ListView(
         children: [
-          ListTile(
-            title: Text("Item 1"),
-            trailing: Text("sdf")
-          ),
-          ListTile(
-            title: Text("Item 2"),
+          SwitchListTile(
+              activeColor: Colors.green,
+              title: Text("Debug mode"),
+              subtitle: Text("Do you want to display debug mode?"),
+              value: switchValue.value,
+              onChanged: (bool newValue){
+                switchValue.value = !switchValue.value;
+                newValue = switchValue.value;
+          }
           )
         ],
       ),
     );
   }
-
 }
