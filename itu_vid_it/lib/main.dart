@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
             title: Text("VidIt"),
           flexibleSpace: CustomAppBarDesign(),
         ),
-        drawer: CustomDrawer(),
+        endDrawer: CustomDrawer(),
         body: Center(
           child:
           //todo --> Replace the text widget to test!

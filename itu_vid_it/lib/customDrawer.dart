@@ -9,6 +9,7 @@ class CustomDrawer extends StatelessWidget{
         children: [
           ListTile(
             title: Text("Item 1"),
+            trailing: Text("sdf")
           ),
           ListTile(
             title: Text("Item 2"),
