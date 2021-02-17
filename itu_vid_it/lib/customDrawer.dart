@@ -3,10 +3,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class CustomDrawer extends HookWidget{
+  void Function(bool boolValue) setValue;
+  bool debugModeValue;
+  CustomDrawer(void Function(bool boolValue) this.setValue, this.debugModeValue);
 
   @override
   Widget build(BuildContext context) {
-    final switchValue = useState(true);
+    final switchValue = useState(debugModeValue);
     return Drawer(
       child: ListView(
         children: [
@@ -18,6 +21,7 @@ class CustomDrawer extends HookWidget{
               onChanged: (bool newValue){
                 switchValue.value = !switchValue.value;
                 newValue = switchValue.value;
+                setValue(switchValue.value);
           }
           )
         ],
