@@ -1,9 +1,10 @@
+
 // Copyright 2018 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 // @dart=2.9
-
+/*
 import 'dart:ui' as ui;
 
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
@@ -227,3 +228,4 @@ class DocumentTextDetectorPainter extends CustomPainter {
         oldDelegate.visionDocumentText != visionDocumentText;
   }
 }
+*/

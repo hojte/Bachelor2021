@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 // @dart=2.9
-
+/*
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -78,3 +78,4 @@ class ScannerUtils {
     }
   }
 }
+*/

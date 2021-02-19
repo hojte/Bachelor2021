@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 // @dart=2.9
-
+/*
 import 'package:flutter/material.dart';
 
 import 'camera_preview_scanner.dart';
@@ -62,3 +62,4 @@ class _ExampleListState extends State<_ExampleList> {
     );
   }
 }
+*/

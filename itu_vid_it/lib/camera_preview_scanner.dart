@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 // @dart=2.9
-
+/*
 import 'package:camera/camera.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/foundation.dart';
@@ -248,3 +248,4 @@ class _CameraPreviewScannerState extends State<CameraPreviewScanner> {
     super.dispose();
   }
 }
+*/

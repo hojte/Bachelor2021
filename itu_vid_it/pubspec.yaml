@@ -28,6 +28,7 @@ dependencies:
   camera: ^0.7.0+2
   flutter_hooks: ^0.15.0
   flutter_launcher_icons: ^0.8.1
+  tflite: ^1.1.1
 
 flutter_launcher_icons:
   path: ../
@@ -54,6 +55,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  assets:
+    - assets/ssd_mobilenet.tflite
+    - assets/ssd_mobilenet.txt
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
