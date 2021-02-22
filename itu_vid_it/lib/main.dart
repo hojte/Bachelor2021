@@ -34,8 +34,8 @@ class HomeScreen extends HookWidget {
             Center(
           child:
           //todo --> Replace the text widget to test!
-            Text(debugModeValue.value.toString()),
-              //FlutterBlueWidget() //Bluetooth implementation
+            //Text(debugModeValue.value.toString()),
+            FlutterBlueWidget() //Bluetooth implementation
         ),
         ),
       ),

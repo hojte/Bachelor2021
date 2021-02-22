@@ -6,23 +6,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 class FlutterBlueWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      color: Colors.lightBlue,
-      home: StreamBuilder<BluetoothState>(
-          stream: FlutterBlue.instance.state,
-          initialData: BluetoothState.unknown,
-          builder: (c, snapshot) {
-            final state = snapshot.data;
-            if (state == BluetoothState.on) {
-              return FindDevicesScreen();
-            }
-            return BluetoothOffScreen(state: state);
-          }),
-    );
+    return StreamBuilder<BluetoothState>(
+        stream: FlutterBlue.instance.state,
+        initialData: BluetoothState.unknown,
+        builder: (c, snapshot) {
+          final state = snapshot.data;
+          if (state == BluetoothState.on) {
+            return FindESPScreen();
+          }
+          return BluetoothOffScreen(state: state);
+        });
   }
 }
 
@@ -30,7 +28,6 @@ class BluetoothOffScreen extends StatelessWidget {
   const BluetoothOffScreen({Key key, this.state}) : super(key: key);
 
   final BluetoothState state;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,10 +43,6 @@ class BluetoothOffScreen extends StatelessWidget {
             ),
             Text(
               'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
-              style: Theme.of(context)
-                  .primaryTextTheme
-                  .subhead
-                  .copyWith(color: Colors.white),
             ),
           ],
         ),
@@ -58,81 +51,50 @@ class BluetoothOffScreen extends StatelessWidget {
   }
 }
 
-class FindDevicesScreen extends StatelessWidget {
+class FindESPScreen extends HookWidget {
+  BluetoothDevice esp;
+  List<BluetoothService> espServices;
+  bool mountConnected;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Find Devices'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () =>
-            FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
-        child: SingleChildScrollView(
+    final scanSnapshot = useStream(FlutterBlue.instance.scanResults);
+    final isScanning = useStream(FlutterBlue.instance.isScanning);
+    if (isScanning.data!=null && !isScanning.data && scanSnapshot.data!=null && scanSnapshot.data.isEmpty) FlutterBlue.instance.startScan(timeout: Duration(seconds: 1));
+    final deviceList = scanSnapshot?.data?.map(
+          (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
+    );
+    //FlutterBlue.instance.startScan(timeout: Duration(seconds: 4));
+    final mountFound = useState(false);
+    if (scanSnapshot.hasData && esp == null) {
+      try {
+        esp = scanSnapshot.data
+            .firstWhere((element) => element.device.name == "VidItESP32")
+            .device;
+      } catch (e) {
+        print("Mount not found (VidItESP32)");
+      }
+    }
+    //if (esp != null) print("yoyo: "+ esp.toString());
+    if (esp != null && useStream(esp.state).data == BluetoothDeviceState.disconnected) esp.connect().then((value) => print("connected to Mount"));
+    if (esp != null && useStream(esp.state).data == BluetoothDeviceState.connected && espServices == null) esp.discoverServices().then((value) => espServices = value);
+
+    if(espServices != null) {
+      espServices.forEach((service) {
+        // print("serviceID: "+service.deviceId.id);
+        for(BluetoothCharacteristic c in service.characteristics) {
+          c.write([0x4], withoutResponse: true).then((value) => print("wrote K to "+c.deviceId.toString()));
+        }
+      });
+    }
+    return Center(
+      child: SingleChildScrollView(
+        child: Center(
           child: Column(
-            children: <Widget>[
-              StreamBuilder<List<BluetoothDevice>>(
-                stream: Stream.periodic(Duration(seconds: 2))
-                    .asyncMap((_) => FlutterBlue.instance.connectedDevices),
-                initialData: [],
-                builder: (c, snapshot) => Column(
-                  children: snapshot.data
-                      .map((d) => ListTile(
-                    title: Text(d.name),
-                    subtitle: Text(d.id.toString()),
-                    trailing: StreamBuilder<BluetoothDeviceState>(
-                      stream: d.state,
-                      initialData: BluetoothDeviceState.disconnected,
-                      builder: (c, snapshot) {
-                        if (snapshot.data ==
-                            BluetoothDeviceState.connected) {
-                          return RaisedButton(
-                            child: Text('OPEN'),
-                            onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        Text(d.name))),
-                          );
-                        }
-                        return Text(snapshot.data.toString());
-                      },
-                    ),
-                  ))
-                      .toList(),
-                ),
-              ),
-              StreamBuilder<List<ScanResult>>(
-                stream: FlutterBlue.instance.scanResults,
-                initialData: [],
-                builder: (c, snapshot) => Column(
-                  children: snapshot.data
-                      .map(
-                        (r) => Text(r.device.name),
-                  )
-                      .toList(),
-                ),
-              ),
-            ],
+            children:
+            deviceList != null ? deviceList.toList() : [],
           ),
         ),
-      ),
-      floatingActionButton: StreamBuilder<bool>(
-        stream: FlutterBlue.instance.isScanning,
-        initialData: false,
-        builder: (c, snapshot) {
-          if (snapshot.data) {
-            return FloatingActionButton(
-              child: Icon(Icons.stop),
-              onPressed: () => FlutterBlue.instance.stopScan(),
-              backgroundColor: Colors.red,
-            );
-          } else {
-            return FloatingActionButton(
-                child: Icon(Icons.search),
-                onPressed: () => FlutterBlue.instance
-                    .startScan(timeout: Duration(seconds: 4)));
-          }
-        },
       ),
     );
   }
