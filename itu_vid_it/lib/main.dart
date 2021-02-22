@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
+import 'bluetooth.dart';
+
 
 import 'colors.dart';
 
@@ -33,6 +35,7 @@ class HomeScreen extends HookWidget {
           child:
           //todo --> Replace the text widget to test!
             Text(debugModeValue.value.toString()),
+              //FlutterBlueWidget() //Bluetooth implementation
         ),
         ),
       ),
