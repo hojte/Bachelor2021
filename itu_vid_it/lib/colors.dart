@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 // @dart=2.9
-/*
 import 'package:flutter/material.dart';
 
 const Color kShrinePink50 = Color(0xFFFEEAE6);
@@ -17,4 +16,3 @@ const Color appBarSecondary =  Color.fromRGBO(254, 180, 123, 1);
 const Color appHomeBackground = Color.fromRGBO(254, 180, 123, 0.5);
 
 
-*/

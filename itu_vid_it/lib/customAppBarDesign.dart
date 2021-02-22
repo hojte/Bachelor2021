@@ -1,4 +1,4 @@
-/*
+
 import 'package:flutter/material.dart';
 import 'colors.dart';
 
@@ -19,4 +19,4 @@ class CustomAppBarDesign extends StatelessWidget{
         );
   }
 }
-*/
+

@@ -58,7 +58,7 @@ class _CameraState extends State<Camera> {
               numResultsPerClass: 1,
               threshold: widget.model == yolo ? 0.2 : 0.4,
             ).then((recognitions) {
-              // print(recognitions);
+               print(recognitions);
 
               int endTime = new DateTime.now().millisecondsSinceEpoch;
               print("Detection took ${endTime - startTime}");
