@@ -74,7 +74,7 @@ class HomeHooks extends HookWidget{
             RaisedButton(
               color: Colors.teal,
               child: const Text(
-                ssd,
+                "Start Tracking",
                 style: TextStyle(color: Colors.black),
               ),
               onPressed: () => onSelect(ssd),
@@ -98,7 +98,9 @@ class HomeHooks extends HookWidget{
             screen.height,
             screen.width,
           )
-          :Text(""),
+          :
+          //todo -> find en anden måde end at bruge empty text widget
+          Text(""),
 
         ],
       ),
