@@ -139,7 +139,6 @@ class _CameraState extends State<Camera> {
           child: FloatingActionButton(
             child: Icon(Icons.flip_camera_android),
             onPressed: () {
-              //todo -> does not work properly yet. When clicked objecttracking stops
               changeCameraLens();
             },
           ) ,
