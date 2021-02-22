@@ -7,6 +7,7 @@ import 'package:ituvidit/customDrawer.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 import 'bndbox.dart';
+import 'cameraHook.dart';
 import 'camera.dart';
 
 
@@ -53,13 +54,15 @@ class HomeHooks extends HookWidget{
     return(
     Scaffold(
       appBar: AppBar(
-        leading: IconButton(
+
+        //Only show backarrow if _model.value is not ""
+        leading: _model.value!=""? IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: (){
             _model.value = "";
           },
+        ): null,
 
-        ),
         title: Text("VidIt"),
         flexibleSpace: CustomAppBarDesign(),
       ),
@@ -82,14 +85,26 @@ class HomeHooks extends HookWidget{
           ],
         ),
       )
-
           : Stack(
         children: [
+
           Camera(
             cameras,
             _model.value,
             setRecognitions,
           ),
+
+
+/*
+          CameraHook(
+            cameras,
+            _model.value,
+            setRecognitions,
+          ),
+
+ */
+
+
           debugModeValue.value ?
           BndBox(
             _recognitions.value == null ? [] : _recognitions.value,

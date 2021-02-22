@@ -1,6 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:ituvidit/colors.dart';
+import 'package:ituvidit/main.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 
@@ -22,16 +23,28 @@ class Camera extends StatefulWidget {
 class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
+  CameraDescription camera;
+  int cameraFlip =0;
+
 
   @override
   void initState() {
     super.initState();
+    startCamera(camera);
+  }
 
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  void startCamera(CameraDescription camera){
     if (widget.cameras == null || widget.cameras.length < 1) {
       print('No camera is found');
     } else {
       controller = new CameraController(
-        widget.cameras[0],
+        widget.cameras[cameraFlip],
         ResolutionPreset.medium,
       );
       controller.initialize().then((_) {
@@ -39,6 +52,7 @@ class _CameraState extends State<Camera> {
           return;
         }
         setState(() {});
+        print("juuuuuuuuuu " + controller.toString());
 
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
@@ -58,7 +72,7 @@ class _CameraState extends State<Camera> {
               numResultsPerClass: 1,
               threshold: 0.4,
             ).then((recognitions) {
-               //print(recognitions);
+              //print(recognitions);
 
               int endTime = new DateTime.now().millisecondsSinceEpoch;
               //print("Detection took ${endTime - startTime}");
@@ -73,10 +87,27 @@ class _CameraState extends State<Camera> {
     }
   }
 
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+  void changeCameraLens() {
+    // get current lens direction (front / rear)
+    final lensDirection = controller.description.lensDirection;
+    if (lensDirection == CameraLensDirection.front) {
+      setState(() {
+        cameraFlip =0;
+      });
+      camera = cameras[0];
+    }
+    else {
+      setState(() {
+        cameraFlip =1;
+      });
+      camera = cameras[1];
+    }
+    if (camera != null) {
+      startCamera(camera);
+    }
+    else {
+      print('Asked camera not available');
+    }
   }
 
   @override
@@ -94,12 +125,26 @@ class _CameraState extends State<Camera> {
     var screenRatio = screenH / screenW;
     var previewRatio = previewH / previewW;
 
-    return OverflowBox(
-      maxHeight:
-      screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
-      maxWidth:
-      screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
-      child: CameraPreview(controller),
+    return Stack(
+      children: [
+        OverflowBox(
+        maxHeight:
+        screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          maxWidth:
+          screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
+          child: CameraPreview(controller),
+        ),
+        Container(
+          alignment: Alignment.topRight,
+          child: FloatingActionButton(
+            child: Icon(Icons.flip_camera_android),
+            onPressed: () {
+              //todo -> does not work properly yet. When clicked objecttracking stops
+              changeCameraLens();
+            },
+          ) ,
+        ),
+      ],
     );
   }
 }
