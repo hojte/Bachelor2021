@@ -58,7 +58,7 @@ class _CameraState extends State<Camera> {
           if (!isDetecting) {
             isDetecting = true;
 
-            int startTime = new DateTime.now().millisecondsSinceEpoch;
+            //int startTime = new DateTime.now().millisecondsSinceEpoch;
 
             Tflite.detectObjectOnFrame(
               bytesList: img.planes.map((plane) {
@@ -69,16 +69,26 @@ class _CameraState extends State<Camera> {
               imageWidth: img.width,
               imageMean: 127.5,
               imageStd: 127.5,
-              numResultsPerClass: 1,
-              threshold: 0.4,
+              numResultsPerClass: 1, //Can only see one class at the time
+              threshold: 0.2, //only detects in model if more than 50% sure
+              asynch: true, //todo --> not sure if needed
+              //rotation: 90, //todo --> not sure if needed
             ).then((recognitions) {
-              //print(recognitions);
+              //print(recognitions.first.toString());
 
-              int endTime = new DateTime.now().millisecondsSinceEpoch;
-              //print("Detection took ${endTime - startTime}");
+              //making a new list that only contains detectedClass: person
+              List<dynamic> newRecognitions = List<dynamic>();
+              try {
+                int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
+                element.toString().contains("detectedClass: person")
+                //todo --> slet linjen her for kun at tracke personer
+                    || element.toString().contains("detectedClass: bottle")));
 
-              widget.setRecognitions(recognitions, img.height, img.width);
-
+                newRecognitions.add(recognitions[newRecognitionIndex]);
+              }catch(e){
+                print(e.toString());
+              }
+              widget.setRecognitions(newRecognitions, img.height, img.width);
               isDetecting = false;
             });
           }
@@ -92,12 +102,14 @@ class _CameraState extends State<Camera> {
     final lensDirection = controller.description.lensDirection;
     if (lensDirection == CameraLensDirection.front) {
       setState(() {
+        //Back camera
         cameraFlip =0;
       });
       camera = cameras[0];
     }
     else {
       setState(() {
+        //Front camera
         cameraFlip =1;
       });
       camera = cameras[1];

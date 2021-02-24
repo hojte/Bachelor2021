@@ -7,7 +7,6 @@ import 'package:ituvidit/customDrawer.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 import 'bndbox.dart';
-import 'cameraHook.dart';
 import 'camera.dart';
 
 
@@ -93,17 +92,6 @@ class HomeHooks extends HookWidget{
             _model.value,
             setRecognitions,
           ),
-
-
-/*
-          CameraHook(
-            cameras,
-            _model.value,
-            setRecognitions,
-          ),
-
- */
-
 
           debugModeValue.value ?
           BndBox(

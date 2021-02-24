@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'homeHook.dart';
+import 'trackingData.dart';
 
 List<CameraDescription> cameras;
 
@@ -21,8 +22,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'VidIT',
-      //home: HomePage(cameras),
       home: HomeHooks(cameras),
+
+      //todo -> slet dette er brugt til test
+     /* home: Scaffold(
+        body: Center(
+          child:
+          Text(TrackingData("freder").name.toString()),)
+      ),
+
+      */
     );
+
   }
 }
