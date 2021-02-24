@@ -8,19 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-class FlutterBlueWidget extends StatelessWidget {
+class FlutterBlueWidget extends HookWidget {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<BluetoothState>(
-        stream: FlutterBlue.instance.state,
-        initialData: BluetoothState.unknown,
-        builder: (c, snapshot) {
-          final state = snapshot.data;
-          if (state == BluetoothState.on) {
-            return FindESPScreen();
-          }
-          return BluetoothOffScreen(state: state);
-        });
+    final bluetoothState = useStream(FlutterBlue.instance.state);
+    if (bluetoothState?.data == BluetoothState.on) return FindESPScreen();
+    else return BluetoothOffScreen();
   }
 }
 
@@ -52,49 +45,106 @@ class BluetoothOffScreen extends StatelessWidget {
 }
 
 class FindESPScreen extends HookWidget {
-  BluetoothDevice esp;
-  List<BluetoothService> espServices;
-  bool mountConnected;
 
   @override
   Widget build(BuildContext context) {
-    final scanSnapshot = useStream(FlutterBlue.instance.scanResults);
-    final isScanning = useStream(FlutterBlue.instance.isScanning);
-    if (isScanning.data!=null && !isScanning.data && scanSnapshot.data!=null && scanSnapshot.data.isEmpty) FlutterBlue.instance.startScan(timeout: Duration(seconds: 1));
-    final deviceList = scanSnapshot?.data?.map(
-          (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
-    );
-    //FlutterBlue.instance.startScan(timeout: Duration(seconds: 4));
+    BluetoothDevice esp;
+    List<BluetoothService> espServices;
+    FlutterBlue fBlue = FlutterBlue.instance;
+    List<ScanResult> scanResult;
+    final scanSnapshot = useStream(fBlue.scanResults);
+    final isScanningSnapshot = useStream(fBlue.isScanning);
+    final mountConnected = useState(false);
     final mountFound = useState(false);
+    final isScanning = useState(false);
+    final firstScanInit = useState(false);
+
+    if(isScanningSnapshot.hasData) isScanning.value = isScanningSnapshot.data;
+    if(scanSnapshot.hasData) scanResult = scanSnapshot.data;
+
+    // Bool to determine when to start scanning
+    bool startScan = !isScanning.value && scanResult == null && !firstScanInit.value;
+
+    if (startScan) {
+      firstScanInit.value = true;
+      fBlue.startScan(timeout: Duration(seconds: 2));
+    }
+
     if (scanSnapshot.hasData && esp == null) {
       try {
         esp = scanSnapshot.data
             .firstWhere((element) => element.device.name == "VidItESP32")
             .device;
+        mountFound.value = true;
+        if (isScanning.value) fBlue.stopScan();
       } catch (e) {
-        print("Mount not found (VidItESP32)");
+        if(isScanningSnapshot.hasData && !isScanningSnapshot.data)
+          mountFound.value = false;
       }
     }
-    //if (esp != null) print("yoyo: "+ esp.toString());
-    if (esp != null && useStream(esp.state).data == BluetoothDeviceState.disconnected) esp.connect().then((value) => print("connected to Mount"));
-    if (esp != null && useStream(esp.state).data == BluetoothDeviceState.connected && espServices == null) esp.discoverServices().then((value) => espServices = value);
+    if (useStream(esp?.state).data == BluetoothDeviceState.disconnected) esp.connect().then((value) => mountConnected.value = true);
+    if (useStream(esp?.state).data == BluetoothDeviceState.connected) {
+      mountConnected.value = true;
+      if(espServices == null) esp.discoverServices().then((value) => espServices = value);
+    }
 
     if(espServices != null) {
       espServices.forEach((service) {
-        // print("serviceID: "+service.deviceId.id);
         for(BluetoothCharacteristic c in service.characteristics) {
           c.write([0x4], withoutResponse: true).then((value) => print("wrote K to "+c.deviceId.toString()));
         }
       });
     }
-    return Center(
-      child: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children:
-            deviceList != null ? deviceList.toList() : [],
+
+    final deviceListUI = scanSnapshot?.data?.map(
+          (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
+    )?.toList();
+
+    Widget alertWidget() {
+      if (!firstScanInit.value || isScanning.value || mountFound.value) return Container();
+      return AlertDialog(
+        title: Text("Mount not found"),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text('The mount was not found'),
+              Text('Make sure it is turned on and scan again'),
+            ],
           ),
         ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Rescan'),
+            onPressed: () {
+              fBlue.startScan(timeout: Duration(seconds: 2));
+              print("lol trying to rescan");
+            },
+          ),
+          TextButton(
+            child: Text('Dismiss'),
+            onPressed: () {
+
+            },
+          ),
+        ],
+      );
+    }
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+            children: [
+              Card(
+                child: Text(
+                    "Scanning: ${isScanning.value}\n"
+                        "Mount found: ${mountFound.value}\n"
+                        "Connection status: ${mountConnected.value ? "Connected" : "Disconnected"}"
+                ),
+              ),
+              Column(
+                children: deviceListUI != null ? deviceListUI : [Text("No devices")],
+              ),
+              alertWidget(),
+            ]),
       ),
     );
   }
