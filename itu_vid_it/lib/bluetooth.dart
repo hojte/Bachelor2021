@@ -67,7 +67,7 @@ class FindESPScreen extends HookWidget {
 
     if (startScan) {
       firstScanInit.value = true;
-      fBlue.startScan(timeout: Duration(seconds: 2));
+      fBlue.startScan(timeout: Duration(seconds: 3));
     }
 
     if (scanSnapshot.hasData && esp == null) {
@@ -82,8 +82,11 @@ class FindESPScreen extends HookWidget {
           mountFound.value = false;
       }
     }
-    if (useStream(esp?.state).data == BluetoothDeviceState.disconnected) esp.connect().then((value) => mountConnected.value = true);
-    if (useStream(esp?.state).data == BluetoothDeviceState.connected) {
+    AsyncSnapshot<BluetoothDeviceState> espStateSnapshot; // I think this is pretty unsafe
+    if (esp != null) espStateSnapshot = useStream(esp.state);
+    if (esp != null && espStateSnapshot.data == BluetoothDeviceState.disconnected)
+      esp.connect().then((value) => mountConnected.value = true);
+    if (esp != null && espStateSnapshot.data == BluetoothDeviceState.connected) {
       mountConnected.value = true;
       if(espServices == null) esp.discoverServices().then((value) => espServices = value);
     }
@@ -100,8 +103,9 @@ class FindESPScreen extends HookWidget {
           (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
     )?.toList();
 
+    final alertDismissed = useState(false);
     Widget alertWidget() {
-      if (!firstScanInit.value || isScanning.value || mountFound.value) return Container();
+      if (!firstScanInit.value || isScanning.value || mountFound.value || alertDismissed.value) return Container();
       return AlertDialog(
         title: Text("Mount not found"),
         content: SingleChildScrollView(
@@ -117,13 +121,12 @@ class FindESPScreen extends HookWidget {
             child: Text('Rescan'),
             onPressed: () {
               fBlue.startScan(timeout: Duration(seconds: 2));
-              print("lol trying to rescan");
             },
           ),
           TextButton(
             child: Text('Dismiss'),
             onPressed: () {
-
+              alertDismissed.value = true;
             },
           ),
         ],
