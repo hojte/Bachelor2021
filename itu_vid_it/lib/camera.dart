@@ -52,7 +52,6 @@ class _CameraState extends State<Camera> {
           return;
         }
         setState(() {});
-        print("juuuuuuuuuu " + controller.toString());
 
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
@@ -70,12 +69,12 @@ class _CameraState extends State<Camera> {
               imageMean: 127.5,
               imageStd: 127.5,
               numResultsPerClass: 1, //Can only see one class at the time
-              threshold: 0.2, //only detects in model if more than 50% sure
+              threshold: 0.5, //only detects in model if more than 50% sure
               asynch: true, //todo --> not sure if needed
               //rotation: 90, //todo --> not sure if needed
             ).then((recognitions) {
-              //print(recognitions.first.toString());
-
+              print(recognitions);
+/*
               //making a new list that only contains detectedClass: person
               List<dynamic> newRecognitions = List<dynamic>();
               try {
@@ -88,7 +87,9 @@ class _CameraState extends State<Camera> {
               }catch(e){
                 print(e.toString());
               }
-              widget.setRecognitions(newRecognitions, img.height, img.width);
+
+ */
+              widget.setRecognitions(recognitions, img.height, img.width);
               isDetecting = false;
             });
           }
