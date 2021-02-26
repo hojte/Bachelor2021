@@ -74,7 +74,7 @@ class _CameraState extends State<Camera> {
               //rotation: 90, //todo --> not sure if needed
             ).then((recognitions) {
               print(recognitions);
-/*
+
               //making a new list that only contains detectedClass: person
               List<dynamic> newRecognitions = List<dynamic>();
               try {
@@ -88,7 +88,7 @@ class _CameraState extends State<Camera> {
                 print(e.toString());
               }
 
- */
+
               widget.setRecognitions(recognitions, img.height, img.width);
               isDetecting = false;
             });
