@@ -51,22 +51,18 @@ class FindESPScreen extends HookWidget {
     BluetoothDevice esp;
     List<BluetoothService> espServices;
     FlutterBlue fBlue = FlutterBlue.instance;
-    List<ScanResult> scanResult;
     final scanSnapshot = useStream(fBlue.scanResults);
     final isScanningSnapshot = useStream(fBlue.isScanning);
     final mountConnected = useState(false);
     final mountFound = useState(false);
-    final isScanning = useState(false);
-    final firstScanInit = useState(false);
 
-    if(isScanningSnapshot.hasData) isScanning.value = isScanningSnapshot.data;
-    if(scanSnapshot.hasData) scanResult = scanSnapshot.data;
+    final isLoading = useState(true);
+    isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
 
-    // Bool to determine when to start scanning
-    bool startScan = !isScanning.value && scanResult == null && !firstScanInit.value;
-
-    if (startScan) {
-      firstScanInit.value = true;
+    if (isLoading.value) return CircularProgressIndicator(); // wait for streams
+    final scanInit = useState(false);
+    if (!isScanningSnapshot.data && !scanInit.value) {
+      scanInit.value = true;
       fBlue.startScan(timeout: Duration(seconds: 3));
     }
 
@@ -76,9 +72,9 @@ class FindESPScreen extends HookWidget {
             .firstWhere((element) => element.device.name == "VidItESP32")
             .device;
         mountFound.value = true;
-        if (isScanning.value) fBlue.stopScan();
+        if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) {
-        if(isScanningSnapshot.hasData && !isScanningSnapshot.data)
+        if(!isScanningSnapshot.data)
           mountFound.value = false;
       }
     }
@@ -99,13 +95,19 @@ class FindESPScreen extends HookWidget {
       });
     }
 
-    final deviceListUI = scanSnapshot?.data?.map(
-          (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
-    )?.toList();
+    Widget renderDeviceList() {
+      if (!scanSnapshot.hasData)
+        return Text("No devices");
+      return Column(
+        children: scanSnapshot.data.map(
+              (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
+        ).toList(),
+      );
+    }
 
     final alertDismissed = useState(false);
-    Widget alertWidget() {
-      if (!firstScanInit.value || isScanning.value || mountFound.value || alertDismissed.value) return Container();
+    Widget renderAlertWidget() {
+      if (isScanningSnapshot.data || mountFound.value || alertDismissed.value) return Container(); // do not display alert
       return AlertDialog(
         title: Text("Mount not found"),
         content: SingleChildScrollView(
@@ -136,17 +138,11 @@ class FindESPScreen extends HookWidget {
       child: SingleChildScrollView(
         child: Column(
             children: [
-              Card(
-                child: Text(
-                    "Scanning: ${isScanning.value}\n"
-                        "Mount found: ${mountFound.value}\n"
-                        "Connection status: ${mountConnected.value ? "Connected" : "Disconnected"}"
-                ),
-              ),
-              Column(
-                children: deviceListUI != null ? deviceListUI : [Text("No devices")],
-              ),
-              alertWidget(),
+              Row(children: [Text("Scan "), isScanningSnapshot.data ? CircularProgressIndicator() : Icon(Icons.check)]),
+              Row(children: [Text("Mount "), mountFound.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
+              Row(children: [Text("Connected "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
+              //renderDeviceList(),
+              renderAlertWidget(),
             ]),
       ),
     );
