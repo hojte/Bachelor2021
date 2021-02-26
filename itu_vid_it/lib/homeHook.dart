@@ -20,7 +20,7 @@ class HomeHooks extends HookWidget{
   loadModel() async {
     String res;
     res = await Tflite.loadModel(
-        model: "assets/ssd_mobilenet_v1_1_metadata_1.tflite",
+        model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2_2.tflite",
         //model: "assets/ssd_mobilenet.tflite",
         labels: "assets/ssd_mobilenet.txt");
     print(res);

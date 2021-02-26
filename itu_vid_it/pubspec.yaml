@@ -59,6 +59,7 @@ flutter:
     - assets/ssd_mobilenet.tflite
     - assets/ssd_mobilenet.txt
     - assets/ssd_mobilenet_v1_1_metadata_1.tflite
+    - assets/lite-model_ssd_mobilenet_v1_1_metadata_2_2.tflite
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
