@@ -39,36 +39,94 @@ class BluetoothOffScreen extends StatelessWidget {
 }
 
 class FindESPScreen extends HookWidget {
+  //static const DEVICE_NAME = "VidItESP32";
+  static const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
   @override
   Widget build(BuildContext context) {
     BluetoothDevice espDevice;
     List<BluetoothService> espServices;
+    List<BluetoothDevice> bluetoothDevices;
     FlutterBlue fBlue = FlutterBlue.instance;
+    fBlue.setLogLevel(LogLevel.notice);
     final scanSnapshot = useStream(fBlue.scanResults);
+    AsyncSnapshot<List<BluetoothDevice>> connectedDevices = useFuture(fBlue.connectedDevices, initialData: []);
     final isScanningSnapshot = useStream(fBlue.isScanning);
     final mountConnected = useState(false);
     final mountFound = useState(false);
-
     final isLoading = useState(true);
     isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
-    final scanInit = useState(false);
-    if (!isScanningSnapshot.data && !scanInit.value) {
-      scanInit.value = true;
-      fBlue.startScan(timeout: Duration(seconds: 3));
-    }
-    if (scanSnapshot.hasData && espDevice == null && !mountConnected.value) {
-      try {
+
+    useEffect(() { // call scan once on widget init
+      fBlue.startScan(timeout: Duration(seconds: 1));
+      return fBlue.stopScan;
+    },
+      [], // call once
+    );
+    useEffect(() { // check if out mount is found
+      try { // throws exception if not found
         espDevice = scanSnapshot.data
-            .firstWhere((element) => element.device.name == "VidItESP32")
+            .firstWhere((element) => element.device.name == DEVICE_NAME)
             .device;
         mountFound.value = true;
-        if (isScanningSnapshot.data) fBlue.stopScan();
+      } catch (e) { // when ESP is not found
+        print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
+        if(!isScanningSnapshot.data)
+          mountFound.value = false;
+      }
+      return null; // callback
+    },
+      [scanSnapshot.data.length],
+    );
+    try {
+      useEffect(() { // call scan once on widget init
+        if (espDevice == null) return null;
+        if (connectedDevices.data.any((device) => device.name == DEVICE_NAME)) {
+          print("preConnected");
+          espDevice = connectedDevices.data.firstWhere((device) => device.name == DEVICE_NAME);
+          espDevice.discoverServices().then((espServices) => {
+            espServices.forEach((service) {
+              for (BluetoothCharacteristic c in service.characteristics) {
+                print("characteristic>>>"+c.toString());
+                //c.read().then((value) => print("redVal: "+value.toString()));
+                //c.write([0x4], withoutResponse: true, ).then((value) => print("wrote K to "+c.deviceId.toString()));
+              }
+            })
+          });
+          return null;
+        }
         espDevice.connect(autoConnect: false).then((_) => {
           mountConnected.value = true,
           espDevice.discoverServices().then((espServices) => {
             espServices.forEach((service) {
               for(BluetoothCharacteristic c in service.characteristics) {
+                print("characteristic>>>"+c.toString());
+                //c.read().then((value) => print("redVal: "+value.toString()));
+                //c.write([0x4], withoutResponse: true, ).then((value) => print("wrote K to "+c.deviceId.toString()));
+              }
+            })
+          }),
+        });
+        return null;
+      },
+        [espDevice?.id], // call once
+      );
+    } catch (e) {
+      print("CON err code="+e.toString());
+    }
+    /*if (espDevice == null && scanSnapshot.hasData && !mountConnected.value) {
+      try {
+        espDevice = scanSnapshot.data
+            .firstWhere((element) => element.device.name == "PC-AdVGA6")
+        //.firstWhere((element) => element.device.name == "VidItESP32")
+            .device;
+        mountFound.value = true;
+        espDevice.connect(autoConnect: false).then((_) => {
+          mountConnected.value = true,
+          espDevice.discoverServices().then((espServices) => {
+            espServices.forEach((service) {
+              for(BluetoothCharacteristic c in service.characteristics) {
+                print("characteristic>>>"+c.toString());
                 c.read().then((value) => print("redVal: "+value.toString()));
                 c.write([0x4], withoutResponse: true, ).then((value) => print("wrote K to "+c.deviceId.toString()));
               }
@@ -82,13 +140,13 @@ class FindESPScreen extends HookWidget {
       }
     }
 
-    if(espServices != null) {
+    /* if(espServices != null) {
       espServices.forEach((service) {
         for(BluetoothCharacteristic c in service.characteristics) {
           c.write([0x4], withoutResponse: true).then((value) => print("wrote K to "+c.deviceId.toString()));
         }
       });
-    }
+    }*/*/
 
     Widget renderDeviceList() {
       if (!scanSnapshot.hasData)
@@ -108,7 +166,7 @@ class FindESPScreen extends HookWidget {
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text('The mount was not found'),
+              Text('The mount $DEVICE_NAME was not found'),
               Text('Make sure it is turned on and scan again'),
             ],
           ),
@@ -136,10 +194,22 @@ class FindESPScreen extends HookWidget {
               Row(children: [Text("Scan "), isScanningSnapshot.data ? CircularProgressIndicator() : Icon(Icons.check)]),
               Row(children: [Text("Mount "), mountFound.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
               Row(children: [Text("Connected "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
-              //renderDeviceList(),
+              renderDeviceList(),
               renderAlertWidget(),
             ]),
       ),
     );
+  }
+  Future bleStuff() async {
+    await FlutterBlue.instance.startScan(timeout: Duration(seconds: 1));
+    var connectedDevices = await FlutterBlue.instance.connectedDevices;
+    print("devisces>>> "+ connectedDevices.toString());
+    List<BluetoothDevice> scanResults = [];
+    FlutterBlue.instance.scanResults.listen((List<ScanResult> results) {
+      for (ScanResult result in results) {
+        scanResults.add(result.device);
+      }
+    });
+    print("allDevisces>>> "+ scanResults.toString());
   }
 }
