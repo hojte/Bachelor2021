@@ -1,9 +1,3 @@
-// Copyright 2017, Paul DeMarco.
-// All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -45,10 +39,9 @@ class BluetoothOffScreen extends StatelessWidget {
 }
 
 class FindESPScreen extends HookWidget {
-
   @override
   Widget build(BuildContext context) {
-    BluetoothDevice esp;
+    BluetoothDevice espDevice;
     List<BluetoothService> espServices;
     FlutterBlue fBlue = FlutterBlue.instance;
     final scanSnapshot = useStream(fBlue.scanResults);
@@ -58,33 +51,35 @@ class FindESPScreen extends HookWidget {
 
     final isLoading = useState(true);
     isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
-
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
     final scanInit = useState(false);
     if (!isScanningSnapshot.data && !scanInit.value) {
       scanInit.value = true;
       fBlue.startScan(timeout: Duration(seconds: 3));
     }
-
-    if (scanSnapshot.hasData && esp == null) {
+    if (scanSnapshot.hasData && espDevice == null && !mountConnected.value) {
       try {
-        esp = scanSnapshot.data
+        espDevice = scanSnapshot.data
             .firstWhere((element) => element.device.name == "VidItESP32")
             .device;
         mountFound.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
-      } catch (e) {
+        espDevice.connect(autoConnect: false).then((_) => {
+          mountConnected.value = true,
+          espDevice.discoverServices().then((espServices) => {
+            espServices.forEach((service) {
+              for(BluetoothCharacteristic c in service.characteristics) {
+                c.read().then((value) => print("redVal: "+value.toString()));
+                c.write([0x4], withoutResponse: true, ).then((value) => print("wrote K to "+c.deviceId.toString()));
+              }
+            })
+          }),
+        });
+      } catch (e) { // when ESP is not found
+        //print("fault>" + e.toString());
         if(!isScanningSnapshot.data)
           mountFound.value = false;
       }
-    }
-    AsyncSnapshot<BluetoothDeviceState> espStateSnapshot; // I think this is pretty unsafe
-    if (esp != null) espStateSnapshot = useStream(esp.state);
-    if (esp != null && espStateSnapshot.data == BluetoothDeviceState.disconnected)
-      esp.connect().then((value) => mountConnected.value = true);
-    if (esp != null && espStateSnapshot.data == BluetoothDeviceState.connected) {
-      mountConnected.value = true;
-      if(espServices == null) esp.discoverServices().then((value) => espServices = value);
     }
 
     if(espServices != null) {
@@ -122,7 +117,7 @@ class FindESPScreen extends HookWidget {
           TextButton(
             child: Text('Rescan'),
             onPressed: () {
-              fBlue.startScan(timeout: Duration(seconds: 2));
+              fBlue.startScan(timeout: Duration(seconds: 4));
             },
           ),
           TextButton(
