@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:ituvidit/colors.dart';
@@ -52,6 +54,7 @@ class _CameraState extends State<Camera> {
           return;
         }
         setState(() {});
+        
 
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
@@ -89,7 +92,7 @@ class _CameraState extends State<Camera> {
               }
 
 
-              widget.setRecognitions(recognitions, img.height, img.width);
+              widget.setRecognitions(newRecognitions, img.height, img.width);
               isDetecting = false;
             });
           }
