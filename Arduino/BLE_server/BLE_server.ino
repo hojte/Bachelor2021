@@ -13,7 +13,7 @@
 #define SERVICE_UUID        "ea411899-d14c-45d5-81f0-ce96b217c64a"
 #define CHARACTERISTIC_UUID "91235981-23ee-4bca-b7b2-2aec7d075438"
 
-const int ledPin = 25;
+const int ledPin = 2;
 BLEServer *VidItServer;
 BLEService *VidItService;
 BLECharacteristic *VidItCharacteristic;
@@ -37,7 +37,7 @@ void setup() {
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
   //The setValue should be changed in the future to display the state
-  VidItCharacteristic->setValue("");
+  VidItCharacteristic->setValue("LOL");
   VidItService->start();
   //The following sets the attributes for the advertising. Such as the UUID, the scan response and start 
   //the BLE adverstising so BT devices can find it. 
