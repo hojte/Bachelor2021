@@ -90,14 +90,17 @@ class FindESPScreen extends HookWidget {
       mountConnected.value = true;
       espServices = await espDevice.discoverServices();
       if (espServices != null)
-        espServices.forEach((service) async {
-          for(BluetoothCharacteristic c in service.characteristics) {
-            print("char descriptors: " + c.descriptors.length.toString());
-            var readValue = await c.read();
-            print("redVal: "+readValue.toString());
-            await c.write([0x4], withoutResponse: true);
-          }
-        });
+        for (var service in espServices) {
+          if (service.uuid.toString() == "ea411899-d14c-45d5-81f0-ce96b217c64a")
+            for (BluetoothCharacteristic characteristic in service.characteristics) {
+              if (characteristic.uuid.toString() == "91235981-23ee-4bca-b7b2-2aec7d075438") {
+                var readValue = await characteristic.read();
+                print("redVal: " + readValue.toString());
+                await characteristic.write([77, 97, 116, 104, 105, 97, 115], // Mathias
+                    withoutResponse: true);
+              }
+            }
+        }
       return true;
     }
     if (espDevice != null && !tryConnect.value) { // run once
