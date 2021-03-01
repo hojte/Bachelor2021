@@ -17,9 +17,7 @@ class BluetoothOffScreen extends StatelessWidget {
   final BluetoothState state;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.lightBlue,
-      body: Center(
+    return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -33,7 +31,6 @@ class BluetoothOffScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
