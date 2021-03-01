@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 // @dart=2.9
-
 import 'package:flutter/material.dart';
 
 const Color kShrinePink50 = Color(0xFFFEEAE6);

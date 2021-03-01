@@ -1,42 +1,38 @@
-
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ituvidit/customAppBarDesign.dart';
-import 'package:ituvidit/customDrawer.dart';
+import 'package:camera/camera.dart';
+import 'homeHook.dart';
+import 'trackingData.dart';
 
-import 'colors.dart';
+List<CameraDescription> cameras;
 
-void main() => runApp(HomeScreen());
-
-
-class HomeScreen extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    //Values and setter used for debugmode in the drawer
-    final debugModeValue = useState(true);
-    void setDebugModeValue(bool val){
-      debugModeValue.value = val;
-    }
-
-    return MaterialApp(
-      title: 'VidIT',
-      home: Scaffold(
-        appBar: AppBar(
-            title: Text("VidIt"),
-          flexibleSpace: CustomAppBarDesign(),
-        ),
-        endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value),
-        body: Container(
-          color: appHomeBackground,
-          child:
-            Center(
-          child:
-          //todo --> Replace the text widget to test!
-            Text(debugModeValue.value.toString()),
-        ),
-        ),
-      ),
-    );
+Future<Null> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    cameras = await availableCameras();
+  } on CameraException catch (e) {
+    print('Error: $e.code\nError Message: $e.message');
   }
+  runApp(new MyApp());
 }
 
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'VidIT',
+      home: HomeHooks(cameras),
+
+      //todo -> slet dette er brugt til test
+     /* home: Scaffold(
+        body: Center(
+          child:
+          Text(TrackingData("freder").name.toString()),)
+      ),
+
+      */
+    );
+
+  }
+}

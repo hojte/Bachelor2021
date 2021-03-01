@@ -27,6 +27,19 @@ dependencies:
   firebase_ml_vision: ^0.10.0
   camera: ^0.7.0+2
   flutter_hooks: ^0.15.0
+  flutter_launcher_icons: ^0.8.1
+  tflite: ^1.1.1
+
+flutter_launcher_icons:
+  path: ../
+
+flutter_icons:
+  image_path_android: "assets/images/app_icon.png"
+  image_path_ios: "assets/images/app_icon.png"
+  android: true
+  ios: true
+  adaptive_icon_background: "assets/images/app_icon.png" #only works on android 8.0 or more
+  adaptive_icon_foreground: "assets/images/app_icon.png" #only works on android 8.0 or more
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -42,6 +55,10 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  assets:
+    - assets/ssd_mobilenet.tflite
+    - assets/ssd_mobilenet.txt
+    - assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
