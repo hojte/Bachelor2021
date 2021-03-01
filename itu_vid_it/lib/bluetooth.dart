@@ -69,10 +69,17 @@ class FindESPScreen extends HookWidget {
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
         //print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
+        fBlue.connectedDevices.then((devices) => {
+          if (devices.any((device) => device.name == DEVICE_NAME)) {
+            fBlue.stopScan(),
+            mountConnected.value = true,
+            mountFound.value = true,
+          }
+        });
         if(!isScanningSnapshot.data)
           mountFound.value = false;
       }
-      return null; // callback
+      return null; // no callback
     },
       [scanSnapshot.data.length],
     );
