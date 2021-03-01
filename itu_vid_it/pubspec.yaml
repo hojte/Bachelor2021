@@ -29,6 +29,7 @@ dependencies:
   flutter_hooks: ^0.15.0
   flutter_launcher_icons: ^0.8.1
   tflite: ^1.1.1
+  flutter_blue: ^0.7.3
 
 flutter_launcher_icons:
   path: ../
@@ -40,6 +41,7 @@ flutter_icons:
   ios: true
   adaptive_icon_background: "assets/images/app_icon.png" #only works on android 8.0 or more
   adaptive_icon_foreground: "assets/images/app_icon.png" #only works on android 8.0 or more
+
 
 
   # The following adds the Cupertino Icons font to your application.
