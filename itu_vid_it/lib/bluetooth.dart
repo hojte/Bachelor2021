@@ -1,6 +1,19 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
+const DEVICE_NAME = "VidItESP32";
+//const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
+FlutterBlue fBlue = FlutterBlue.instance;
+BluetoothDevice espDevice;
+BluetoothCharacteristic espCharacteristic;
+
+Future<bool> sendDataToESP(List<int> byteList) async {
+  await espCharacteristic.write(byteList);
+  return await espCharacteristic.read() == byteList; // If read is what we wrote return success
+}
 
 class FlutterBlueWidget extends HookWidget {
   @override
@@ -36,13 +49,8 @@ class BluetoothOffScreen extends StatelessWidget {
 }
 
 class FindESPScreen extends HookWidget {
-  static const DEVICE_NAME = "VidItESP32";
-  //static const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
   @override
   Widget build(BuildContext context) {
-    BluetoothDevice espDevice;
-    List<BluetoothService> espServices;
-    FlutterBlue fBlue = FlutterBlue.instance;
     fBlue.setLogLevel(LogLevel.notice);
     final scanSnapshot = useStream(fBlue.scanResults);
     final isScanningSnapshot = useStream(fBlue.isScanning);
@@ -84,7 +92,6 @@ class FindESPScreen extends HookWidget {
       [scanSnapshot.data.length],
     );
     Future waitForConnect() async {
-      if (espServices != null) return true; // already connected
       //print("ran waitForConnect()");
       try {
         await espDevice.connect(autoConnect: true);
@@ -92,7 +99,7 @@ class FindESPScreen extends HookWidget {
         if (!e.toString().contains("already_connected")) throw e; // unexpected error
       }
       mountConnected.value = true;
-      espServices = await espDevice.discoverServices();
+       var espServices = await espDevice.discoverServices();
       if (espServices != null)
         for (var service in espServices) {
           if (service.uuid.toString() == "ea411899-d14c-45d5-81f0-ce96b217c64a")
