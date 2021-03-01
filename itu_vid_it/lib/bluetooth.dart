@@ -39,8 +39,8 @@ class BluetoothOffScreen extends StatelessWidget {
 }
 
 class FindESPScreen extends HookWidget {
-  //static const DEVICE_NAME = "VidItESP32";
-  static const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
+  static const DEVICE_NAME = "VidItESP32";
+  //static const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
   @override
   Widget build(BuildContext context) {
     BluetoothDevice espDevice;
@@ -71,7 +71,7 @@ class FindESPScreen extends HookWidget {
         mountFound.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
-        print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
+        //print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
         if(!isScanningSnapshot.data)
           mountFound.value = false;
       }
@@ -81,30 +81,31 @@ class FindESPScreen extends HookWidget {
     );
     Future waitForConnect() async {
       if (espServices != null) return true; // already connected
-      print("waitForConnect()");
+      //print("ran waitForConnect()");
       try {
-        await espDevice.connect(autoConnect: false);
+        await espDevice.connect(autoConnect: true);
       } catch (e) {
-        print("already con? " + e.toString());
-        // already connected
+        if (!e.toString().contains("already_connected")) throw e; // unexpected error
       }
       mountConnected.value = true;
       espServices = await espDevice.discoverServices();
-      espServices.forEach((service) {
-        for(BluetoothCharacteristic c in service.characteristics) {
-          print("char descriptors: " + c.descriptors.length.toString());
-          //c.read().then((value) => print("redVal: "+value.toString()));
-          //c.write([0x4], withoutResponse: true, ).then((value) => print("wrote K to "+c.deviceId.toString()));
-        }
-      });
+      if (espServices != null)
+        espServices.forEach((service) async {
+          for(BluetoothCharacteristic c in service.characteristics) {
+            print("char descriptors: " + c.descriptors.length.toString());
+            var readValue = await c.read();
+            print("redVal: "+readValue.toString());
+            await c.write([0x4], withoutResponse: true);
+          }
+        });
       return true;
     }
-    if (espDevice != null) { // run once
+    if (espDevice != null && !tryConnect.value) { // run once
       tryConnect.value = true;
       waitForConnect().then((value) => null);
     }
 
-
+    /// UI rendering
     Widget renderDeviceList() {
       if (scanSnapshot.data.isEmpty)
         return Text("No devices");
@@ -123,8 +124,8 @@ class FindESPScreen extends HookWidget {
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text('The mount $DEVICE_NAME was not found'),
-              Text('Make sure it is turned on and scan again'),
+              Text('The mount \'$DEVICE_NAME\' was not found'),
+              Text('Make sure it is turned on or reboot and scan again'),
             ],
           ),
         ),
@@ -132,7 +133,7 @@ class FindESPScreen extends HookWidget {
           TextButton(
             child: Text('Rescan'),
             onPressed: () {
-              fBlue.startScan(timeout: Duration(seconds: 4));
+              fBlue.startScan(timeout: Duration(seconds: 5));
             },
           ),
           TextButton(
