@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/main.dart';
+import 'package:ituvidit/recordButton.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 
@@ -128,6 +130,7 @@ class _CameraState extends State<Camera> {
 
   @override
   Widget build(BuildContext context) {
+    final switchRecording = false;
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
@@ -159,6 +162,7 @@ class _CameraState extends State<Camera> {
             },
           ) ,
         ),
+        recordButton(controller)
       ],
     );
   }
