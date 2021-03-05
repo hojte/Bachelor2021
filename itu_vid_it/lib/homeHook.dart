@@ -1,11 +1,11 @@
 import 'package:camera_platform_interface/src/types/camera_description.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ituvidit/bluetooth.dart';
+import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
-import 'package:ituvidit/trackingData.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 import 'bndbox.dart';
@@ -34,6 +34,11 @@ class HomeHooks extends HookWidget{
     final debugModeValue = useState(true);
     void setDebugModeValue(bool val){
       debugModeValue.value = val;
+    }
+
+    final bleCharacteristic = useState();
+    void setCharacteristic(BluetoothCharacteristic characteristic){
+      bleCharacteristic.value = characteristic;
     }
 
     Size screen = MediaQuery.of(context).size;
@@ -86,17 +91,17 @@ class HomeHooks extends HookWidget{
               ),
               onPressed: () => onSelect(ssd),
             ),
-            //FlutterBlueWidget(_trackingData.value),
+            FlutterBlueWidget(setCharacteristic),
           ],
         ),
       )
           : Stack(
         children: [
-          FlutterBlueWidget(_trackingData.value),
           Camera(
             cameras,
             _model.value,
             setRecognitions,
+            bleCharacteristic,
           ),
 
           debugModeValue.value ?

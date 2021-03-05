@@ -7,18 +7,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ituvidit/computeData.dart';
+import 'package:ituvidit/mountController.dart';
 
 const DEVICE_NAME = "VidItESP32";
 //const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
 FlutterBlue fBlue = FlutterBlue.instance;
 BluetoothDevice espDevice;
 BluetoothCharacteristic espCharacteristic;
-
-Future<bool> sendDataToESP(List<int> byteList) async {
-  await espCharacteristic.write(byteList, withoutResponse: true);
-  return await espCharacteristic.read() == byteList; // If read is what we wrote return success
-}
 
 class FlutterBlueWidget extends HookWidget {
   final _trackValue;
@@ -178,8 +173,8 @@ class FindESPScreen extends HookWidget {
               Row(children: [Text("Connected           "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
               renderDeviceList(),
               renderAlertWidget(),
-              TextButton(onPressed: () => sendDataToESP(utf8.encode("Right")), child: Text("Right")),
-              TextButton(onPressed: () => sendDataToESP(utf8.encode("Left")), child: Text("Left"))
+              //TextButton(onPressed: () => sendDataToESP(utf8.encode("Right")), child: Text("Right")),
+              //TextButton(onPressed: () => sendDataToESP(utf8.encode("Left")), child: Text("Left"))
             ]),
       ),
     );
