@@ -5,6 +5,7 @@ import 'package:ituvidit/bluetooth.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
+import 'package:ituvidit/trackingData.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 import 'bndbox.dart';
@@ -39,12 +40,14 @@ class HomeHooks extends HookWidget{
     final _recognitions = useState();
     final _imageHeight = useState(0);
     final _imageWidth = useState(0);
+    final _trackingData = useState();
     final _model = useState("");
 
-    Function setRecognitions(recognitions, imageHeight, imageWidth) {
+    Function setRecognitions(recognitions, imageHeight, imageWidth, trackingData) {
       _recognitions.value = recognitions;
       _imageHeight.value = imageHeight;
       _imageWidth.value = imageWidth;
+      _trackingData.value = trackingData.map;
 
     }
     Function onSelect(model) {
@@ -83,13 +86,13 @@ class HomeHooks extends HookWidget{
               ),
               onPressed: () => onSelect(ssd),
             ),
-            FlutterBlueWidget(),
+            //FlutterBlueWidget(_trackingData.value),
           ],
         ),
       )
           : Stack(
         children: [
-
+          FlutterBlueWidget(_trackingData.value),
           Camera(
             cameras,
             _model.value,
@@ -106,7 +109,7 @@ class HomeHooks extends HookWidget{
           )
           :
           //todo -> find en anden måde end at bruge empty text widget
-          Text(""),
+          Text(_trackingData.value.toString()),
 
         ],
       ),

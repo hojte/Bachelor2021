@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/main.dart';
+import 'package:ituvidit/trackingData.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 
 const String ssd = "SSD MobileNet";
 
-typedef void Callback(List<dynamic> list, int h, int w);
+typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
 class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -59,6 +60,7 @@ class _CameraState extends State<Camera> {
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
             isDetecting = true;
+            TrackingData _trackingData;
 
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
 
@@ -76,7 +78,7 @@ class _CameraState extends State<Camera> {
               asynch: true, //todo --> not sure if needed
               //rotation: 90, //todo --> not sure if needed
             ).then((recognitions) {
-              print(recognitions);
+              //print(recognitions);
 
               //making a new list that only contains detectedClass: person
               List<dynamic> newRecognitions = List<dynamic>();
@@ -91,8 +93,23 @@ class _CameraState extends State<Camera> {
                 print(e.toString());
               }
 
+              if(newRecognitions.length>0){
+                String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
+                //print("Wcoord:" + wCoord);
+                String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
+                //print("Xcoord:" + xCoord);
+                String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
+                //print("Hcoord:" + hCoord);
+                String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
+                //print("Ycoord:" + yCoord);
 
-              widget.setRecognitions(newRecognitions, img.height, img.width);
+                String testSpeed = "500";//todo --> fix this compared to earlier frame coords
+                _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+              }
+              else{
+                _trackingData = new TrackingData("", "", "", "", "");
+              }
+              widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
             });
           }
