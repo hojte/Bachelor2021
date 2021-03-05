@@ -16,14 +16,13 @@ BluetoothDevice espDevice;
 BluetoothCharacteristic espCharacteristic;
 
 class FlutterBlueWidget extends HookWidget {
-  final _trackValue;
-  FlutterBlueWidget(this._trackValue);
+  final setBleCharacteristic;
+  FlutterBlueWidget(this.setBleCharacteristic);
 
   @override
   Widget build(BuildContext context) {
     final bluetoothState = useStream(FlutterBlue.instance.state);
-    print("BLUEEEEEEEEEEEEEEEEEEEEEE: " +_trackValue.toString());
-    if (bluetoothState?.data == BluetoothState.on) return FindESPScreen();
+    if (bluetoothState?.data == BluetoothState.on) return FindESPScreen(setBleCharacteristic);
     else return BluetoothOffScreen();
   }
 }
@@ -53,6 +52,9 @@ class BluetoothOffScreen extends StatelessWidget {
 }
 
 class FindESPScreen extends HookWidget {
+  final _setBleCharacteristic;
+  FindESPScreen(this._setBleCharacteristic);
+
   @override
   Widget build(BuildContext context) {
     fBlue.setLogLevel(LogLevel.notice);
@@ -110,6 +112,7 @@ class FindESPScreen extends HookWidget {
             for (BluetoothCharacteristic characteristic in service.characteristics) {
               if (characteristic.uuid.toString() == "91235981-23ee-4bca-b7b2-2aec7d075438") {
                 espCharacteristic = characteristic;
+                _setBleCharacteristic(characteristic);
                 var readValue = await characteristic.read();
                 print("redVal: " + utf8.decode(readValue));
                 await characteristic.write(utf8.encode("Frederik"), // Mathias

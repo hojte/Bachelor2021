@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:flutter_blue/gen/flutterblue.pb.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
@@ -18,12 +17,13 @@ class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final Callback setRecognitions;
   final String model;
-  final BluetoothCharacteristic bleCharacteristic;
+  final BluetoothCharacteristic _bleCharacteristic;
 
-  Camera(this.cameras, this.model, this.setRecognitions, this.bleCharacteristic);
+  Camera(this.cameras, this.model, this.setRecognitions, this._bleCharacteristic);
+
 
   @override
-  _CameraState createState() => new _CameraState(bleCharacteristic);
+  _CameraState createState() => new _CameraState();
 }
 
 class _CameraState extends State<Camera> {
@@ -32,14 +32,14 @@ class _CameraState extends State<Camera> {
   CameraDescription camera;
   int cameraFlip =0;
   TrackingData _trackingData;
-  final BluetoothCharacteristic bluetoothCharacteristic;
-  _CameraState(bleCharacteristic);
+
 
 
   @override
   void initState() {
     super.initState();
     startCamera(camera);
+
   }
 
   @override
@@ -111,7 +111,7 @@ class _CameraState extends State<Camera> {
                 _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
               }
               else{
-                _trackingData = new TrackingData("", "", "", "", "");
+                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
@@ -180,7 +180,7 @@ class _CameraState extends State<Camera> {
             },
           ) ,
         ),
-        MountController(_trackingData, bleCharacteristic),
+        MountController(_trackingData, widget._bleCharacteristic),
       ],
     );
   }

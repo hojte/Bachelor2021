@@ -101,7 +101,7 @@ class HomeHooks extends HookWidget{
             cameras,
             _model.value,
             setRecognitions,
-            bleCharacteristic,
+            bleCharacteristic.value
           ),
 
           debugModeValue.value ?

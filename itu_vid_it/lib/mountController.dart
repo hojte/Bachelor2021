@@ -1,16 +1,30 @@
 
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-class MountController {
-  TrackingData trackingData;
+class MountController extends StatelessWidget{
+  TrackingData _trackingData;
   BluetoothCharacteristic bleCharacteristic;
 
-  MountController(this.trackingData, this.bleCharacteristic);
+  MountController(this._trackingData, this.bleCharacteristic);
 
 
   Future<bool> sendDataToESP(List<int> byteList) async {
+
+    if(bleCharacteristic==null) return false;
     await bleCharacteristic.write(byteList, withoutResponse: true);
-    return await bleCharacteristic.read() == byteList; // If read is what we wrote return success
+return true;
+  }
+  @override
+  Widget build(BuildContext context) {
+    ComputeData cd = ComputeData(_trackingData);
+    print("XXXXXXXXXXXXXX: " + cd.xData);
+
+    sendDataToESP(utf8.encode(_trackingData.xCoord));
+
+    return Container();
   }
 }
 
@@ -36,15 +50,20 @@ class TrackingData {
 class ComputeData {
   TrackingData trackingData;
   ComputeData(this.trackingData);
-  String xCoord = "0.4";
 
   String get xData{
-    double xdata = double.parse(xCoord);
-    if(xdata>0.4){
-      return "Right";
+    print(trackingData.xCoord);
+    if(trackingData.xCoord != null){
+      double xdata = double.parse(trackingData.xCoord);
+      if(xdata>0.4){
+        return "Right";
+      }
+      else if (xdata>0.3){
+        return "Left";
+      }
     }
-    else if (xdata>0.3){
-      return "Left";
+    else{
+      return "Hold";
     }
   }
 }
