@@ -34,19 +34,19 @@ class BluetoothOffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.bluetooth_disabled,
-              size: 200.0,
-              color: Colors.white54,
-            ),
-            Text(
-              'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            Icons.bluetooth_disabled,
+            size: 200.0,
+            color: Colors.white54,
+          ),
+          Text(
+            'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+          ),
+        ],
+      ),
     );
   }
 }
@@ -68,6 +68,13 @@ class FindESPScreen extends HookWidget {
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
 
     useEffect(() { // call scan once on widget init
+      fBlue.connectedDevices.then((devices) => {
+        if (devices.any((device) => device.name == DEVICE_NAME)) {
+          fBlue.stopScan(),
+          mountConnected.value = true,
+          mountFound.value = true,
+        }
+      });
       fBlue.startScan(timeout: Duration(seconds: 1));
       return fBlue.stopScan;
     },
@@ -78,18 +85,19 @@ class FindESPScreen extends HookWidget {
         espDevice = scanSnapshot.data
             .firstWhere((element) => element.device.name == DEVICE_NAME)
             .device;
-        print("ESP> " + espDevice.toString());
+        print(DEVICE_NAME + " -> " + espDevice.toString());
         mountFound.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
         //print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
-        fBlue.connectedDevices.then((devices) => {
-          if (devices.any((device) => device.name == DEVICE_NAME)) {
-            fBlue.stopScan(),
-            mountConnected.value = true,
-            mountFound.value = true,
-          }
-        });
+        if(!isScanningSnapshot.data)
+          fBlue.connectedDevices.then((devices) => {
+            if (devices.any((device) => device.name == DEVICE_NAME)) {
+              fBlue.stopScan(),
+              mountConnected.value = true,
+              mountFound.value = true,
+            }
+          });
         if(!isScanningSnapshot.data)
           mountFound.value = false;
       }
@@ -105,7 +113,7 @@ class FindESPScreen extends HookWidget {
         if (!e.toString().contains("already_connected")) throw e; // unexpected error
       }
       mountConnected.value = true;
-       var espServices = await espDevice.discoverServices();
+      var espServices = await espDevice.discoverServices();
       if (espServices != null)
         for (var service in espServices) {
           if (service.uuid.toString() == "ea411899-d14c-45d5-81f0-ce96b217c64a")
@@ -115,8 +123,7 @@ class FindESPScreen extends HookWidget {
                 _setBleCharacteristic(characteristic);
                 var readValue = await characteristic.read();
                 print("redVal: " + utf8.decode(readValue));
-                await characteristic.write(utf8.encode("Frederik"), // Mathias
-                    withoutResponse: true);
+                await characteristic.write(utf8.encode("Frederik"), withoutResponse: true);
               }
             }
         }
