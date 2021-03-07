@@ -12,7 +12,6 @@ typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingDat
 class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final Callback setRecognitions;
-  final String model;
   final BluetoothCharacteristic _bleCharacteristic;
 
   Camera(this.cameras, this.setRecognitions, this._bleCharacteristic);
