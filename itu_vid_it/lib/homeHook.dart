@@ -5,6 +5,7 @@ import 'package:ituvidit/bluetooth.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
+import 'package:ituvidit/static.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 import 'bndbox.dart';
@@ -76,6 +77,15 @@ class HomeHooks extends HookWidget{
                   onPressed: () {
                     loadModel();
                     isTracking.value = true;
+                  },
+                ),
+                RaisedButton(
+                  child: Text("Detect in Image"),
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => StaticImage(),
+                    ),
+                    );
                   },
                 ),
                 FlutterBlueWidget(),
