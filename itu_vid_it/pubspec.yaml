@@ -28,6 +28,7 @@ dependencies:
   flutter_launcher_icons: ^0.8.1
   tflite: ^1.1.1
   flutter_blue: ^0.7.3
+  image_picker: ^0.6.7 # low version bcs of some sdk error
 
 flutter_launcher_icons:
   path: ../
