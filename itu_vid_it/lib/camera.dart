@@ -26,7 +26,7 @@ class _CameraState extends State<Camera> {
   @override
   void initState() {
     super.initState();
-    startCamera(camera);
+    startCamera();
   }
 
   @override
@@ -35,13 +35,13 @@ class _CameraState extends State<Camera> {
     super.dispose();
   }
 
-  void startCamera(CameraDescription camera){
+  void startCamera(){
     if (widget.cameras == null || widget.cameras.length < 1) {
       print('No camera is found');
     } else {
       controller = new CameraController(
         widget.cameras[cameraFlip],
-        ResolutionPreset.medium,
+        ResolutionPreset.high,
       );
       controller.initialize().then((_) {
         if (!mounted) {
@@ -57,18 +57,12 @@ class _CameraState extends State<Camera> {
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
 
             Tflite.detectObjectOnFrame(
-              bytesList: img.planes.map((plane) {
-                return plane.bytes;
-              }).toList(),
+              bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
               model: "SSDMobileNet",
               imageHeight: img.height,
               imageWidth: img.width,
-              imageMean: 127.5,
-              imageStd: 127.5,
-              numResultsPerClass: 1, //Can only see one class at the time
-              threshold: 0.5, //only detects in model if more than 50% sure
-              asynch: true, //todo --> not sure if needed
-              //rotation: 90, //todo --> not sure if needed
+              numResultsPerClass: 5,
+              threshold: 0.5,
             ).then((recognitions) {
               print(recognitions);
 
@@ -81,8 +75,8 @@ class _CameraState extends State<Camera> {
                     || element.toString().contains("detectedClass: bottle")));
 
                 newRecognitions.add(recognitions[newRecognitionIndex]);
-              }catch(e){
-                print(e.toString());
+              }catch(e) {
+                // no person found
               }
               widget.setRecognitions(newRecognitions, img.height, img.width);
               isDetecting = false;
@@ -99,19 +93,19 @@ class _CameraState extends State<Camera> {
     if (lensDirection == CameraLensDirection.front) {
       setState(() {
         //Back camera
-        cameraFlip =0;
+        cameraFlip = 0;
       });
       camera = cameras[0];
     }
     else {
       setState(() {
         //Front camera
-        cameraFlip =1;
+        cameraFlip = 1;
       });
       camera = cameras[1];
     }
     if (camera != null) {
-      startCamera(camera);
+      startCamera();
     }
     else {
       print('Asked camera not available');
