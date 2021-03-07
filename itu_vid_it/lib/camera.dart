@@ -1,22 +1,16 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/main.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
-
-const String ssd = "SSD MobileNet";
 
 typedef void Callback(List<dynamic> list, int h, int w);
 
 class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final Callback setRecognitions;
-  final String model;
 
-  Camera(this.cameras, this.model, this.setRecognitions);
+  Camera(this.cameras, this.setRecognitions);
 
   @override
   _CameraState createState() => new _CameraState();
@@ -54,7 +48,7 @@ class _CameraState extends State<Camera> {
           return;
         }
         setState(() {});
-        
+
 
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
@@ -83,15 +77,13 @@ class _CameraState extends State<Camera> {
               try {
                 int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
                 element.toString().contains("detectedClass: person")
-                //todo --> slet linjen her for kun at tracke personer
+                    //todo --> slet linjen her for kun at tracke personer
                     || element.toString().contains("detectedClass: bottle")));
 
                 newRecognitions.add(recognitions[newRecognitionIndex]);
               }catch(e){
                 print(e.toString());
               }
-
-
               widget.setRecognitions(newRecognitions, img.height, img.width);
               isDetecting = false;
             });
@@ -144,8 +136,8 @@ class _CameraState extends State<Camera> {
     return Stack(
       children: [
         OverflowBox(
-        maxHeight:
-        screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          maxHeight:
+          screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
           maxWidth:
           screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
           child: CameraPreview(controller),
