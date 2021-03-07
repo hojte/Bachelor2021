@@ -22,7 +22,8 @@ return true;
     ComputeData cd = ComputeData(_trackingData);
     print("XXXXXXXXXXXXXX: " + cd.xData);
 
-    sendDataToESP(utf8.encode(_trackingData.xCoord));
+    sendDataToESP(utf8.encode(cd.xData));
+    //sendDataToESP(utf8.encode(_trackingData.xCoord));
 
     return Container();
   }
@@ -58,12 +59,15 @@ class ComputeData {
       if(xdata>0.4){
         return "Right";
       }
-      else if (xdata>0.3){
+      else if (xdata<0.3){
         return "Left";
       }
+      else{
+        //If x is between 0.4 and 0.3
+        return "Hold";
+      }
     }
-    else{
-      return "Hold";
-    }
+    //If there is no x data given
+    //return "Hold";
   }
 }
