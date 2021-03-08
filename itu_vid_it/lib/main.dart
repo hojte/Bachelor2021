@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'homeHook.dart';
-import 'trackingData.dart';
 
 List<CameraDescription> cameras;
 

@@ -1,12 +1,28 @@
+import 'dart:typed_data';
+
+import 'dart:typed_data';
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ituvidit/mountController.dart';
+
+const DEVICE_NAME = "VidItESP32";
+//const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
+FlutterBlue fBlue = FlutterBlue.instance;
+BluetoothDevice espDevice;
+BluetoothCharacteristic espCharacteristic;
 
 class FlutterBlueWidget extends HookWidget {
+  final setBleCharacteristic;
+  FlutterBlueWidget(this.setBleCharacteristic);
+
   @override
   Widget build(BuildContext context) {
     final bluetoothState = useStream(FlutterBlue.instance.state);
-    if (bluetoothState?.data == BluetoothState.on) return FindESPScreen();
+    if (bluetoothState?.data == BluetoothState.on) return FindESPScreen(setBleCharacteristic);
     else return BluetoothOffScreen();
   }
 }
@@ -18,31 +34,29 @@ class BluetoothOffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.bluetooth_disabled,
-              size: 200.0,
-              color: Colors.white54,
-            ),
-            Text(
-              'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            Icons.bluetooth_disabled,
+            size: 200.0,
+            color: Colors.white54,
+          ),
+          Text(
+            'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+          ),
+        ],
+      ),
     );
   }
 }
 
 class FindESPScreen extends HookWidget {
-  static const DEVICE_NAME = "VidItESP32";
-  //static const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
+  final _setBleCharacteristic;
+  FindESPScreen(this._setBleCharacteristic);
+
   @override
   Widget build(BuildContext context) {
-    BluetoothDevice espDevice;
-    List<BluetoothService> espServices;
-    FlutterBlue fBlue = FlutterBlue.instance;
     fBlue.setLogLevel(LogLevel.notice);
     final scanSnapshot = useStream(fBlue.scanResults);
     final isScanningSnapshot = useStream(fBlue.isScanning);
@@ -54,6 +68,13 @@ class FindESPScreen extends HookWidget {
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
 
     useEffect(() { // call scan once on widget init
+      fBlue.connectedDevices.then((devices) => {
+        if (devices.any((device) => device.name == DEVICE_NAME)) {
+          fBlue.stopScan(),
+          mountConnected.value = true,
+          mountFound.value = true,
+        }
+      });
       fBlue.startScan(timeout: Duration(seconds: 1));
       return fBlue.stopScan;
     },
@@ -64,18 +85,19 @@ class FindESPScreen extends HookWidget {
         espDevice = scanSnapshot.data
             .firstWhere((element) => element.device.name == DEVICE_NAME)
             .device;
-        print("ESP> " + espDevice.toString());
+        print(DEVICE_NAME + " -> " + espDevice.toString());
         mountFound.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
         //print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
-        fBlue.connectedDevices.then((devices) => {
-          if (devices.any((device) => device.name == DEVICE_NAME)) {
-            fBlue.stopScan(),
-            mountConnected.value = true,
-            mountFound.value = true,
-          }
-        });
+        if(!isScanningSnapshot.data)
+          fBlue.connectedDevices.then((devices) => {
+            if (devices.any((device) => device.name == DEVICE_NAME)) {
+              fBlue.stopScan(),
+              mountConnected.value = true,
+              mountFound.value = true,
+            }
+          });
         if(!isScanningSnapshot.data)
           mountFound.value = false;
       }
@@ -84,7 +106,6 @@ class FindESPScreen extends HookWidget {
       [scanSnapshot.data.length],
     );
     Future waitForConnect() async {
-      if (espServices != null) return true; // already connected
       //print("ran waitForConnect()");
       try {
         await espDevice.connect(autoConnect: true);
@@ -92,16 +113,17 @@ class FindESPScreen extends HookWidget {
         if (!e.toString().contains("already_connected")) throw e; // unexpected error
       }
       mountConnected.value = true;
-      espServices = await espDevice.discoverServices();
+      var espServices = await espDevice.discoverServices();
       if (espServices != null)
         for (var service in espServices) {
           if (service.uuid.toString() == "ea411899-d14c-45d5-81f0-ce96b217c64a")
             for (BluetoothCharacteristic characteristic in service.characteristics) {
               if (characteristic.uuid.toString() == "91235981-23ee-4bca-b7b2-2aec7d075438") {
+                espCharacteristic = characteristic;
+                _setBleCharacteristic(characteristic);
                 var readValue = await characteristic.read();
-                print("redVal: " + readValue.toString());
-                await characteristic.write([77, 97, 116, 104, 105, 97, 115], // Mathias
-                    withoutResponse: true);
+                print("redVal: " + utf8.decode(readValue));
+                await characteristic.write(utf8.encode("Frederik"), withoutResponse: true);
               }
             }
         }
@@ -161,6 +183,8 @@ class FindESPScreen extends HookWidget {
               Row(children: [Text("Connected           "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
               renderDeviceList(),
               renderAlertWidget(),
+              //TextButton(onPressed: () => sendDataToESP(utf8.encode("Right")), child: Text("Right")),
+              //TextButton(onPressed: () => sendDataToESP(utf8.encode("Left")), child: Text("Left"))
             ]),
       ),
     );
