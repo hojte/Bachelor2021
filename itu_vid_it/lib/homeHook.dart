@@ -60,7 +60,7 @@ class HomeHooks extends HookWidget{
         Scaffold(
           appBar: AppBar(
             //Only show backarrow if _model.value is not ""
-            leading: !isTracking.value ? IconButton(
+            leading: isTracking.value ? IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 isTracking.value = false;

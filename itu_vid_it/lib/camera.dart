@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'dart:math' as math;
 
+import 'image_converter.dart';
+
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
 class Camera extends StatefulWidget {
@@ -25,7 +27,6 @@ class Camera extends StatefulWidget {
 
 class _CameraState extends State<Camera> {
   CameraController controller;
-  CameraController recController;
   bool isDetecting = false;
   CameraDescription camera;
   int cameraFlip = 0;
@@ -49,17 +50,10 @@ class _CameraState extends State<Camera> {
     if (widget.cameras == null || widget.cameras.length < 1) {
       print('No camera is found');
     } else {
-      controller = new trackingCam.CameraController(
+      controller = new CameraController(
         widget.cameras[cameraFlip],
-        trackingCam.ResolutionPreset.high,
+        ResolutionPreset.high,
       );
-      recordingCam.availableCameras().then((recCams) {
-        recController = new recordingCam.CameraController(
-          recCams[cameraFlip],
-          recordingCam.ResolutionPreset.high,
-        );
-        recController.initialize().then((value) => print("YEEEEEES!!!"));
-      });
 
       controller.initialize().then((_) {
         if (!mounted) {
@@ -67,11 +61,15 @@ class _CameraState extends State<Camera> {
         }
         setState(() {});
 
-        controller.startImageStream((trackingCam.CameraImage img) {
+        controller.startImageStream((CameraImage img) async {
           if (isRecording) {
-            List<Uint8List> uintList = img.planes.map((plane) {return plane.bytes;}).toList();
-            Uint8List uint8list = img.planes[0].bytes;
-            videoFile = File.fromRawPath(uint8list);
+            //List<Uint8List> uintList = img.planes.map((plane) {return plane.bytes;}).toList();
+            //Uint8List uint8list = img.planes[0].bytes;
+            print("Bithc");
+            //todo --> this creates pngs and freezes the fuck out of the program
+            //convertImagetoPng(img);
+            //File file = png.;
+            //videoFile = File.fromRawPath(uint8list);
             //videoFile.create().then((value) => print("SUCCESS!!!!"));
             //videoFile?.writeAsBytes(uintList)?.then((value) => print("SUCCESS!!!"));
           }
@@ -87,6 +85,7 @@ class _CameraState extends State<Camera> {
               threshold: 0.5,
             ).then((recognitions) {
               //print(recognitions);
+
 
               //making a new list that only contains detectedClass: person
               List<dynamic> newRecognitions = List<dynamic>();
@@ -144,7 +143,7 @@ class _CameraState extends State<Camera> {
   void changeCameraLens() {
     // get current lens direction (front / rear)
     final lensDirection = controller.description.lensDirection;
-    if (lensDirection == trackingCam.CameraLensDirection.front) {
+    if (lensDirection == CameraLensDirection.front) {
       setState(() {
         //Back camera
         cameraFlip = 0;
@@ -188,7 +187,7 @@ class _CameraState extends State<Camera> {
           screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
           maxWidth:
           screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
-          child: trackingCam.CameraPreview(controller),
+          child: CameraPreview(controller),
         ),
         Container(
           alignment: Alignment.topRight,
