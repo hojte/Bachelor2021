@@ -1,46 +1,37 @@
 import 'dart:io';
-
 import 'package:camera/camera.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart' as pathProvider;
 
-class cameraRecorder {
-  CameraController controller;
-  cameraRecorder(CameraController controller){
-    this.controller = controller;
-  }
+class CameraRecorder {
+  CameraController recController;
+  CameraDescription cameraDescription;
+  CameraRecorder(this.cameraDescription);
 
-  Future<void> startRecording() async{
-    final CameraController cameraController = controller;
-    try{
-    await cameraController.prepareForVideoRecording();
-    await cameraController.startVideoRecording();
-    } on CameraException catch(e){
-      e.toString();
-
-    }
+  Future<void> startRecording() async {
+    await initializeRecordController();
+    await recController.prepareForVideoRecording();
+    await recController.startVideoRecording();
   }
   Future<XFile> endRecording() async {
-    final CameraController cameraController = controller;
-
-    try {
-      return await cameraController.stopVideoRecording();
-    } on CameraException catch(e){
-      e.toString();
-      return null;
-    }
+      return await recController.stopVideoRecording();
   }
 
   Future<String> storageDirectory() async{
-    final Directory getDirectory = await getApplicationDocumentsDirectory();
+    final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
     final String videoDirectory = '${getDirectory.path}/Videos';
     await Directory(videoDirectory).create(recursive: true);
     String time = DateTime.now().millisecondsSinceEpoch.toString();
-    final String filePath = '$videoDirectory/$time.mp4';
+    final String filePath = '$videoDirectory/VidITClip$time.mp4';
     return filePath;
+  }
 
+  Future initializeRecordController() async {
+    //var cameras = await availableCameras();
+    recController = new CameraController(
+      cameraDescription,
+      ResolutionPreset.high,
+    );
+    await recController.initialize();
   }
 }
 

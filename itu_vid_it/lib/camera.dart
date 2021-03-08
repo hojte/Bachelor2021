@@ -26,9 +26,10 @@ class Camera extends StatefulWidget {
 
 class _CameraState extends State<Camera> {
   CameraController controller;
+  CameraController recController;
   bool isDetecting = false;
   CameraDescription camera;
-  int cameraFlip =0;
+  int cameraFlip = 0;
   TrackingData _trackingData;
 
 
@@ -49,9 +50,14 @@ class _CameraState extends State<Camera> {
       print('No camera is found');
     } else {
       controller = new CameraController(
-        widget.cameras[cameraFlip],
+        widget.cameras[1],
         ResolutionPreset.high,
       );
+      recController = new CameraController(
+        widget.cameras[0],
+        ResolutionPreset.high,
+      );
+      recController.initialize().then((value) => null);
       controller.initialize().then((_) {
         if (!mounted) {
           return;
@@ -139,7 +145,6 @@ class _CameraState extends State<Camera> {
 
   @override
   Widget build(BuildContext context) {
-    final switchRecording = false;
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
@@ -174,8 +179,7 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        recordButton(controller)
-
+        RecordButton(cameras[cameraFlip], startCamera)
       ],
     );
   }

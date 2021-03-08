@@ -11,34 +11,29 @@ import 'package:ituvidit/cameraRecorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 
-class recordButton extends HookWidget{
-  bool recording = false;
-  CameraController controller;
-  XFile xfile;
-
-  recordButton(CameraController controller ){
-    this.controller = controller;
+class RecordButton extends HookWidget{
+  CameraDescription cameraDescription;
+  final startCamera;
+  RecordButton(this.cameraDescription, this.startCamera);
 
 
-  }
 
   @override
   Widget build(BuildContext context) {
-    final switchRecording = useState(recording);
+    final recorder = useState(CameraRecorder(cameraDescription));
+    final switchRecording = useState(false);
     return Container(
       alignment: Alignment.bottomCenter,
       child: FloatingActionButton(
         child: switchRecording.value ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),
         backgroundColor: switchRecording.value ? Colors.red : Colors.green,
-        onPressed: () async {
+        onPressed: () {
           if(!switchRecording.value){
-            //start recording
-            //save to phone
-
-            //await cameraRecorder(controller).startRecording();
-
             print('start video recording');
-            await cameraRecorder(controller).startRecording();
+            //await recorder.value.initializeRecordController();
+            recorder.value.startRecording().then((value) => null);
+            startCamera();
+
             /*
             ImagePicker.pickVideo(source: ImageSource.camera).then((File file) {
               if (file != null) {
@@ -51,36 +46,14 @@ class recordButton extends HookWidget{
 
           }
           else{
-            await cameraRecorder(controller).endRecording().then((file) {
-              xfile = file;
-             // GallerySaver.saveVideo(file);
-
+            recorder.value.endRecording().then((xFile) {
+              recorder.value.storageDirectory().then((path) {
+                xFile.saveTo(path);
+                print("Saved to $path");
+              });
             });
-            /*
-            var file = await cameraRecorder(controller).endRecording();
-            videoFile = XFile(file.toString());
-            var k = videoFile.;
-
-            print('file' + videoFile.toString());
-            print('Video is being saved');
-
-            //videoFile.saveTo(cameraRecorder(controller).storageDirectory().toString());
-            String time = DateTime.now().millisecondsSinceEpoch.toString();
-            await GallerySaver.saveVideo();
-*/
-
-
-
-            }
-
+          }
           switchRecording.value = !switchRecording.value;
-          recording = !recording;
-
-
-
-
-
-
         },
       ),
 
