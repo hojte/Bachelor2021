@@ -93,11 +93,11 @@ void loop() {
   if(connectedUsers > 0){
     
     digitalWrite(ledPin, HIGH);
-    //Serial.println(VidItCharacteristic->getValue().c_str());
+    Serial.println(VidItCharacteristic->getValue().c_str());
     //Debug statement - printing in console.
     
     if (VidItCharacteristic->getValue()== "Right"){
-      Serial.println("Gooo right");                   
+      //Serial.println("Gooo right");                   
        //Counter clockwise
        digitalWrite(dirPin_1,HIGH); // Enables the motor to move in a particular direction      
          // while(VidItCharacteristic->getValue()== "Right"){
@@ -110,7 +110,7 @@ void loop() {
         delay(10); // One second delay
       }
       else if (VidItCharacteristic->getValue()== "Left"){
-      Serial.println("Gooo left");  
+      //Serial.println("Gooo left");  
           //Clockwise
           digitalWrite(dirPin_1,LOW); //Changes the rotations direction
           // Makes 400 pulses for making two full cycle rotation
@@ -124,7 +124,7 @@ void loop() {
         }
         else{
           //Do nothing
-          Serial.println("FUCKING HOLD BITHC");  
+          //Serial.println("FUCKING HOLD BITHC");  
           }
            
   }
