@@ -23,7 +23,7 @@ return true;
 
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
-      //print(cd.boundingBoxXCenter);
+      print(cd.boundingBoxCenter);
       sendDataToESP(utf8.encode(cd.boundingBoxCenter));
       //sendDataToESP(utf8.encode(cd.boundingBoxYCenter));
 

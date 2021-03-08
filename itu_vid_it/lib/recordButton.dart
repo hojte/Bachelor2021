@@ -32,7 +32,7 @@ class recordButton extends HookWidget{
           else{
             var file = controller.stopVideoRecording();
             print('stopping video recording');
-            controller.;
+            //controller.;
             }
 
           switchRecording.value = !switchRecording.value;
