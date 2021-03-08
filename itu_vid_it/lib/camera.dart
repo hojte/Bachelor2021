@@ -1,14 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ituvidit/colors.dart';
-import 'package:ituvidit/main.dart';
-import 'package:ituvidit/recordButton.dart';
 import 'package:tflite/tflite.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'dart:math' as math;
 
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
@@ -31,7 +30,8 @@ class _CameraState extends State<Camera> {
   CameraDescription camera;
   int cameraFlip = 0;
   TrackingData _trackingData;
-
+  File videoFile;
+  bool isRecording = false;
 
   @override
   void initState() {
@@ -45,31 +45,39 @@ class _CameraState extends State<Camera> {
     super.dispose();
   }
 
-  void startCamera(){
+  void startCamera() {
     if (widget.cameras == null || widget.cameras.length < 1) {
       print('No camera is found');
     } else {
-      controller = new CameraController(
-        widget.cameras[1],
-        ResolutionPreset.high,
+      controller = new trackingCam.CameraController(
+        widget.cameras[cameraFlip],
+        trackingCam.ResolutionPreset.high,
       );
-      recController = new CameraController(
-        widget.cameras[0],
-        ResolutionPreset.high,
-      );
-      recController.initialize().then((value) => null);
+      recordingCam.availableCameras().then((recCams) {
+        recController = new recordingCam.CameraController(
+          recCams[cameraFlip],
+          recordingCam.ResolutionPreset.high,
+        );
+        recController.initialize().then((value) => print("YEEEEEES!!!"));
+      });
+
       controller.initialize().then((_) {
         if (!mounted) {
           return;
         }
         setState(() {});
 
-
-        controller.startImageStream((CameraImage img) {
+        controller.startImageStream((trackingCam.CameraImage img) {
+          if (isRecording) {
+            List<Uint8List> uintList = img.planes.map((plane) {return plane.bytes;}).toList();
+            Uint8List uint8list = img.planes[0].bytes;
+            videoFile = File.fromRawPath(uint8list);
+            //videoFile.create().then((value) => print("SUCCESS!!!!"));
+            //videoFile?.writeAsBytes(uintList)?.then((value) => print("SUCCESS!!!"));
+          }
           if (!isDetecting) {
             isDetecting = true;
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
-
             Tflite.detectObjectOnFrame(
               bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
               model: "SSDMobileNet",
@@ -118,10 +126,25 @@ class _CameraState extends State<Camera> {
     }
   }
 
+  void startRecording() async {
+    isRecording = true;
+    final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
+    final String videoDirectory = '${getDirectory.path}/Videos';
+    await Directory(videoDirectory).create(recursive: true);
+    String time = DateTime.now().millisecondsSinceEpoch.toString();
+    final String filePath = '$videoDirectory/VidITClip$time.mp4';
+
+    videoFile = File(filePath);
+  }
+
+  void stopRecording() {
+    isRecording = false;
+  }
+
   void changeCameraLens() {
     // get current lens direction (front / rear)
     final lensDirection = controller.description.lensDirection;
-    if (lensDirection == CameraLensDirection.front) {
+    if (lensDirection == trackingCam.CameraLensDirection.front) {
       setState(() {
         //Back camera
         cameraFlip = 0;
@@ -165,7 +188,7 @@ class _CameraState extends State<Camera> {
           screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
           maxWidth:
           screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
-          child: CameraPreview(controller),
+          child: trackingCam.CameraPreview(controller),
         ),
         Container(
           alignment: Alignment.topRight,
@@ -177,9 +200,16 @@ class _CameraState extends State<Camera> {
           ) ,
         ),
 
-        MountController(_trackingData, widget._bleCharacteristic),
+        //MountController(_trackingData, widget._bleCharacteristic),
 
-        RecordButton(cameras[cameraFlip], startCamera)
+        //RecordButton(cameras[cameraFlip], startCamera)
+    FloatingActionButton(
+    child: isRecording ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),
+    backgroundColor: isRecording ? Colors.red : Colors.green,
+    onPressed: () {
+      startRecording();
+    }
+    ),
       ],
     );
   }
