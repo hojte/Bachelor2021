@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -10,7 +8,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'dart:math' as math;
 
-import 'image_converter.dart';
+
+import 'image_converter.dart' as imgConvert;
 
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
@@ -33,6 +32,8 @@ class _CameraState extends State<Camera> {
   TrackingData _trackingData;
   File videoFile;
   bool isRecording = false;
+  String videoDirectory;
+  int framesStreamed = 0;
 
   @override
   void initState() {
@@ -61,17 +62,15 @@ class _CameraState extends State<Camera> {
         }
         setState(() {});
 
-        controller.startImageStream((CameraImage img) async {
+        controller.startImageStream((CameraImage img) {
+
           if (isRecording) {
-            //List<Uint8List> uintList = img.planes.map((plane) {return plane.bytes;}).toList();
-            //Uint8List uint8list = img.planes[0].bytes;
-            print("Bithc");
-            //todo --> this creates pngs and freezes the fuck out of the program
-            //convertImagetoPng(img);
-            //File file = png.;
-            //videoFile = File.fromRawPath(uint8list);
-            //videoFile.create().then((value) => print("SUCCESS!!!!"));
-            //videoFile?.writeAsBytes(uintList)?.then((value) => print("SUCCESS!!!"));
+           // print("Bithc $framesStreamed");
+            framesStreamed++;
+            String filePath = '$videoDirectory/VidIT$framesStreamed${DateTime.now().toIso8601String()}.jpg';
+            imgConvert.convertImageToPngBytes(img, filePath).then((success) {
+              print('saved=$success');
+            });
           }
           if (!isDetecting) {
             isDetecting = true;
@@ -113,7 +112,7 @@ class _CameraState extends State<Camera> {
                 String testSpeed = "500";//todo --> fix this compared to earlier frame coords
                 _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
               }
-              else{
+              else {
                 _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
@@ -126,18 +125,19 @@ class _CameraState extends State<Camera> {
   }
 
   void startRecording() async {
-    isRecording = true;
     final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
-    final String videoDirectory = '${getDirectory.path}/Videos';
+    String time = DateTime.now().toIso8601String();
+    videoDirectory = '${getDirectory.path}/Videos/VidItPngSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
-    String time = DateTime.now().millisecondsSinceEpoch.toString();
-    final String filePath = '$videoDirectory/VidITClip$time.mp4';
-
-    videoFile = File(filePath);
+    //final String filePath = '$videoDirectory/VidITClip$time.mp4'; // use when we can build mp4 succesfully
+    print('dir created $videoDirectory');
+    //videoFile = File(filepath);
+    isRecording = true;
   }
 
   void stopRecording() {
     isRecording = false;
+    framesStreamed = 0;
   }
 
   void changeCameraLens() {
@@ -199,16 +199,15 @@ class _CameraState extends State<Camera> {
           ) ,
         ),
 
-        //MountController(_trackingData, widget._bleCharacteristic),
+        MountController(_trackingData, widget._bleCharacteristic),
 
-        //RecordButton(cameras[cameraFlip], startCamera)
-    FloatingActionButton(
-    child: isRecording ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),
-    backgroundColor: isRecording ? Colors.red : Colors.green,
-    onPressed: () {
-      startRecording();
-    }
-    ),
+        FloatingActionButton(
+            child: isRecording ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),
+            backgroundColor: isRecording ? Colors.red : Colors.green,
+            onPressed: () {
+              isRecording ? stopRecording() : startRecording();
+            }
+        ),
       ],
     );
   }

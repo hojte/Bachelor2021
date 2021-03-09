@@ -1,26 +1,28 @@
 // imgLib -> Image package from https://pub.dartlang.org/packages/image
 //https://gist.github.com/Alby-o/fe87e35bc21d534c8220aed7df028e03
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
-Future<List<int>> convertImagetoPng(CameraImage image) async {
+Future<bool> convertImageToPngBytes(CameraImage image, String filePath) async {
   try {
     imglib.Image img;
     if (image.format.group == ImageFormatGroup.yuv420) {
-      img = _convertYUV420(image);
+      img = await compute(_convertYUV420, image);
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
-      img = _convertBGRA8888(image);
+      img = await compute(_convertBGRA8888, image);
     }
 
-    imglib.PngEncoder pngEncoder = new imglib.PngEncoder();
-
-    // Convert to png
-    List<int> png = pngEncoder.encodeImage(img);
-    return png;
+    // Convert to png/jpg
+    List<int> res = await compute(imglib.encodeJpg, img);
+    await File(filePath).writeAsBytes(res);
+    return true;
   } catch (e) {
-    print(">>>>>>>>>>>> ERROR:" + e.toString());
+    print(">>CONVERSION ERROR:" + e.toString());
+    return false;
   }
-  return null;
 }
 
 // CameraImage BGRA8888 -> PNG
@@ -38,7 +40,6 @@ imglib.Image _convertBGRA8888(CameraImage image) {
 // Black
 imglib.Image _convertYUV420(CameraImage image) {
   var img = imglib.Image(image.width, image.height); // Create Image buffer
-
   Plane plane = image.planes[0];
   const int shift = (0xFF << 24);
 
