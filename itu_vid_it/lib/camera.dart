@@ -32,11 +32,8 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  int cameraFlip =0;
   TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
-
   int cameraFlip = 0;
-  TrackingData _trackingData;
   File videoFile;
   bool isRecording = false;
   bool isSaving = false;
