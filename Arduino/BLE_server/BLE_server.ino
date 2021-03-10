@@ -93,6 +93,32 @@ void setup() {
 }
 
 
+void rotateSingleStepper(int dirPin, int stepPin, int direct)
+{
+  digitalWrite(dirPin,direct); // Enables the motor to move in a particular direction      
+  digitalWrite(stepPin,HIGH); 
+  delayMicroseconds(500); 
+  digitalWrite(stepPin,LOW); 
+  delayMicroseconds(500);         
+  delay(1); 
+}
+void rotateMultipleSteppers(int dirPin1, int stepPin1, int direct1, int dirPin2, int stepPin2, int direct2)
+{
+  digitalWrite(dirPin1,direct1); // Enables the motor to move in a particular direction      
+  digitalWrite(stepPin1,HIGH); 
+  delayMicroseconds(500); 
+  digitalWrite(stepPin1,LOW); 
+  delayMicroseconds(500);
+
+  digitalWrite(dirPin2,direct2); // Enables the motor to move in a particular direction      
+  digitalWrite(stepPin2,HIGH); 
+  delayMicroseconds(500); 
+  digitalWrite(stepPin2,LOW); 
+  delayMicroseconds(500);
+  delay(1); 
+}
+
+
 int connectedUsers = 0;
 
 void loop() {
@@ -104,116 +130,34 @@ void loop() {
     digitalWrite(ledPin, HIGH);
     Serial.println(VidItCharacteristic->getValue().c_str());
     //Debug statement - printing in console.
-    
     if (VidItCharacteristic->getValue()== "Right"){
-       //Counter clockwise
-          digitalWrite(dirPin_1,HIGH); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_1,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_1,LOW); 
-          delayMicroseconds(500); 
-          
-        delay(1); 
+      rotateSingleStepper(dirPin_1, stepPin_1,HIGH);
       }
       else if (VidItCharacteristic->getValue()== "Left"){
-          //Clockwise
-          digitalWrite(dirPin_1,LOW); //Changes the rotations direction
-          // Makes 400 pulses for making two full cycle rotation
-            digitalWrite(stepPin_1,HIGH);
-            delayMicroseconds(500);
-            digitalWrite(stepPin_1,LOW);
-            delayMicroseconds(500);
-            delay(1); 
+        rotateSingleStepper(dirPin_1, stepPin_1,LOW);
         }
-        
-        else if(VidItCharacteristic->getValue()== "Up"){
-          digitalWrite(dirPin_2,HIGH); // Enables the motor to move in a particular direction      
-            digitalWrite(stepPin_2,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_2,LOW); 
-          delayMicroseconds(500); 
-          delay(1);
-          }
-          else if(VidItCharacteristic->getValue()== "Down"){
-          digitalWrite(dirPin_2,LOW); // Enables the motor to move in a particular direction      
-            digitalWrite(stepPin_2,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_2,LOW); 
-          delayMicroseconds(500); 
-          delay(1);
-          }
-          else if(VidItCharacteristic->getValue()== "Up & Right"){
-          //Going up  
-          digitalWrite(dirPin_2,HIGH); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_2,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_2,LOW); 
-          delayMicroseconds(500); 
-
-          //Going right
-          digitalWrite(dirPin_1,HIGH); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_1,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_1,LOW); 
-          delayMicroseconds(500); 
-          delay(1);
-          }
-          else if(VidItCharacteristic->getValue()== "Up & Left"){
-          //Going up  
-          digitalWrite(dirPin_2,HIGH); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_2,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_2,LOW); 
-          delayMicroseconds(500); 
-
-          //Going left
-          //Clockwise
-            digitalWrite(dirPin_1,LOW); //Changes the rotations direction
-            digitalWrite(stepPin_1,HIGH);
-            delayMicroseconds(500);
-            digitalWrite(stepPin_1,LOW);
-            delayMicroseconds(500);
-            delay(1); 
-          }
-          else if(VidItCharacteristic->getValue()== "Down & Right"){
-          //Going down
-          digitalWrite(dirPin_2,LOW); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_2,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_2,LOW); 
-          delayMicroseconds(500); 
-
-          //Going right
-          digitalWrite(dirPin_1,HIGH); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_1,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_1,LOW); 
-          delayMicroseconds(500); 
-          delay(1);
-          }
-          else if(VidItCharacteristic->getValue()== "Down & Left"){
-          //Going down
-          digitalWrite(dirPin_2,LOW); // Enables the motor to move in a particular direction      
-          digitalWrite(stepPin_2,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_2,LOW); 
-          delayMicroseconds(500); 
-
-          //Going right
-          //Clockwise
-          digitalWrite(dirPin_1,LOW); //Changes the rotations direction
-          digitalWrite(stepPin_1,HIGH);
-          delayMicroseconds(500);
-          digitalWrite(stepPin_1,LOW);
-          delayMicroseconds(500); 
-          delay(1);
-          }
-          
-        else{
-          //Do nothing
-          //Serial.println("FUCKING HOLD BITHC");  
-          }
-           
+      else if(VidItCharacteristic->getValue()== "Up"){
+        rotateSingleStepper(dirPin_2, stepPin_2,HIGH);
+        }
+      else if(VidItCharacteristic->getValue()== "Down"){
+        rotateSingleStepper(dirPin_2, stepPin_2,LOW);
+        }
+      else if(VidItCharacteristic->getValue()== "Up & Right"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,HIGH);
+        }
+      else if(VidItCharacteristic->getValue()== "Up & Left"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,LOW);
+        }
+      else if(VidItCharacteristic->getValue()== "Down & Right"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,HIGH);
+        }
+      else if(VidItCharacteristic->getValue()== "Down & Left"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,LOW);
+        }
+      else{
+        //Do nothing
+        //Serial.println("FUCKING HOLD BITHC");  
+     }           
   }
   else{
     digitalWrite(ledPin, LOW);
