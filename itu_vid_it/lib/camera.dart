@@ -36,8 +36,9 @@ class _CameraState extends State<Camera> {
   TrackingData _trackingData;
   File videoFile;
   bool isRecording = false;
+  bool isSaving = false;
   String videoDirectory;
-  int framesStreamed = 0;
+  int currentFrameIndex = 0;
 
   @override
   void initState() {
@@ -49,6 +50,14 @@ class _CameraState extends State<Camera> {
   void dispose() {
     controller?.dispose();
     super.dispose();
+  }
+
+  //Returns when we are done saving images
+  Future<void> waitForSave() async {
+    while(isSaving)
+      await Future.delayed(Duration(seconds: 1));
+    print('done saving');
+    return;
   }
 
   void startCamera() {
@@ -69,20 +78,20 @@ class _CameraState extends State<Camera> {
         controller.startImageStream((CameraImage img) {
 
           if (isRecording) {
-           // print("Bithc $framesStreamed");
-            framesStreamed++;
-            //If statement and gallary saver is for testing purposes
-           // if (framesStreamed == 1) {
-
-              String filePath = '$videoDirectory/VidIT$framesStreamed.png';
-              imgConvert.convertImageToPngBytes(img, filePath).then((success) {
-                print('saved=$success');
-                //GallerySaver.saveImage(filePath);
+            //if (currentFrameIndex>9) stopRecording(); // for taking shor test vids
+            currentFrameIndex++;
+              String filePath = '$videoDirectory/VidIT$currentFrameIndex.png';
+              isSaving = true;
+              imgConvert.convertImageToPngBytes(img, filePath, currentFrameIndex).then((frameSaved) {
+                print('saved=$frameSaved/$currentFrameIndex');
+                if (!isRecording) {
+                  if (frameSaved==currentFrameIndex) isSaving = false;
+                }
               });
 
            // }
           }
-          if (!isDetecting) {
+          /*if (!isDetecting) {
             isDetecting = true;
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
             Tflite.detectObjectOnFrame(
@@ -128,14 +137,15 @@ class _CameraState extends State<Camera> {
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
             });
-          }
+          }*/
         });
       });
     }
   }
 
   void startRecording() async {
-    final Directory getDirectory = await pathProvider.getTemporaryDirectory();
+    //final Directory getDirectory = await pathProvider.getTemporaryDirectory();
+    final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidItPngSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
@@ -147,14 +157,16 @@ class _CameraState extends State<Camera> {
 
   void stopRecording() {
     isRecording = false;
-    framesStreamed = 0;
-    _flutterFFmpeg.execute("-r 60 -f image2 -s 1920x1080 -i $videoDirectory/VidIT3.png -vcodec libx264 -crf 25  -pix_fmt yuv420p $videoDirectory/.mp4").then((rc) => print("FFmpeg process exited with rc $rc"));
-    print('Saving video');
-    GallerySaver.saveVideo(videoDirectory);
+    waitForSave().then((value) {
+      print("COMPOSING MP4!!");
+      _flutterFFmpeg.execute("-r 30 -f image2 -s 1920x1080 -i $videoDirectory/VidIT%01d.png -vcodec libx264 -pix_fmt yuv420p $videoDirectory/LOL.mp4").then((rc) {
+        print("FFmpeg process exited with rc $rc");
+        print('Saving video');
+        GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
+        currentFrameIndex = 0;
+      });
+    });
 
-
-
-    //_flutterFFmpeg.execute("-r 1/5 -start_number 2 -i $videoDirectory/VidIT3.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4").then((rc) => print("FFmpeg process exited with rc $rc"));
   }
 
   void changeCameraLens() {
@@ -216,7 +228,7 @@ class _CameraState extends State<Camera> {
           ) ,
         ),
 
-        MountController(_trackingData, widget._bleCharacteristic),
+        //MountController(_trackingData, widget._bleCharacteristic),
 
         FloatingActionButton(
             child: isRecording ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),

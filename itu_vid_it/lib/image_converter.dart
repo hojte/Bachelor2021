@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
-Future<bool> convertImageToPngBytes(CameraImage image, String filePath) async {
+Future<int> convertImageToPngBytes(CameraImage image, String filePath, int index) async {
   try {
     imglib.Image img;
     if (image.format.group == ImageFormatGroup.yuv420) {
@@ -18,10 +18,10 @@ Future<bool> convertImageToPngBytes(CameraImage image, String filePath) async {
     // Convert to png/jpg
     List<int> res = await compute(imglib.encodePng, img);
     await File(filePath).writeAsBytes(res);
-    return true;
+    return index;
   } catch (e) {
     print(">>CONVERSION ERROR:" + e.toString());
-    return false;
+    return -1;
   }
 }
 
