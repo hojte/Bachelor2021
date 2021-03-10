@@ -16,7 +16,7 @@ Future<bool> convertImageToPngBytes(CameraImage image, String filePath) async {
     }
 
     // Convert to png/jpg
-    List<int> res = await compute(imglib.encodeJpg, img);
+    List<int> res = await compute(imglib.encodePng, img);
     await File(filePath).writeAsBytes(res);
     return true;
   } catch (e) {

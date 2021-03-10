@@ -18,6 +18,10 @@ allprojects {
         jcenter()
     }
 }
+ext {
+    flutterFFmpegPackage  = "video"
+    flutterFFmpegPackage  = "audio"
+}
 
 rootProject.buildDir = '../build'
 subprojects {

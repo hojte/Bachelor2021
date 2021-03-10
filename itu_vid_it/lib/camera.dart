@@ -7,9 +7,12 @@ import 'package:tflite/tflite.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'dart:math' as math;
-
-
 import 'image_converter.dart' as imgConvert;
+
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+
+final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
+
 
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
@@ -67,7 +70,7 @@ class _CameraState extends State<Camera> {
           if (isRecording) {
            // print("Bithc $framesStreamed");
             framesStreamed++;
-            String filePath = '$videoDirectory/VidIT$framesStreamed${DateTime.now().toIso8601String()}.jpg';
+            String filePath = '$videoDirectory/VidIT$framesStreamed.png';
             imgConvert.convertImageToPngBytes(img, filePath).then((success) {
               print('saved=$success');
             });
@@ -138,6 +141,7 @@ class _CameraState extends State<Camera> {
   void stopRecording() {
     isRecording = false;
     framesStreamed = 0;
+    _flutterFFmpeg.execute("-r 1/5 -start_number 2 -i $videoDirectory/VidIT3.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4").then((rc) => print("FFmpeg process exited with rc $rc"));
   }
 
   void changeCameraLens() {
