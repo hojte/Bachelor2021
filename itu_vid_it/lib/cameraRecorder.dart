@@ -17,7 +17,7 @@ class CameraRecorder {
   }
 
   Future<String> storageDirectory() async{
-    final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
+    final Directory getDirectory = await pathProvider.getApplicationDocumentsDirectory();
     final String videoDirectory = '${getDirectory.path}/Videos';
     await Directory(videoDirectory).create(recursive: true);
     String time = DateTime.now().millisecondsSinceEpoch.toString();

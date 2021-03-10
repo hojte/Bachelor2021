@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
 import 'package:tflite/tflite.dart';
@@ -70,10 +71,16 @@ class _CameraState extends State<Camera> {
           if (isRecording) {
            // print("Bithc $framesStreamed");
             framesStreamed++;
-            String filePath = '$videoDirectory/VidIT$framesStreamed.png';
-            imgConvert.convertImageToPngBytes(img, filePath).then((success) {
-              print('saved=$success');
-            });
+            //If statement and gallary saver is for testing purposes
+           // if (framesStreamed == 1) {
+
+              String filePath = '$videoDirectory/VidIT$framesStreamed.png';
+              imgConvert.convertImageToPngBytes(img, filePath).then((success) {
+                print('saved=$success');
+                //GallerySaver.saveImage(filePath);
+              });
+
+           // }
           }
           if (!isDetecting) {
             isDetecting = true;
@@ -128,7 +135,7 @@ class _CameraState extends State<Camera> {
   }
 
   void startRecording() async {
-    final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
+    final Directory getDirectory = await pathProvider.getTemporaryDirectory();
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidItPngSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
@@ -141,7 +148,13 @@ class _CameraState extends State<Camera> {
   void stopRecording() {
     isRecording = false;
     framesStreamed = 0;
-    _flutterFFmpeg.execute("-r 1/5 -start_number 2 -i $videoDirectory/VidIT3.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4").then((rc) => print("FFmpeg process exited with rc $rc"));
+    _flutterFFmpeg.execute("-r 60 -f image2 -s 1920x1080 -i $videoDirectory/VidIT3.png -vcodec libx264 -crf 25  -pix_fmt yuv420p $videoDirectory/.mp4").then((rc) => print("FFmpeg process exited with rc $rc"));
+    print('Saving video');
+    GallerySaver.saveVideo(videoDirectory);
+
+
+
+    //_flutterFFmpeg.execute("-r 1/5 -start_number 2 -i $videoDirectory/VidIT3.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4").then((rc) => print("FFmpeg process exited with rc $rc"));
   }
 
   void changeCameraLens() {
