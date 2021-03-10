@@ -1,7 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ituvidit/bluetooth.dart';
+import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
@@ -35,16 +36,23 @@ class HomeHooks extends HookWidget{
       debugModeValue.value = val;
     }
 
+    final bleCharacteristic = useState();
+    void setCharacteristic(BluetoothCharacteristic characteristic){
+      bleCharacteristic.value = characteristic;
+    }
+
     Size screen = MediaQuery.of(context).size;
     final _recognitions = useState();
     final _imageHeight = useState(0);
     final _imageWidth = useState(0);
+    final _trackingData = useState();
     final isTracking = useState(false);
 
-    void setRecognitions(recognitions, imageHeight, imageWidth) {
+    void setRecognitions(recognitions, imageHeight, imageWidth, trackingData) {
       _recognitions.value = recognitions;
       _imageHeight.value = imageHeight;
       _imageWidth.value = imageWidth;
+      _trackingData.value = trackingData.map;
 
     }
 
@@ -52,7 +60,7 @@ class HomeHooks extends HookWidget{
         Scaffold(
           appBar: AppBar(
             //Only show backarrow if _model.value is not ""
-            leading: !isTracking.value ? IconButton(
+            leading: isTracking.value ? IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 isTracking.value = false;
@@ -88,7 +96,7 @@ class HomeHooks extends HookWidget{
                     );
                   },
                 ),
-                FlutterBlueWidget(),
+                FlutterBlueWidget(setCharacteristic),
               ],
             ),
           )
@@ -97,7 +105,9 @@ class HomeHooks extends HookWidget{
               Camera(
                 cameras,
                 setRecognitions,
+                bleCharacteristic.value
               ),
+              //Text(_trackingData.value.toString()), //todo --> slet denne linje den er brugt til debugging
               debugModeValue.value ?
               BndBox(
                 _recognitions.value == null ? [] : _recognitions.value,
@@ -107,7 +117,8 @@ class HomeHooks extends HookWidget{
                 screen.width,
               )
                   :
-              Container(),
+                  Container()
+              //Text(_trackingData.value.toString()),
             ],
           ),
         )

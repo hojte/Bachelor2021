@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_blue/flutter_blue.dart';
+import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/main.dart';
+import 'package:ituvidit/mountController.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:ituvidit/colors.dart';
+import 'package:ituvidit/main.dart';
+import 'package:ituvidit/recordButton.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 
-typedef void Callback(List<dynamic> list, int h, int w);
+typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
 class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final Callback setRecognitions;
+  final BluetoothCharacteristic _bleCharacteristic;
 
-  Camera(this.cameras, this.setRecognitions);
+  Camera(this.cameras, this.setRecognitions, this._bleCharacteristic);
 
   @override
   _CameraState createState() => new _CameraState();
@@ -21,6 +29,7 @@ class _CameraState extends State<Camera> {
   bool isDetecting = false;
   CameraDescription camera;
   int cameraFlip =0;
+  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
 
 
   @override
@@ -41,7 +50,7 @@ class _CameraState extends State<Camera> {
     } else {
       controller = new CameraController(
         widget.cameras[cameraFlip],
-        ResolutionPreset.high,
+        ResolutionPreset.max,
       );
       controller.initialize().then((_) {
         if (!mounted) {
@@ -53,7 +62,6 @@ class _CameraState extends State<Camera> {
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
             isDetecting = true;
-
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
 
             Tflite.detectObjectOnFrame(
@@ -63,8 +71,10 @@ class _CameraState extends State<Camera> {
               imageWidth: img.width,
               numResultsPerClass: 5,
               threshold: 0.5,
+              rotation: 90,
             ).then((recognitions) {
-              print(recognitions);
+              //print(recognitions);
+
 
               //making a new list that only contains detectedClass: person
               List<dynamic> newRecognitions = List<dynamic>();
@@ -78,7 +88,20 @@ class _CameraState extends State<Camera> {
               }catch(e) {
                 // no person found
               }
-              widget.setRecognitions(newRecognitions, img.height, img.width);
+
+              if(newRecognitions.length>0){
+                String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
+                String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
+                String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
+                String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
+
+                String testSpeed = "500";//todo --> fix this compared to earlier frame coords
+                _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+              }
+              else{
+                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
+              }
+              widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
             });
           }
@@ -114,6 +137,7 @@ class _CameraState extends State<Camera> {
 
   @override
   Widget build(BuildContext context) {
+    final switchRecording = false;
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
@@ -145,6 +169,11 @@ class _CameraState extends State<Camera> {
             },
           ) ,
         ),
+
+        MountController(_trackingData, widget._bleCharacteristic),
+
+        recordButton(controller)
+
       ],
     );
   }
