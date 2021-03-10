@@ -54,7 +54,8 @@ flutter_ios_podfile_setup
 
         if plugin_name == 'flutter_ffmpeg'
           pod plugin_name+'/video', :path => File.join('.symlinks', 'plugins', plugin_name, 'ios')
-         # pod plugin_name+'/audio', :path => File.join('.symlinks', 'plugins', plugin_name, 'ios')
+          pod plugin_name+'/audio', :path => File.join('.symlinks', 'plugins', plugin_name, 'ios')
+          pod plugin_name+'/min-gpl', :path => File.join('.symlinks', 'plugins', plugin_name, 'ios')
         else
           pod plugin_name, :path => File.join('.symlinks', 'plugins', plugin_name, 'ios')
         end
