@@ -32,6 +32,9 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
+  int cameraFlip =0;
+  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
+
   int cameraFlip = 0;
   TrackingData _trackingData;
   File videoFile;
@@ -66,7 +69,7 @@ class _CameraState extends State<Camera> {
     } else {
       controller = new CameraController(
         widget.cameras[cameraFlip],
-        ResolutionPreset.high,
+        ResolutionPreset.max,
       );
 
       controller.initialize().then((_) {
@@ -101,6 +104,7 @@ class _CameraState extends State<Camera> {
               imageWidth: img.width,
               numResultsPerClass: 5,
               threshold: 0.5,
+              rotation: 90,
             ).then((recognitions) {
               //print(recognitions);
 
@@ -120,13 +124,9 @@ class _CameraState extends State<Camera> {
 
               if(newRecognitions.length>0){
                 String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
-                //print("Wcoord:" + wCoord);
                 String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
-                //print("Xcoord:" + xCoord);
                 String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
-                //print("Hcoord:" + hCoord);
                 String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
-                //print("Ycoord:" + yCoord);
 
                 String testSpeed = "500";//todo --> fix this compared to earlier frame coords
                 _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
@@ -228,7 +228,7 @@ class _CameraState extends State<Camera> {
           ) ,
         ),
 
-        //MountController(_trackingData, widget._bleCharacteristic),
+        MountController(_trackingData, widget._bleCharacteristic),
 
         FloatingActionButton(
             child: isRecording ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),

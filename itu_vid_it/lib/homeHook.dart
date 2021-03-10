@@ -107,6 +107,7 @@ class HomeHooks extends HookWidget{
                 setRecognitions,
                 bleCharacteristic.value
               ),
+              //Text(_trackingData.value.toString()), //todo --> slet denne linje den er brugt til debugging
               debugModeValue.value ?
               BndBox(
                 _recognitions.value == null ? [] : _recognitions.value,
@@ -116,7 +117,8 @@ class HomeHooks extends HookWidget{
                 screen.width,
               )
                   :
-              Container(),
+                  Container()
+              //Text(_trackingData.value.toString()),
             ],
           ),
         )

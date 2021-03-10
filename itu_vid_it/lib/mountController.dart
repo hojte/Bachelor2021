@@ -20,10 +20,14 @@ return true;
   @override
   Widget build(BuildContext context) {
     ComputeData cd = ComputeData(_trackingData);
-    print("XXXXXXXXXXXXXX: " + cd.xData);
 
-    sendDataToESP(utf8.encode(cd.xData));
-    //sendDataToESP(utf8.encode(_trackingData.xCoord));
+    //If no data is computed then it just keeps rotating to the direction of the previous direction
+    if(cd.checkData == "Data looks fine"){
+      print(cd.boundingBoxCenter);
+      sendDataToESP(utf8.encode(cd.boundingBoxCenter));
+      //sendDataToESP(utf8.encode(cd.boundingBoxYCenter));
+
+    }
 
     return Container();
   }
@@ -52,22 +56,54 @@ class ComputeData {
   TrackingData trackingData;
   ComputeData(this.trackingData);
 
-  String get xData{
-    print(trackingData.xCoord);
+
+  String get boundingBoxCenter {
     if(trackingData.xCoord != null){
-      double xdata = double.parse(trackingData.xCoord);
-      if(xdata>0.4){
+      double x = double.parse(trackingData.xCoord);
+      double y = double.parse(trackingData.yCoord);
+      double w = double.parse(trackingData.wCoord);
+      double h = double.parse(trackingData.hCoord);
+
+      double xcenter = x + w/2.0;
+      double ycenter = y + h/2.0;
+      double minX = 0.45;
+      double maxX = 0.55;
+      double minY = 0.45;
+      double maxY = 0.55;
+
+
+      if(ycenter<minY && xcenter > maxX){
+        return "Up & Right";
+      }
+      else if(ycenter<minY && xcenter<minX){
+        return "Up & Left";
+      }
+      else if(ycenter > maxY && xcenter > maxX){
+        return "Down & Right";
+      }
+      else if(ycenter > maxY && xcenter<minX){
+        return "Down & Left";
+      }
+      else if(xcenter > maxX){
         return "Right";
       }
-      else if (xdata<0.3){
+      else if(xcenter<minX){
         return "Left";
       }
-      else{
-        //If x is between 0.4 and 0.3
-        return "Hold";
+      else if(ycenter > maxY){
+        return "Down";
       }
+      else if(ycenter<minY){
+        return "Up";
+      }
+      else return "Hold";
     }
-    //If there is no x data given
-    //return "Hold";
+    //Dont return anything to keep motor moving
+  }
+
+
+  String get checkData{
+    if(trackingData.xCoord == "0.0" && trackingData.wCoord =="0.0" && trackingData.yCoord=="0.0" && trackingData.hCoord=="0.0") return "No data";
+    return "Data looks fine";
   }
 }

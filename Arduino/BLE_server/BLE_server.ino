@@ -79,8 +79,43 @@ void setup() {
   
   pinMode(stepPin_1,OUTPUT); 
   pinMode(dirPin_1,OUTPUT);
+  pinMode(MS2_1,OUTPUT);
+  digitalWrite(MS2_1,HIGH);
   digitalWrite(stepPin_1,HIGH);
+
+  pinMode(stepPin_2,OUTPUT); 
+  pinMode(dirPin_2,OUTPUT);
+  pinMode(MS2_2,OUTPUT);
+  digitalWrite(MS2_2,HIGH);
+  digitalWrite(stepPin_2,HIGH);
   
+  
+}
+
+
+void rotateSingleStepper(int dirPin, int stepPin, int direct)
+{
+  digitalWrite(dirPin,direct); // Enables the motor to move in a particular direction      
+  digitalWrite(stepPin,HIGH); 
+  delayMicroseconds(500); 
+  digitalWrite(stepPin,LOW); 
+  delayMicroseconds(500);         
+  delay(1); 
+}
+void rotateMultipleSteppers(int dirPin1, int stepPin1, int direct1, int dirPin2, int stepPin2, int direct2)
+{
+  digitalWrite(dirPin1,direct1); // Enables the motor to move in a particular direction      
+  digitalWrite(stepPin1,HIGH); 
+  delayMicroseconds(500); 
+  digitalWrite(stepPin1,LOW); 
+  delayMicroseconds(500);
+
+  digitalWrite(dirPin2,direct2); // Enables the motor to move in a particular direction      
+  digitalWrite(stepPin2,HIGH); 
+  delayMicroseconds(500); 
+  digitalWrite(stepPin2,LOW); 
+  delayMicroseconds(500);
+  delay(1); 
 }
 
 
@@ -93,40 +128,36 @@ void loop() {
   if(connectedUsers > 0){
     
     digitalWrite(ledPin, HIGH);
-    //Serial.println(VidItCharacteristic->getValue().c_str());
+    Serial.println(VidItCharacteristic->getValue().c_str());
     //Debug statement - printing in console.
-    
     if (VidItCharacteristic->getValue()== "Right"){
-      Serial.println("Gooo right");                   
-       //Counter clockwise
-       digitalWrite(dirPin_1,HIGH); // Enables the motor to move in a particular direction      
-         // while(VidItCharacteristic->getValue()== "Right"){
-            digitalWrite(stepPin_1,HIGH); 
-          delayMicroseconds(500); 
-          digitalWrite(stepPin_1,LOW); 
-          delayMicroseconds(500); 
-           // }
-          
-        delay(10); // One second delay
+      rotateSingleStepper(dirPin_1, stepPin_1,HIGH);
       }
       else if (VidItCharacteristic->getValue()== "Left"){
-      Serial.println("Gooo left");  
-          //Clockwise
-          digitalWrite(dirPin_1,LOW); //Changes the rotations direction
-          // Makes 400 pulses for making two full cycle rotation
-          //while(VidItCharacteristic->getValue()== "Left"){
-            digitalWrite(stepPin_1,HIGH);
-            delayMicroseconds(500);
-            digitalWrite(stepPin_1,LOW);
-            delayMicroseconds(500);
-  //}
-  delay(10);
+        rotateSingleStepper(dirPin_1, stepPin_1,LOW);
         }
-        else{
-          //Do nothing
-          Serial.println("FUCKING HOLD BITHC");  
-          }
-           
+      else if(VidItCharacteristic->getValue()== "Up"){
+        rotateSingleStepper(dirPin_2, stepPin_2,HIGH);
+        }
+      else if(VidItCharacteristic->getValue()== "Down"){
+        rotateSingleStepper(dirPin_2, stepPin_2,LOW);
+        }
+      else if(VidItCharacteristic->getValue()== "Up & Right"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,HIGH);
+        }
+      else if(VidItCharacteristic->getValue()== "Up & Left"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,LOW);
+        }
+      else if(VidItCharacteristic->getValue()== "Down & Right"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,HIGH);
+        }
+      else if(VidItCharacteristic->getValue()== "Down & Left"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,LOW);
+        }
+      else{
+        //Do nothing
+        //Serial.println("FUCKING HOLD BITHC");  
+     }           
   }
   else{
     digitalWrite(ledPin, LOW);
