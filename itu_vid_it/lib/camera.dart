@@ -32,7 +32,7 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
+  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
   int cameraFlip = 0;
   File videoFile;
   bool isRecording = false;
@@ -76,10 +76,10 @@ class _CameraState extends State<Camera> {
         setState(() {});
 
         controller.startImageStream((CameraImage img) {
-
-          if (isRecording) {
-            //if (currentFrameIndex>9) stopRecording(); // for taking shor test vids
-            currentFrameIndex++;
+          if (!isDetecting) {
+            if (isRecording) {
+              //if (currentFrameIndex>9) stopRecording(); // for taking shor test vids
+              currentFrameIndex++;
               String filePath = '$videoDirectory/VidIT$currentFrameIndex.png';
               isSaving = true;
               imgConvert.convertImageToPngBytes(img, filePath, currentFrameIndex).then((frameSaved) {
@@ -89,9 +89,8 @@ class _CameraState extends State<Camera> {
                 }
               });
 
-           // }
-          }
-          /*if (!isDetecting) {
+              // }
+            }
             isDetecting = true;
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
             Tflite.detectObjectOnFrame(
@@ -125,16 +124,16 @@ class _CameraState extends State<Camera> {
                 String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
                 String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
-                String testSpeed = "500";//todo --> fix this compared to earlier frame coords
+                double testSpeed = 500.0;//todo --> fix this compared to earlier frame coords
                 _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
               }
-              else {
-                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
+              else{
+                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
             });
-          }*/
+          }
         });
       });
     }

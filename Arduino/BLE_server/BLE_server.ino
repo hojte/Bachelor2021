@@ -92,29 +92,33 @@ void setup() {
   
 }
 
-
-void rotateSingleStepper(int dirPin, int stepPin, int direct)
+//Rotates a single motor
+void rotateSingleStepper(int dirPin, int stepPin, int direct, double _speed)
 {
   digitalWrite(dirPin,direct); // Enables the motor to move in a particular direction      
   digitalWrite(stepPin,HIGH); 
-  delayMicroseconds(500); 
+  delayMicroseconds(_speed); 
   digitalWrite(stepPin,LOW); 
-  delayMicroseconds(500);         
+  delayMicroseconds(_speed);         
   delay(1); 
 }
-void rotateMultipleSteppers(int dirPin1, int stepPin1, int direct1, int dirPin2, int stepPin2, int direct2)
+
+//Rotates both motors
+void rotateMultipleSteppers(int dirPin1, int stepPin1, int direct1, int dirPin2, int stepPin2, int direct2, double _speed)
 {
+  //Motor going up and down
   digitalWrite(dirPin1,direct1); // Enables the motor to move in a particular direction      
   digitalWrite(stepPin1,HIGH); 
-  delayMicroseconds(500); 
+  delayMicroseconds(_speed); 
   digitalWrite(stepPin1,LOW); 
-  delayMicroseconds(500);
+  delayMicroseconds(_speed);
 
+ //Motor going right and left 
   digitalWrite(dirPin2,direct2); // Enables the motor to move in a particular direction      
   digitalWrite(stepPin2,HIGH); 
-  delayMicroseconds(500); 
+  delayMicroseconds(_speed); 
   digitalWrite(stepPin2,LOW); 
-  delayMicroseconds(500);
+  delayMicroseconds(_speed);
   delay(1); 
 }
 
@@ -122,42 +126,50 @@ void rotateMultipleSteppers(int dirPin1, int stepPin1, int direct1, int dirPin2,
 int connectedUsers = 0;
 
 void loop() {
-  
   connectedUsers = VidItServer->getConnectedCount();
   
-  if(connectedUsers > 0){
-    
+  if(connectedUsers > 0){    
     digitalWrite(ledPin, HIGH);
-    Serial.println(VidItCharacteristic->getValue().c_str());
+
+    //Splitting the input string into direction and speed
+    std::string inputFromAPP = VidItCharacteristic->getValue().c_str();
+    std::string delimiter = ":"; 
+    std::string _direction = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
+
+    //Removes the direction from the string and finds the speed
+    inputFromAPP.erase(0, inputFromAPP.find(delimiter) + delimiter.length());
+    std::string _speed = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
+    double convertedSpeed = atof(_speed.c_str()); 
+    
     //Debug statement - printing in console.
-    if (VidItCharacteristic->getValue()== "Right"){
-      rotateSingleStepper(dirPin_1, stepPin_1,HIGH);
+    if (_direction== "Right"){
+      rotateSingleStepper(dirPin_1, stepPin_1,HIGH,convertedSpeed);
       }
-      else if (VidItCharacteristic->getValue()== "Left"){
-        rotateSingleStepper(dirPin_1, stepPin_1,LOW);
+      else if (_direction== "Left"){
+        rotateSingleStepper(dirPin_1, stepPin_1,LOW,convertedSpeed);
         }
-      else if(VidItCharacteristic->getValue()== "Up"){
-        rotateSingleStepper(dirPin_2, stepPin_2,HIGH);
+      else if(_direction== "Up"){
+        rotateSingleStepper(dirPin_2, stepPin_2,HIGH,convertedSpeed);
         }
-      else if(VidItCharacteristic->getValue()== "Down"){
-        rotateSingleStepper(dirPin_2, stepPin_2,LOW);
+      else if(_direction== "Down"){
+        rotateSingleStepper(dirPin_2, stepPin_2,LOW,convertedSpeed);
         }
-      else if(VidItCharacteristic->getValue()== "Up & Right"){
-        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,HIGH);
+      else if(_direction== "Up & Right"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,HIGH,convertedSpeed);
         }
-      else if(VidItCharacteristic->getValue()== "Up & Left"){
-        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,LOW);
+      else if(_direction== "Up & Left"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,HIGH,dirPin_1,stepPin_1,LOW,convertedSpeed);
         }
-      else if(VidItCharacteristic->getValue()== "Down & Right"){
-        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,HIGH);
+      else if(_direction== "Down & Right"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,HIGH,convertedSpeed);
         }
-      else if(VidItCharacteristic->getValue()== "Down & Left"){
-        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,LOW);
+      else if(_direction== "Down & Left"){
+        rotateMultipleSteppers(dirPin_2,stepPin_2,LOW,dirPin_1,stepPin_1,LOW,convertedSpeed);
         }
       else{
         //Do nothing
         //Serial.println("FUCKING HOLD BITHC");  
-     }           
+     }          
   }
   else{
     digitalWrite(ledPin, LOW);
