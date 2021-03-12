@@ -29,7 +29,7 @@ class _CameraState extends State<Camera> {
   bool isDetecting = false;
   CameraDescription camera;
   int cameraFlip =0;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
+  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
 
 
   @override
@@ -95,11 +95,11 @@ class _CameraState extends State<Camera> {
                 String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
                 String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
-                String testSpeed = "500";//todo --> fix this compared to earlier frame coords
+                double testSpeed = 500.0;//todo --> fix this compared to earlier frame coords
                 _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
               }
               else{
-                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", "0.0");
+                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;

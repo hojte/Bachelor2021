@@ -28,7 +28,6 @@ return true;
       //sendDataToESP(utf8.encode(cd.boundingBoxYCenter));
 
     }
-
     return Container();
   }
 }
@@ -38,7 +37,7 @@ class TrackingData {
   String xCoord;
   String hCoord;
   String yCoord;
-  String speed;
+  double speed;
   TrackingData(this.wCoord, this.xCoord, this.hCoord, this.yCoord, this.speed);
   Map<String,dynamic> get map {
     return {
@@ -63,6 +62,7 @@ class ComputeData {
       double y = double.parse(trackingData.yCoord);
       double w = double.parse(trackingData.wCoord);
       double h = double.parse(trackingData.hCoord);
+      String speed =  trackingData.speed.toString();
 
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
@@ -73,28 +73,28 @@ class ComputeData {
 
 
       if(ycenter<minY && xcenter > maxX){
-        return "Up & Right";
+        return "Up & Right:"+speed;
       }
       else if(ycenter<minY && xcenter<minX){
-        return "Up & Left";
+        return "Up & Left:"+speed;
       }
       else if(ycenter > maxY && xcenter > maxX){
-        return "Down & Right";
+        return "Down & Right:"+speed;
       }
       else if(ycenter > maxY && xcenter<minX){
-        return "Down & Left";
+        return "Down & Left:"+speed;
       }
       else if(xcenter > maxX){
-        return "Right";
+        return "Right:"+speed;
       }
       else if(xcenter<minX){
-        return "Left";
+        return "Left:"+speed;
       }
       else if(ycenter > maxY){
-        return "Down";
+        return "Down:"+speed;
       }
       else if(ycenter<minY){
-        return "Up";
+        return "Up:"+speed;
       }
       else return "Hold";
     }
