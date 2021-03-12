@@ -8,7 +8,6 @@ import 'package:tflite/tflite.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'dart:math' as math;
-import 'image_converter.dart' as imgConvert;
 
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
@@ -60,6 +59,12 @@ class _CameraState extends State<Camera> {
     return;
   }
 
+  Future<int> saveTemporaryFile(index, img) async {
+    String filePath = '$videoDirectory/VidIT$index.yuv';
+    await File(filePath).writeAsBytes(img.planes[0].bytes);
+    return index;
+  }
+
   void startCamera() {
     if (widget.cameras == null || widget.cameras.length < 1) {
       print('No camera is found');
@@ -78,22 +83,26 @@ class _CameraState extends State<Camera> {
         controller.startImageStream((CameraImage img) {
           if (!isDetecting) {
             if (isRecording) {
-              //if (currentFrameIndex>9) stopRecording(); // for taking shor test vids
               currentFrameIndex++;
-              String filePath = '$videoDirectory/VidIT$currentFrameIndex.png';
               isSaving = true;
-              imgConvert.convertImageToPngBytes(img, filePath, currentFrameIndex).then((frameSaved) {
+              File('$videoDirectory/VidIT.yuv').writeAsBytes(img.planes[0].bytes, mode: FileMode.append).then((value) => print('wrote'));
+              //if (currentFrameIndex>9) stopRecording(); // for taking short test vids
+
+              /*saveTemporaryFile(currentFrameIndex, img).then((frameSaved) {
+                print('saved $frameSaved/$currentFrameIndex');
+              });*/
+              /*imgConvert.convertImageToPngBytes(img, filePath, currentFrameIndex).then((frameSaved) {
                 print('saved=$frameSaved/$currentFrameIndex');
                 if (!isRecording) {
                   if (frameSaved==currentFrameIndex) isSaving = false;
                 }
-              });
+              });*/
 
               // }
             }
-            isDetecting = true;
+            //isDetecting = true;
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
-            Tflite.detectObjectOnFrame(
+            /*Tflite.detectObjectOnFrame(
               bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
               model: "SSDMobileNet",
               imageHeight: img.height,
@@ -132,7 +141,7 @@ class _CameraState extends State<Camera> {
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
-            });
+            });*/
           }
         });
       });
@@ -153,15 +162,15 @@ class _CameraState extends State<Camera> {
 
   void stopRecording() {
     isRecording = false;
-    waitForSave().then((value) {
-      print("COMPOSING MP4!!");
-      _flutterFFmpeg.execute("-r 30 -f image2 -s 1920x1080 -i $videoDirectory/VidIT%01d.png -vcodec libx264 -pix_fmt yuv420p $videoDirectory/LOL.mp4").then((rc) {
+    //waitForSave().then((value) {
+      print("COMPOSING MP4!!"); // todo> calculate framerate, input correct resolution based on img.height and width, correct format yuv/bgr
+      _flutterFFmpeg.execute("-r 30 -f rawvideo -s 1280x720 -vcodec rawvideo -i $videoDirectory/VidIT.yuv -c:v libx264 -pix_fmt yuv420p $videoDirectory/LOL.mp4").then((rc) {
         print("FFmpeg process exited with rc $rc");
         print('Saving video');
-        GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
+        //GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
         currentFrameIndex = 0;
       });
-    });
+  //  });
 
   }
 
