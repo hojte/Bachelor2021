@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -60,7 +61,7 @@ class _CameraState extends State<Camera> {
   }
 
   Future<int> saveTemporaryFile(index, img) async {
-    String filePath = '$videoDirectory/VidIT$index.yuv';
+    String filePath = '$videoDirectory/VidIT$index.jpg';
     await File(filePath).writeAsBytes(img.planes[0].bytes);
     return index;
   }
@@ -71,7 +72,8 @@ class _CameraState extends State<Camera> {
     } else {
       controller = new CameraController(
         widget.cameras[cameraFlip],
-        ResolutionPreset.max,
+        ResolutionPreset.veryHigh,
+        imageFormatGroup: ImageFormatGroup.jpeg
       );
 
       controller.initialize().then((_) {
@@ -85,7 +87,7 @@ class _CameraState extends State<Camera> {
             if (isRecording) {
               currentFrameIndex++;
               isSaving = true;
-              File('$videoDirectory/VidIT.yuv').writeAsBytes(img.planes[0].bytes, mode: FileMode.append).then((value) => print('wrote'));
+              saveTemporaryFile(currentFrameIndex, img).then((value) => print("saved $value/$currentFrameIndex"));
               //if (currentFrameIndex>9) stopRecording(); // for taking short test vids
 
               /*saveTemporaryFile(currentFrameIndex, img).then((frameSaved) {
@@ -100,9 +102,9 @@ class _CameraState extends State<Camera> {
 
               // }
             }
-            //isDetecting = true;
+            isDetecting = true;
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
-            /*Tflite.detectObjectOnFrame(
+            Tflite.detectObjectOnFrame(
               bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
               model: "SSDMobileNet",
               imageHeight: img.height,
@@ -141,7 +143,7 @@ class _CameraState extends State<Camera> {
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
-            });*/
+            });
           }
         });
       });
@@ -164,7 +166,7 @@ class _CameraState extends State<Camera> {
     isRecording = false;
     //waitForSave().then((value) {
       print("COMPOSING MP4!!"); // todo> calculate framerate, input correct resolution based on img.height and width, correct format yuv/bgr
-      _flutterFFmpeg.execute("-r 30 -f rawvideo -s 1280x720 -vcodec rawvideo -i $videoDirectory/VidIT.yuv -c:v libx264 -pix_fmt yuv420p $videoDirectory/LOL.mp4").then((rc) {
+      _flutterFFmpeg.execute("-r 30 -f image2 -s 1920x1080 -i $videoDirectory/VidIT%01d.jpg -c:v libx264 -pix_fmt yuv420p $videoDirectory/LOL.mp4").then((rc) {
         print("FFmpeg process exited with rc $rc");
         print('Saving video');
         //GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
