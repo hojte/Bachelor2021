@@ -8,6 +8,8 @@ PODS:
   - flutter_blue/Protos (0.0.1):
     - Flutter
     - Protobuf (~> 3.11.4)
+  - image_picker (0.0.1):
+    - Flutter
   - Protobuf (3.11.4)
   - TensorFlowLiteC (2.2.0)
   - tflite (1.1.1):
@@ -18,6 +20,7 @@ DEPENDENCIES:
   - camera (from `.symlinks/plugins/camera/ios`)
   - Flutter (from `Flutter`)
   - flutter_blue (from `.symlinks/plugins/flutter_blue/ios`)
+  - image_picker (from `.symlinks/plugins/image_picker/ios`)
   - tflite (from `.symlinks/plugins/tflite/ios`)
 
 SPEC REPOS:
@@ -32,6 +35,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_blue:
     :path: ".symlinks/plugins/flutter_blue/ios"
+  image_picker:
+    :path: ".symlinks/plugins/image_picker/ios"
   tflite:
     :path: ".symlinks/plugins/tflite/ios"
 
@@ -39,6 +44,7 @@ SPEC CHECKSUMS:
   camera: a0ca5080336f7af47b88436e5e26da3dee5568f0
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_blue: eeb381dc4727a0954dede73515f683865494b370
+  image_picker: 9c3312491f862b28d21ecd8fdf0ee14e601b3f09
   Protobuf: 176220c526ad8bd09ab1fb40a978eac3fef665f7
   TensorFlowLiteC: b3ab9e867b0b71052ca102a32a786555b330b02e
   tflite: f0403a894740019d63ab5662253bba5b2dd37296

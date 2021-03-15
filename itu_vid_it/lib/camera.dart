@@ -10,6 +10,7 @@ import 'package:ituvidit/main.dart';
 import 'package:ituvidit/recordButton.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
+import 'dart:io' show Platform;
 
 import 'bndbox.dart';
 
@@ -63,7 +64,7 @@ class _CameraState extends State<Camera> {
     } else {
       controller = new CameraController(
         widget.cameras[cameraFlip],
-        ResolutionPreset.max,
+        ResolutionPreset.veryHigh,
       );
       controller.initialize().then((_) {
         if (!mounted) {
@@ -103,13 +104,26 @@ class _CameraState extends State<Camera> {
               }
 
               if(newRecognitions.length>0){
-                String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
-                String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
-                String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
-                String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
+                if (Platform.isAndroid) {
+                  String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
+                  String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
+                  String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
+                  String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
-                double testSpeed = 500.0;//todo --> fix this compared to earlier frame coords
-                _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+                  double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
+                  _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+
+                  // Android-specific code
+                } else if (Platform.isIOS) {
+
+                  String wCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
+                  String xCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
+                  String hCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
+                  String yCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
+
+                  double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
+                  _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+                }
               }
               else{
                 _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
