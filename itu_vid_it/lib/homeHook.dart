@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -16,6 +17,7 @@ import 'camera.dart';
 
 class HomeHooks extends HookWidget{
   final List<CameraDescription> cameras;
+
 
   HomeHooks(this.cameras);
 
@@ -55,6 +57,7 @@ class HomeHooks extends HookWidget{
       _trackingData.value = trackingData.map;
 
     }
+
 
     return(
         Scaffold(
@@ -105,19 +108,17 @@ class HomeHooks extends HookWidget{
               Camera(
                 cameras,
                 setRecognitions,
-                bleCharacteristic.value
+                bleCharacteristic.value,
+                debugModeValue,
+                _recognitions,
+                _imageHeight,
+                _imageWidth,
+                screen
+
               ),
               //Text(_trackingData.value.toString()), //todo --> slet denne linje den er brugt til debugging
-              debugModeValue.value ?
-              BndBox(
-                _recognitions.value == null ? [] : _recognitions.value,
-                math.max(_imageHeight.value, _imageWidth.value),
-                math.min(_imageHeight.value, _imageWidth.value),
-                screen.height,
-                screen.width,
-              )
-                  :
-                  Container()
+
+
               //Text(_trackingData.value.toString()),
             ],
           ),

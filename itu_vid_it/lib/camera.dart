@@ -11,17 +11,24 @@ import 'package:ituvidit/recordButton.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 
+import 'bndbox.dart';
+
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
 class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final Callback setRecognitions;
   final BluetoothCharacteristic _bleCharacteristic;
+  final debugModeValue;
+  final recognitions;
+  final imageHeight;
+  final imageWidth;
+  Size screen;
 
-  Camera(this.cameras, this.setRecognitions, this._bleCharacteristic);
+  Camera(this.cameras, this.setRecognitions, this._bleCharacteristic, this.debugModeValue, this.recognitions, this.imageHeight, this.imageWidth, this.screen);
 
   @override
-  _CameraState createState() => new _CameraState();
+  _CameraState createState() => new _CameraState(debugModeValue, recognitions, imageHeight, imageWidth, screen);
 }
 
 class _CameraState extends State<Camera> {
@@ -30,6 +37,12 @@ class _CameraState extends State<Camera> {
   CameraDescription camera;
   int cameraFlip =0;
   TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+  final debugModeValue;
+  final recognitions;
+  final imageHeight;
+  final imageWidth;
+  Size screen;
+  _CameraState(this.debugModeValue, this.recognitions, this.imageHeight, this.imageWidth, this.screen );
 
 
   @override
@@ -110,7 +123,7 @@ class _CameraState extends State<Camera> {
     }
   }
 
-  void changeCameraLens() {
+    void changeCameraLens() {
     // get current lens direction (front / rear)
     final lensDirection = controller.description.lensDirection;
     if (lensDirection == CameraLensDirection.front) {
@@ -160,15 +173,26 @@ class _CameraState extends State<Camera> {
           screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
           child: CameraPreview(controller),
         ),
+        debugModeValue.value ?
+        BndBox(
+          recognitions.value == null ? [] : recognitions.value,
+          math.max(imageHeight.value, imageWidth.value),
+          math.min(imageHeight.value, imageWidth.value),
+          screen.height,
+          screen.width,
+        )
+            :
+        Container(),
         Container(
           alignment: Alignment.topRight,
           child: FloatingActionButton(
             child: Icon(Icons.flip_camera_android),
             onPressed: () {
-              changeCameraLens();
+            changeCameraLens();
             },
           ) ,
         ),
+
 
         MountController(_trackingData, widget._bleCharacteristic),
 
