@@ -28,7 +28,6 @@ class Camera extends StatefulWidget {
   final BluetoothCharacteristic _bleCharacteristic;
   final debugModeValue;
   Size screen;
-
   Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.screen);
 
   @override
@@ -54,9 +53,9 @@ class _CameraState extends State<Camera> {
   Timer timer;
   int recordSeconds = 0;
   final debugModeValue;
-  List<dynamic> newRecognitions = [];
+  List<dynamic> newRecognitions;
   Size screen;
-  _CameraState(this.debugModeValue, this.screen );
+  _CameraState(this.debugModeValue, this.screen);
 
 
   @override
@@ -147,7 +146,7 @@ class _CameraState extends State<Camera> {
               }
 
               if(newRecognitions.length>0){
-                if (Platform.isAndroid) {
+                if (Platform.isAndroid) { // Android-specific code
                   String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
                   String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
                   String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
@@ -156,9 +155,7 @@ class _CameraState extends State<Camera> {
                   double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
                   _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
 
-                  // Android-specific code
                 } else if (Platform.isIOS) {
-
                   String wCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
                   String xCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
                   String hCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
@@ -185,9 +182,7 @@ class _CameraState extends State<Camera> {
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidITJpgSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
-    //final String filePath = '$videoDirectory/VidITClip$time.mp4'; // use when we can build mp4 succesfully
     print('dir created @ $videoDirectory');
-    //videoFile = File(filepath);
     isRecording = true;
     recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {

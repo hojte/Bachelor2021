@@ -9,8 +9,6 @@ import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
 import 'package:ituvidit/static.dart';
 import 'package:tflite/tflite.dart';
-import 'dart:math' as math;
-import 'bndbox.dart';
 import 'camera.dart';
 
 
@@ -25,7 +23,6 @@ class HomeHooks extends HookWidget{
     String res;
     res = await Tflite.loadModel(
         model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
-        //model: "assets/ssd_mobilenet.tflite",
         labels: "assets/ssd_mobilenet.txt");
     print(res);
   }
@@ -98,10 +95,6 @@ class HomeHooks extends HookWidget{
                 debugModeValue,
                 screen
               ),
-              //Text(_trackingData.value.toString()), //todo --> slet denne linje den er brugt til debugging
-
-
-              //Text(_trackingData.value.toString()),
             ],
           ),
         )
