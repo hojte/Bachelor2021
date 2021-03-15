@@ -27,7 +27,7 @@ class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final BluetoothCharacteristic _bleCharacteristic;
   final debugModeValue;
-  Size screen;
+  final screen;
   Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.screen);
 
   @override
