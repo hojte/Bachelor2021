@@ -1,15 +1,16 @@
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+//import 'package:gallery_saver/gallery_saver.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'dart:math' as math;
-
+import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
 final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
@@ -32,13 +33,16 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
-  int cameraFlip = 0;
+  TrackingData _trackingData = new TrackingData(0,0,0,0, 0.0);
+  int useFrontCam = 0;
   File videoFile;
   bool isRecording = false;
   bool isSaving = false;
   String videoDirectory;
   int currentFrameIndex = 0;
+  int currentSavedIndex = 0;
+  int imgWidth = 1920;
+  int imgHeight = 1080;
 
   @override
   void initState() {
@@ -71,9 +75,9 @@ class _CameraState extends State<Camera> {
       print('No camera is found');
     } else {
       controller = new CameraController(
-        widget.cameras[cameraFlip],
-        ResolutionPreset.veryHigh,
-        imageFormatGroup: ImageFormatGroup.jpeg
+          widget.cameras[useFrontCam],
+          ResolutionPreset.veryHigh,
+          imageFormatGroup: ImageFormatGroup.jpeg
       );
 
       controller.initialize().then((_) {
@@ -87,37 +91,38 @@ class _CameraState extends State<Camera> {
             if (isRecording) {
               currentFrameIndex++;
               isSaving = true;
-              saveTemporaryFile(currentFrameIndex, img).then((value) => print("saved $value/$currentFrameIndex"));
+              saveTemporaryFile(currentFrameIndex, img).then((value) {
+                print("saved $value/$currentFrameIndex");
+                currentSavedIndex = value;
+              });
               //if (currentFrameIndex>9) stopRecording(); // for taking short test vids
-
-              /*saveTemporaryFile(currentFrameIndex, img).then((frameSaved) {
-                print('saved $frameSaved/$currentFrameIndex');
-              });*/
-              /*imgConvert.convertImageToPngBytes(img, filePath, currentFrameIndex).then((frameSaved) {
-                print('saved=$frameSaved/$currentFrameIndex');
-                if (!isRecording) {
-                  if (frameSaved==currentFrameIndex) isSaving = false;
-                }
-              });*/
-
-              // }
             }
             isDetecting = true;
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
-            Tflite.detectObjectOnFrame(
-              bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
+            imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
+            imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
+            int deviceRotation;
+            switch (MediaQuery.of(context).orientation) {
+              case Orientation.portrait:
+                deviceRotation = 90;
+                break;
+              case Orientation.landscape:
+                deviceRotation = 0;
+                break;
+            }
+            imglib.Image orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
+            if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
+            Tflite.detectObjectOnBinary(
+              binary: imageToByteListUint8(orientedImg, 300),
               model: "SSDMobileNet",
-              imageHeight: img.height,
-              imageWidth: img.width,
-              numResultsPerClass: 5,
-              threshold: 0.5,
-              rotation: 90,
+              numResultsPerClass: 3,
+              threshold: 0.45,
             ).then((recognitions) {
               //print(recognitions);
 
 
               //making a new list that only contains detectedClass: person
-              List<dynamic> newRecognitions = List<dynamic>();
+              List<dynamic> newRecognitions = [];
               try {
                 int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
                 element.toString().contains("detectedClass: person")
@@ -135,11 +140,16 @@ class _CameraState extends State<Camera> {
                 String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
                 String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
+                double x = double.parse(xCoord);
+                double y = double.parse(yCoord);
+                double w = double.parse(wCoord);
+                double h = double.parse(hCoord);
                 double testSpeed = 500.0;//todo --> fix this compared to earlier frame coords
-                _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+                _trackingData = new TrackingData(w, x, h, y, testSpeed);
+
               }
               else{
-                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+                _trackingData = new TrackingData(0,0,0,0, 0.0);
               }
               widget.setRecognitions(newRecognitions, img.height, img.width, _trackingData);
               isDetecting = false;
@@ -165,14 +175,14 @@ class _CameraState extends State<Camera> {
   void stopRecording() {
     isRecording = false;
     //waitForSave().then((value) {
-      print("COMPOSING MP4!!"); // todo> calculate framerate, input correct resolution based on img.height and width, correct format yuv/bgr
-      _flutterFFmpeg.execute("-r 30 -f image2 -s 1920x1080 -i $videoDirectory/VidIT%01d.jpg -c:v libx264 -pix_fmt yuv420p $videoDirectory/LOL.mp4").then((rc) {
-        print("FFmpeg process exited with rc $rc");
-        print('Saving video');
-        //GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
-        currentFrameIndex = 0;
-      });
-  //  });
+    print("COMPOSING MP4!!"); // todo> calculate framerate, input correct resolution based on img.height and width, correct format yuv/bgr
+    _flutterFFmpeg.execute("-r 30 -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $videoDirectory/VidITCapture.mp4").then((rc) {
+      print("FFmpeg process exited with rc $rc");
+      print('Video saved');
+      //GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
+      currentFrameIndex = 0;
+    });
+    //  });
 
   }
 
@@ -182,14 +192,14 @@ class _CameraState extends State<Camera> {
     if (lensDirection == CameraLensDirection.front) {
       setState(() {
         //Back camera
-        cameraFlip = 0;
+        useFrontCam = 0;
       });
       camera = cameras[0];
     }
     else {
       setState(() {
         //Front camera
-        cameraFlip = 1;
+        useFrontCam = 1;
       });
       camera = cameras[1];
     }
@@ -247,5 +257,20 @@ class _CameraState extends State<Camera> {
       ],
     );
   }
+}
+
+Uint8List imageToByteListUint8(imglib.Image image, int inputSize) {
+  var convertedBytes = Uint8List(1 * inputSize * inputSize * 3);
+  var buffer = Uint8List.view(convertedBytes.buffer);
+  int pixelIndex = 0;
+  for (var i = 0; i < inputSize; i++) {
+    for (var j = 0; j < inputSize; j++) {
+      var pixel = image.getPixel(j, i);
+      buffer[pixelIndex++] = imglib.getRed(pixel);
+      buffer[pixelIndex++] = imglib.getGreen(pixel);
+      buffer[pixelIndex++] = imglib.getBlue(pixel);
+    }
+  }
+  return convertedBytes.buffer.asUint8List();
 }
 

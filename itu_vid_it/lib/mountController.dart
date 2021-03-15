@@ -33,10 +33,10 @@ return true;
 }
 
 class TrackingData {
-  String wCoord;
-  String xCoord;
-  String hCoord;
-  String yCoord;
+  double wCoord;
+  double xCoord;
+  double hCoord;
+  double yCoord;
   double speed;
   TrackingData(this.wCoord, this.xCoord, this.hCoord, this.yCoord, this.speed);
   Map<String,dynamic> get map {
@@ -58,14 +58,10 @@ class ComputeData {
 
   String get boundingBoxCenter {
     if(trackingData.xCoord != null){
-      double x = double.parse(trackingData.xCoord);
-      double y = double.parse(trackingData.yCoord);
-      double w = double.parse(trackingData.wCoord);
-      double h = double.parse(trackingData.hCoord);
       String speed =  trackingData.speed.toString();
 
-      double xcenter = x + w/2.0;
-      double ycenter = y + h/2.0;
+      double xcenter = trackingData.xCoord + trackingData.wCoord/2.0;
+      double ycenter = trackingData.yCoord + trackingData.hCoord/2.0;
       double minX = 0.45;
       double maxX = 0.55;
       double minY = 0.45;
@@ -103,7 +99,7 @@ class ComputeData {
 
 
   String get checkData{
-    if(trackingData.xCoord == "0.0" && trackingData.wCoord =="0.0" && trackingData.yCoord=="0.0" && trackingData.hCoord=="0.0") return "No data";
+    if(trackingData.xCoord == 0 && trackingData.wCoord ==0 && trackingData.yCoord==0 && trackingData.hCoord==0) return "No data";
     return "Data looks fine";
   }
 }
