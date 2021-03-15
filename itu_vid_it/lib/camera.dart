@@ -40,7 +40,6 @@ class _CameraState extends State<Camera> {
   CameraDescription camera;
   TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
   int useFrontCam = 0;
-  File videoFile;
   bool isRecording = false;
   bool isSaving = false;
   bool isProcessingVideo = false;
@@ -53,7 +52,7 @@ class _CameraState extends State<Camera> {
   Timer timer;
   int recordSeconds = 0;
   final debugModeValue;
-  List<dynamic> newRecognitions;
+  List<dynamic> filteredRecognitions = [];
   Size screen;
   _CameraState(this.debugModeValue, this.screen);
 
@@ -89,8 +88,8 @@ class _CameraState extends State<Camera> {
       print('No camera is found');
     } else {
       controller = new CameraController(
-        widget.cameras[useFrontCam],
-        ResolutionPreset.veryHigh,
+          widget.cameras[useFrontCam],
+          ResolutionPreset.veryHigh,
           imageFormatGroup: ImageFormatGroup.jpeg
       );
 
@@ -98,7 +97,7 @@ class _CameraState extends State<Camera> {
         if (!mounted) {
           return;
         }
-        setState(() {});
+        setState(() {}); //update state
 
         controller.startImageStream((CameraImage img) {
           if (isRecording) {
@@ -129,37 +128,39 @@ class _CameraState extends State<Camera> {
               numResultsPerClass: 3,
               threshold: 0.45,
             ).then((recognitions) {
-              //print(recognitions);
+              //print(newRecognitions);
 
 
               //making a new list that only contains detectedClass: person
-              newRecognitions = [];
+              var tempFilter = [];
               try {
                 int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
                 element.toString().contains("detectedClass: person")
                     //todo --> slet linjen her for kun at tracke personer
                     || element.toString().contains("detectedClass: bottle")));
 
-                newRecognitions.add(recognitions[newRecognitionIndex]);
+                tempFilter.add(recognitions[newRecognitionIndex]);
               }catch(e) {
                 // no person found
               }
 
-              if(newRecognitions.length>0){
+              filteredRecognitions = tempFilter;
+
+              if(filteredRecognitions.length>0){
                 if (Platform.isAndroid) { // Android-specific code
-                  String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
-                  String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
-                  String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
-                  String yCoord= newRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
+                  String wCoord= filteredRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
+                  String xCoord= filteredRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
+                  String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
+                  String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
                   double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
                   _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
 
                 } else if (Platform.isIOS) {
-                  String wCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
-                  String xCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
-                  String hCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
-                  String yCoord= newRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
+                  String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
+                  String xCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
+                  String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
+                  String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
 
                   double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
                   _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
@@ -169,6 +170,7 @@ class _CameraState extends State<Camera> {
                 _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
               }
               isDetecting = false;
+              setState(() {}); // update state, trigger rerender
             });
           }
         });
@@ -196,7 +198,9 @@ class _CameraState extends State<Camera> {
     isProcessingVideo = true;
     int realFrameRate = (currentSavedIndex/recordSeconds).round();
     print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
-    _flutterFFmpeg.execute("-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4").then((rc) {
+    _flutterFFmpeg.execute(
+        "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4")
+        .then((rc) {
       print("FFmpeg process exited with rc $rc");
       GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
         print("saved: $value");
@@ -209,10 +213,10 @@ class _CameraState extends State<Camera> {
       }
       currentFrameIndex = 0;
       currentSavedIndex = 0;
-      recordSeconds = 0;
     });
+    recordSeconds = 0;
+    timer.cancel();
     //  });
-
   }
 
   void changeCameraLens() {
@@ -246,12 +250,12 @@ class _CameraState extends State<Camera> {
       return Container();
     }
 
-    var tmp = MediaQuery.of(context).size;
-    var screenH = math.max(tmp.height, tmp.width);
-    var screenW = math.min(tmp.height, tmp.width);
-    tmp = controller.value.previewSize;
-    var previewH = math.max(tmp.height, tmp.width);
-    var previewW = math.min(tmp.height, tmp.width);
+    var tmpSize = MediaQuery.of(context).size;
+    var screenH = math.max(tmpSize.height, tmpSize.width);
+    var screenW = math.min(tmpSize.height, tmpSize.width);
+    tmpSize = controller.value.previewSize;
+    var previewH = math.max(tmpSize.height, tmpSize.width);
+    var previewW = math.min(tmpSize.height, tmpSize.width);
     var screenRatio = screenH / screenW;
     var previewRatio = previewH / previewW;
 
@@ -272,7 +276,7 @@ class _CameraState extends State<Camera> {
         ),
         debugModeValue.value ?
         BndBox(
-          newRecognitions == null ? [] : newRecognitions,
+          filteredRecognitions,
           math.max(imgHeight, imgWidth),
           math.min(imgHeight, imgWidth),
           screen.height,
@@ -300,6 +304,7 @@ class _CameraState extends State<Camera> {
               isRecording ? stopRecording() : startRecording();
             }
         ),
+        Text("$recordSeconds"),
       ],
     );
   }

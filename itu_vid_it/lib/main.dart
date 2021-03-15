@@ -22,16 +22,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'VidIT',
       home: HomeHooks(cameras),
-
-      //todo -> slet dette er brugt til test
-     /* home: Scaffold(
-        body: Center(
-          child:
-          Text(TrackingData("freder").name.toString()),)
-      ),
-
-      */
     );
-
   }
 }
