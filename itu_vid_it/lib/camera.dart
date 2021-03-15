@@ -44,7 +44,7 @@ class _CameraState extends State<Camera> {
   final imageHeight;
   final imageWidth;
   Size screen;
-  _CameraState(this.debugModeValue, this.recognitions, this.imageHeight, this.imageWidth, this.screen );
+  _CameraState(this.debugModeValue, this.recognitions, this.imageHeight, this.imageWidth, this.screen);
 
 
   @override
@@ -65,7 +65,7 @@ class _CameraState extends State<Camera> {
     } else {
       controller = new CameraController(
         widget.cameras[cameraFlip],
-        ResolutionPreset.veryHigh,
+        ResolutionPreset.max,
       );
       controller.initialize().then((_) {
         if (!mounted) {
@@ -169,24 +169,14 @@ class _CameraState extends State<Camera> {
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
-
-    var tmp = MediaQuery.of(context).size;
-    //var screenH = math.max(tmp.height, tmp.width);
-    //var screenW = math.min(tmp.height, tmp.width);
-    tmp = controller.value.previewSize;
-    //var previewH = math.max(tmp.height, tmp.width);
-    //var previewW = math.min(tmp.height, tmp.width);
-    //var screenRatio = screenH / screenW;
-    //var previewRatio = previewH / previewW;
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
 
     return Stack(
       children: [
         OverflowBox(
-          //Commented our becuase it causes an error that it does not use the whole screen when in landscape mode.
-          //maxHeight:
-          //screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
-          //maxWidth:
-          //screenRatio > previewRatio ? screenW: screenH / previewH * previewW,
+          maxHeight: height,
+          maxWidth: width,
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
