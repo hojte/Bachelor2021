@@ -104,7 +104,7 @@ class ComputeData {
 
 
   String get checkData{
-    if(trackingData.xCoord == 0 && trackingData.wCoord ==0 && trackingData.yCoord==0 && trackingData.hCoord==0) return "No data";
+    if(trackingData.xCoord == "0.0" && trackingData.wCoord =="0.0" && trackingData.yCoord=="0.0" && trackingData.hCoord=="0.0") return "No data";
     return "Data looks fine";
   }
 }
