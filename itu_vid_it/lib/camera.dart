@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -44,8 +45,9 @@ class _CameraState extends State<Camera> {
   int currentSavedIndex = 0;
   int imgWidth = 1920;
   int imgHeight = 1080;
-  int videoFramerate = 8;
   int deviceRotation;
+  Timer timer;
+  int recordSeconds = 0;
 
 
   @override
@@ -91,18 +93,16 @@ class _CameraState extends State<Camera> {
         setState(() {});
 
         controller.startImageStream((CameraImage img) {
+          if (isRecording) {
+            currentFrameIndex++;
+            isSaving = true;
+            saveTemporaryFile(currentFrameIndex, img).then((value) {
+              print("saved $value/$currentFrameIndex");
+              currentSavedIndex = value;
+            });
+          }
           if (!isDetecting) {
-            if (isRecording) {
-              currentFrameIndex++;
-              isSaving = true;
-              saveTemporaryFile(currentFrameIndex, img).then((value) {
-                print("saved $value/$currentFrameIndex");
-                currentSavedIndex = value;
-              });
-              //if (currentFrameIndex>9) stopRecording(); // for taking short test vids
-            }
             isDetecting = true;
-            //int startTime = new DateTime.now().millisecondsSinceEpoch;
             imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
             imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
             switch (MediaQuery.of(context).orientation) {
@@ -173,21 +173,31 @@ class _CameraState extends State<Camera> {
     print('dir created @ $videoDirectory');
     //videoFile = File(filepath);
     isRecording = true;
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      recordSeconds++;
+    });
   }
 
   void stopRecording() {
     isRecording = false;
     //waitForSave().then((value) {
-    isProcessingVideo = true; // todo> calculate framerate
-    _flutterFFmpeg.execute("-r $videoFramerate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4").then((rc) {
+    isProcessingVideo = true;
+    int realFrameRate = (currentSavedIndex/recordSeconds).round(); // fixme too high calculated framerate
+    print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
+    _flutterFFmpeg.execute("-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4").then((rc) {
       print("FFmpeg process exited with rc $rc");
       GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
         print("saved: $value");
         isProcessingVideo = false;
-        currentFrameIndex = 0;
-        currentSavedIndex = 0;
       });
-
+      // CleanUp
+      print("Deleting $currentSavedIndex files");
+      for (int i = 1; i<currentSavedIndex+1; i++) {
+        File("$videoDirectory/VidIT$i.jpg").delete();
+      }
+      currentFrameIndex = 0;
+      currentSavedIndex = 0;
+      recordSeconds = 0;
     });
     //  });
 
