@@ -173,6 +173,7 @@ class _CameraState extends State<Camera> {
     print('dir created @ $videoDirectory');
     //videoFile = File(filepath);
     isRecording = true;
+    recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
     });
@@ -182,7 +183,7 @@ class _CameraState extends State<Camera> {
     isRecording = false;
     //waitForSave().then((value) {
     isProcessingVideo = true;
-    int realFrameRate = (currentSavedIndex/recordSeconds).round(); // fixme too high calculated framerate
+    int realFrameRate = (currentSavedIndex/recordSeconds).round();
     print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
     _flutterFFmpeg.execute("-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4").then((rc) {
       print("FFmpeg process exited with rc $rc");
