@@ -130,6 +130,7 @@ void loop() {
   
   if(connectedUsers > 0){    
     digitalWrite(ledPin, HIGH);
+    Serial.println(VidItCharacteristic->getValue().c_str());
 
     //Splitting the input string into direction and speed
     std::string inputFromAPP = VidItCharacteristic->getValue().c_str();
