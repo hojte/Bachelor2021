@@ -18,6 +18,11 @@ allprojects {
         jcenter()
     }
 }
+ext {
+    flutterFFmpegPackage  = "video"
+    flutterFFmpegPackage  = "audio"
+    flutterFFmpegPackage  = "min-gpl"
+}
 
 rootProject.buildDir = '../build'
 subprojects {
