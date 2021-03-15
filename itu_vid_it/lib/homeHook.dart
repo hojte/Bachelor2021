@@ -44,20 +44,7 @@ class HomeHooks extends HookWidget{
     }
 
     Size screen = MediaQuery.of(context).size;
-    final _recognitions = useState();
-    final _imageHeight = useState(0);
-    final _imageWidth = useState(0);
-    final _trackingData = useState();
     final isTracking = useState(false);
-
-    void setRecognitions(recognitions, imageHeight, imageWidth, trackingData) {
-      _recognitions.value = recognitions;
-      _imageHeight.value = imageHeight;
-      _imageWidth.value = imageWidth;
-      _trackingData.value = trackingData.map;
-
-    }
-
 
     return(
         Scaffold(
@@ -107,14 +94,9 @@ class HomeHooks extends HookWidget{
             children: [
               Camera(
                 cameras,
-                setRecognitions,
                 bleCharacteristic.value,
                 debugModeValue,
-                _recognitions,
-                _imageHeight,
-                _imageWidth,
                 screen
-
               ),
               //Text(_trackingData.value.toString()), //todo --> slet denne linje den er brugt til debugging
 

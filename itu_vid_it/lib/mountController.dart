@@ -58,11 +58,12 @@ class ComputeData {
 
   String get boundingBoxCenter {
     if(trackingData.xCoord != null){
+      String speed =  trackingData.speed.toString();
+
       double x = double.parse(trackingData.xCoord);
       double y = double.parse(trackingData.yCoord);
       double w = double.parse(trackingData.wCoord);
       double h = double.parse(trackingData.hCoord);
-      String speed =  trackingData.speed.toString();
 
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
@@ -103,7 +104,7 @@ class ComputeData {
 
 
   String get checkData{
-    if(trackingData.xCoord == "0.0" && trackingData.wCoord =="0.0" && trackingData.yCoord=="0.0" && trackingData.hCoord=="0.0") return "No data";
+    if(trackingData.xCoord == 0 && trackingData.wCoord ==0 && trackingData.yCoord==0 && trackingData.hCoord==0) return "No data";
     return "Data looks fine";
   }
 }
