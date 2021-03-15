@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-//import 'package:gallery_saver/gallery_saver.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
 import 'package:tflite/tflite.dart';
@@ -38,11 +38,15 @@ class _CameraState extends State<Camera> {
   File videoFile;
   bool isRecording = false;
   bool isSaving = false;
+  bool isProcessingVideo = false;
   String videoDirectory;
   int currentFrameIndex = 0;
   int currentSavedIndex = 0;
   int imgWidth = 1920;
   int imgHeight = 1080;
+  int videoFramerate = 8;
+  int deviceRotation;
+
 
   @override
   void initState() {
@@ -101,7 +105,6 @@ class _CameraState extends State<Camera> {
             //int startTime = new DateTime.now().millisecondsSinceEpoch;
             imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
             imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
-            int deviceRotation;
             switch (MediaQuery.of(context).orientation) {
               case Orientation.portrait:
                 deviceRotation = 90;
@@ -134,7 +137,7 @@ class _CameraState extends State<Camera> {
                 // no person found
               }
 
-              if(newRecognitions.length>0){
+              if(newRecognitions.length>0) {
                 String wCoord= newRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
                 String xCoord= newRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
                 String hCoord= newRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
@@ -164,10 +167,10 @@ class _CameraState extends State<Camera> {
     //final Directory getDirectory = await pathProvider.getTemporaryDirectory();
     final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
-    videoDirectory = '${getDirectory.path}/Videos/VidItPngSequence-$time';
+    videoDirectory = '${getDirectory.path}/Videos/VidITJpgSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
     //final String filePath = '$videoDirectory/VidITClip$time.mp4'; // use when we can build mp4 succesfully
-    print('dir created $videoDirectory');
+    print('dir created @ $videoDirectory');
     //videoFile = File(filepath);
     isRecording = true;
   }
@@ -175,12 +178,16 @@ class _CameraState extends State<Camera> {
   void stopRecording() {
     isRecording = false;
     //waitForSave().then((value) {
-    print("COMPOSING MP4!!"); // todo> calculate framerate, input correct resolution based on img.height and width, correct format yuv/bgr
-    _flutterFFmpeg.execute("-r 30 -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $videoDirectory/VidITCapture.mp4").then((rc) {
+    isProcessingVideo = true; // todo> calculate framerate
+    _flutterFFmpeg.execute("-r $videoFramerate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4").then((rc) {
       print("FFmpeg process exited with rc $rc");
-      print('Video saved');
-      //GallerySaver.saveVideo(videoDirectory+'LOL.mp4');
-      currentFrameIndex = 0;
+      GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
+        print("saved: $value");
+        isProcessingVideo = false;
+        currentFrameIndex = 0;
+        currentSavedIndex = 0;
+      });
+
     });
     //  });
 
@@ -226,6 +233,12 @@ class _CameraState extends State<Camera> {
     var screenRatio = screenH / screenW;
     var previewRatio = previewH / previewW;
 
+    Widget renderRecordButton() {
+      if (isProcessingVideo) return CircularProgressIndicator();
+      else if (isRecording) return Icon(Icons.stop_circle);
+      else return Icon(Icons.slow_motion_video_sharp);
+    }
+
     return Stack(
       children: [
         OverflowBox(
@@ -248,7 +261,7 @@ class _CameraState extends State<Camera> {
         MountController(_trackingData, widget._bleCharacteristic),
 
         FloatingActionButton(
-            child: isRecording ? Icon(Icons.stop_circle) : Icon(Icons.slow_motion_video_sharp),
+            child: renderRecordButton(),
             backgroundColor: isRecording ? Colors.red : Colors.green,
             onPressed: () {
               isRecording ? stopRecording() : startRecording();
