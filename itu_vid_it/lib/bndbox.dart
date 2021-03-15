@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-
+//Some methods has been taken and we have modified them to our needs
+//https://github.com/ravindu9701/Real-Time-Object-Detection-Mobile/blob/main/lib/camera.dart
 class BndBox extends StatelessWidget {
   final List<dynamic> results;
   final int previewH;

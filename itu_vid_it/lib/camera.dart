@@ -13,7 +13,8 @@ import 'dart:math' as math;
 import 'dart:io' show Platform;
 
 import 'bndbox.dart';
-
+//Some methods has been taken and we have modified them to our needs
+//https://github.com/ravindu9701/Real-Time-Object-Detection-Mobile/blob/main/lib/camera.dart
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
 class Camera extends StatefulWidget {
@@ -170,21 +171,22 @@ class _CameraState extends State<Camera> {
     }
 
     var tmp = MediaQuery.of(context).size;
-    var screenH = math.max(tmp.height, tmp.width);
-    var screenW = math.min(tmp.height, tmp.width);
+    //var screenH = math.max(tmp.height, tmp.width);
+    //var screenW = math.min(tmp.height, tmp.width);
     tmp = controller.value.previewSize;
-    var previewH = math.max(tmp.height, tmp.width);
-    var previewW = math.min(tmp.height, tmp.width);
-    var screenRatio = screenH / screenW;
-    var previewRatio = previewH / previewW;
+    //var previewH = math.max(tmp.height, tmp.width);
+    //var previewW = math.min(tmp.height, tmp.width);
+    //var screenRatio = screenH / screenW;
+    //var previewRatio = previewH / previewW;
 
     return Stack(
       children: [
         OverflowBox(
-          maxHeight:
-          screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
-          maxWidth:
-          screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
+          //Commented our becuase it causes an error that it does not use the whole screen when in landscape mode.
+          //maxHeight:
+          //screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          //maxWidth:
+          //screenRatio > previewRatio ? screenW: screenH / previewH * previewW,
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
