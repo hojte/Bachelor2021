@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -8,14 +10,9 @@ import 'package:gallery_saver/gallery_saver.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
 import 'package:tflite/tflite.dart';
-import 'dart:io';
 import 'package:path_provider/path_provider.dart' as pathProvider;
-import 'dart:math' as math;
 import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
-
-
-import 'dart:io' show Platform;
 
 import 'bndbox.dart';
 
