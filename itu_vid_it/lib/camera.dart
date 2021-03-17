@@ -107,7 +107,12 @@ class _CameraState extends State<Camera> {
           }
           if (!isDetecting) {
             isDetecting = true;
-            imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
+            imglib.Image oriImage;
+            if (Platform.isAndroid)
+              oriImage = imglib.decodeJpg(img.planes[0].bytes);
+            else
+              oriImage = imglib.decodeImage(img.planes[0].bytes);
+
             imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
             switch (MediaQuery.of(context).orientation) {
               case Orientation.portrait:
@@ -195,8 +200,11 @@ class _CameraState extends State<Camera> {
     isProcessingVideo = true;
     int realFrameRate = (currentSavedIndex/recordSeconds).round();
     print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
+    String transposeCommand = '';
+    if(deviceRotation==90) transposeCommand = '-vf \"transpose=1\"';
+    if(deviceRotation==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=1\"';
     _flutterFFmpeg.execute(
-        "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 ${deviceRotation == 90 ? '-vf \"transpose=1\"' : ''} $videoDirectory/aVidITCapture.mp4")
+        "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $transposeCommand $videoDirectory/aVidITCapture.mp4")
         .then((rc) {
       print("FFmpeg process exited with rc $rc");
       GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
