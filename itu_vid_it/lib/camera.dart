@@ -89,11 +89,9 @@ class _CameraState extends State<Camera> {
       print('No camera is found');
     } else {
       controller = new CameraController(
-
           widget.cameras[useFrontCam],
           ResolutionPreset.veryHigh,
           imageFormatGroup: ImageFormatGroup.jpeg
-
       );
 
       controller.initialize().then((_) {
@@ -107,7 +105,7 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              print("saved $value/$currentFrameIndex");
+              //print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
