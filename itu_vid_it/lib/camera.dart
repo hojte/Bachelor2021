@@ -173,6 +173,7 @@ class _CameraState extends State<Camera> {
     var height = MediaQuery.of(context).size.height;
 
     return Stack(
+
       children: [
         OverflowBox(
           maxHeight: height,
