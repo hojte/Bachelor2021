@@ -208,6 +208,7 @@ class _CameraState extends State<Camera> {
       GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
         print("saved: $value");
         isProcessingVideo = false;
+        setState(() {}); // update state, trigger rerender
       });
       // CleanUp
       print("Deleting $currentSavedIndex files");
