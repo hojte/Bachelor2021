@@ -15,8 +15,6 @@ import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
 import 'bndbox.dart';
-//Some methods has been taken and we have modified them to our needs
-//https://github.com/ravindu9701/Real-Time-Object-Detection-Mobile/blob/main/lib/camera.dart
 
 final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
 
@@ -53,9 +51,7 @@ class _CameraState extends State<Camera> {
   final debugModeValue;
   List<dynamic> filteredRecognitions = [];
   Size screen;
-
   _CameraState(this.debugModeValue, this.screen);
-
 
 
   @override
@@ -105,7 +101,7 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              //print("saved $value/$currentFrameIndex");
+              print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
@@ -252,9 +248,14 @@ class _CameraState extends State<Camera> {
       return Container();
     }
 
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
-
+    var tmpSize = MediaQuery.of(context).size;
+    var screenH = math.max(tmpSize.height, tmpSize.width);
+    var screenW = math.min(tmpSize.height, tmpSize.width);
+    tmpSize = controller.value.previewSize;
+    var previewH = math.max(tmpSize.height, tmpSize.width);
+    var previewW = math.min(tmpSize.height, tmpSize.width);
+    var screenRatio = screenH / screenW;
+    var previewRatio = previewH / previewW;
 
     Widget renderRecordButton() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -263,11 +264,12 @@ class _CameraState extends State<Camera> {
     }
 
     return Stack(
-
       children: [
         OverflowBox(
-          maxHeight: height,
-          maxWidth: width,
+          maxHeight:
+          screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          maxWidth:
+          screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
