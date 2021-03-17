@@ -108,16 +108,7 @@ class _CameraState extends State<Camera> {
           }
           if (!isDetecting) {
             isDetecting = true;
-            imglib.Image oriImage;
-            if (Platform.isAndroid)
-              oriImage = imglib.decodeJpg(img.planes[0].bytes);
-            else {
-          final WriteBuffer allBytes = WriteBuffer();
-          img.planes.forEach((Plane plane) => allBytes.putUint8List(plane.bytes));
-          var lol = allBytes.done().buffer.asUint8List();
-              oriImage = imglib.decodeImage(lol);
-            }
-            print(oriImage);
+            imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
             imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
             switch (MediaQuery.of(context).orientation) {
               case Orientation.portrait:
@@ -129,56 +120,24 @@ class _CameraState extends State<Camera> {
             }
             imglib.Image orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
             if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
-            Tflite.detectObjectOnBinary(
-              binary: imageToByteListUint8(orientedImg, 300),
-              model: "SSDMobileNet",
-              numResultsPerClass: 3,
-              threshold: 0.45,
-            ).then((recognitions) {
-              //print(newRecognitions);
-
-
-              //making a new list that only contains detectedClass: person
-              var tempFilter = [];
-              try {
-                int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
-                element.toString().contains("detectedClass: person")
-                    //todo --> slet linjen her for kun at tracke personer
-                    || element.toString().contains("detectedClass: bottle")));
-
-                tempFilter.add(recognitions[newRecognitionIndex]);
-              }catch(e) {
-                // no person found
-              }
-
-              filteredRecognitions = tempFilter;
-
-              if(filteredRecognitions.length>0){
-                if (Platform.isAndroid) { // Android-specific code
-                  String wCoord= filteredRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
-                  String xCoord= filteredRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
-                  String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
-                  String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
-
-                  double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
-                  _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
-
-                } else if (Platform.isIOS) {
-                  String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
-                  String xCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
-                  String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
-                  String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
-
-                  double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
-                  _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
-                }
-              }
-              else{
-                _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
-              }
-              isDetecting = false;
-              setState(() {}); // update state, trigger rerender
-            });
+            if(Platform.isAndroid)
+              Tflite.detectObjectOnBinary(
+                binary: imageToByteListUint8(orientedImg, 300),
+                model: "SSDMobileNet",
+                numResultsPerClass: 3,
+                threshold: 0.45,
+              ).then((recognitions) {
+                handleRecognitions(recognitions);
+              });
+            else
+              Tflite.detectObjectOnFrame( //BGRA
+                bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
+                model: "SSDMobileNet",
+                numResultsPerClass: 3,
+                threshold: 0.45,
+              ).then((recognitions) {
+                handleRecognitions(recognitions);
+              });
           }
         });
       });
@@ -186,8 +145,9 @@ class _CameraState extends State<Camera> {
   }
 
   void startRecording() async {
-    //final Directory getDirectory = await pathProvider.getTemporaryDirectory();
-    final Directory getDirectory = await pathProvider.getExternalStorageDirectory();
+    Directory getDirectory;
+    if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
+    else getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidITJpgSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
@@ -207,7 +167,7 @@ class _CameraState extends State<Camera> {
     print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
     String transposeCommand = '';
     if(deviceRotation==90) transposeCommand = '-vf \"transpose=1\"';
-    if(deviceRotation==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=1\"';
+    if(deviceRotation==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
     _flutterFFmpeg.execute(
         "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $transposeCommand $videoDirectory/aVidITCapture.mp4")
         .then((rc) {
@@ -255,6 +215,50 @@ class _CameraState extends State<Camera> {
     }
   }
 
+  void handleRecognitions(List<dynamic> recognitions) {
+    //print(newRecognitions);
+    //making a new list that only contains detectedClass: person
+    var tempFilter = [];
+    try {
+      int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
+      element.toString().contains("detectedClass: person")
+          //todo --> slet linjen her for kun at tracke personer
+          || element.toString().contains("detectedClass: bottle")));
+
+      tempFilter.add(recognitions[newRecognitionIndex]);
+    } catch(e) {
+      // no person found
+    }
+
+    filteredRecognitions = tempFilter;
+
+    if(filteredRecognitions.length>0){
+      if (Platform.isAndroid) { // Android-specific code
+        String wCoord= filteredRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
+        String xCoord= filteredRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
+        String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
+        String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
+
+        double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+
+      } else if (Platform.isIOS) {
+        String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
+        String xCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
+        String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
+        String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
+
+        double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+      }
+    }
+    else{
+      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+    }
+    isDetecting = false;
+    setState(() {}); // update state, trigger rerender
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
@@ -270,7 +274,7 @@ class _CameraState extends State<Camera> {
     var screenRatio = screenH / screenW;
     var previewRatio = previewH / previewW;
 
-    Widget renderRecordButton() {
+    Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
       else if (isRecording) return Icon(Icons.stop_circle);
       else return Icon(Icons.slow_motion_video_sharp);
@@ -308,13 +312,13 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        FloatingActionButton(
-            child: renderRecordButton(),
+        Platform.isIOS ? FloatingActionButton(
+            child: renderRecordIcon(),
             backgroundColor: isRecording ? Colors.red : Colors.green,
             onPressed: () {
               isRecording ? stopRecording() : startRecording();
             }
-        ),
+        ) : Container(),
         Text("$recordSeconds"),
       ],
     );
