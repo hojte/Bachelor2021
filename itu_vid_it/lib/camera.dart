@@ -52,6 +52,7 @@ class _CameraState extends State<Camera> {
   final debugModeValue;
   List<dynamic> filteredRecognitions = [];
   Size screen;
+  int deviceRotationOnRecordStart;
   _CameraState(this.debugModeValue, this.screen);
 
 
@@ -152,6 +153,7 @@ class _CameraState extends State<Camera> {
     videoDirectory = '${getDirectory.path}/Videos/VidITJpgSequence-$time';
     await Directory(videoDirectory).create(recursive: true);
     print('dir created @ $videoDirectory');
+    deviceRotationOnRecordStart = deviceRotation;
     isRecording = true;
     recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -166,8 +168,8 @@ class _CameraState extends State<Camera> {
     int realFrameRate = (currentSavedIndex/recordSeconds).round();
     print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
     String transposeCommand = '';
-    if(deviceRotation==90) transposeCommand = '-vf \"transpose=1\"';
-    if(deviceRotation==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
+    if(deviceRotationOnRecordStart==90) transposeCommand = '-vf \"transpose=1\"';
+    if(deviceRotationOnRecordStart==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
     _flutterFFmpeg.execute(
         "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $transposeCommand $videoDirectory/aVidITCapture.mp4")
         .then((rc) {
