@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -110,9 +111,13 @@ class _CameraState extends State<Camera> {
             imglib.Image oriImage;
             if (Platform.isAndroid)
               oriImage = imglib.decodeJpg(img.planes[0].bytes);
-            else
-              oriImage = imglib.decodeImage(img.planes[0].bytes);
-
+            else {
+          final WriteBuffer allBytes = WriteBuffer();
+          img.planes.forEach((Plane plane) => allBytes.putUint8List(plane.bytes));
+          var lol = allBytes.done().buffer.asUint8List();
+              oriImage = imglib.decodeImage(lol);
+            }
+            print(oriImage);
             imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
             switch (MediaQuery.of(context).orientation) {
               case Orientation.portrait:
