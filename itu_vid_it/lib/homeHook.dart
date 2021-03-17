@@ -42,6 +42,7 @@ class HomeHooks extends HookWidget{
 
     Size screen = MediaQuery.of(context).size;
     final isTracking = useState(false);
+    var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
     return(
         Scaffold(
@@ -60,7 +61,7 @@ class HomeHooks extends HookWidget{
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(
-            child: Column(
+            child: isPortrait ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 RaisedButton(
@@ -85,7 +86,33 @@ class HomeHooks extends HookWidget{
                 ),
                 FlutterBlueWidget(setCharacteristic),
               ],
-            ),
+            ) : Row(children: [
+              FlutterBlueWidget(setCharacteristic),
+              Column(
+                children: [
+                  RaisedButton(
+                    color: Colors.teal,
+                    child: const Text(
+                      "Start Tracking",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      loadModel();
+                      isTracking.value = true;
+                    },
+                  ),
+                  RaisedButton(
+                    child: Text("Detect in Image"),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => StaticImage(),
+                      ),
+                      );
+                    },
+                  )
+                ],
+              ),
+            ],)
           )
               : Stack(
             children: [
