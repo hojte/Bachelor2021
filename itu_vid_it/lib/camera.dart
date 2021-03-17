@@ -268,7 +268,7 @@ class _CameraState extends State<Camera> {
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
-
+/*
     var tmpSize = MediaQuery.of(context).size;
     var screenH = math.max(tmpSize.height, tmpSize.width);
     var screenW = math.min(tmpSize.height, tmpSize.width);
@@ -277,6 +277,9 @@ class _CameraState extends State<Camera> {
     var previewW = math.min(tmpSize.height, tmpSize.width);
     var screenRatio = screenH / screenW;
     var previewRatio = previewH / previewW;
+ */
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -287,10 +290,10 @@ class _CameraState extends State<Camera> {
     return Stack(
       children: [
         OverflowBox(
-          maxHeight:
-          screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
-          maxWidth:
-          screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
+          maxHeight: height,
+          //screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          maxWidth: width,
+         // screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
