@@ -108,18 +108,22 @@ class _CameraState extends State<Camera> {
           }
           if (!isDetecting) {
             isDetecting = true;
-            imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
-            imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
-            switch (MediaQuery.of(context).orientation) {
-              case Orientation.portrait:
-                deviceRotation = 90;
-                break;
-              case Orientation.landscape:
-                deviceRotation = 0;
-                break;
+            imglib.Image orientedImg;
+            if(Platform.isAndroid) {
+              imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
+              imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
+              switch (MediaQuery.of(context).orientation) {
+                case Orientation.portrait:
+                  deviceRotation = 90;
+                  break;
+                case Orientation.landscape:
+                  deviceRotation = 0;
+                  break;
+              }
+              orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
+              if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
             }
-            imglib.Image orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
-            if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
+
             if(Platform.isAndroid)
               Tflite.detectObjectOnBinary(
                 binary: imageToByteListUint8(orientedImg, 300),
