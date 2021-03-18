@@ -79,7 +79,17 @@ class _CameraState extends State<Camera> {
 
   Future<int> saveTemporaryFile(index, img) async {
     String filePath = '$videoDirectory/VidIT$index.jpg';
-    await File(filePath).writeAsBytes(img.planes[0].bytes);
+    if (Platform.isAndroid)
+      await File(filePath).writeAsBytes(img.planes[0].bytes);
+    if (Platform.isIOS) {
+      await File(filePath).writeAsBytes(imglib.Image.fromBytes( //maybe
+        img.width,
+        img.height,
+        img.planes[0].bytes,
+        format: imglib.Format.bgra,
+      ).getBytes());
+      //await File(filePath).writeAsBytes(img.planes[0].bytes); // maybe II
+    }
     return index;
   }
 
@@ -119,6 +129,7 @@ class _CameraState extends State<Camera> {
               img.planes[0].bytes,
               format: imglib.Format.bgra,
             );
+
             imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 300, height: 300);
             switch (MediaQuery.of(context).orientation) {
               case Orientation.portrait:
@@ -147,7 +158,7 @@ class _CameraState extends State<Camera> {
   void startRecording() async {
     Directory getDirectory;
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
-    else getDirectory = await pathProvider.getExternalStorageDirectory();
+    else if  (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidITDir-$time';
     await Directory(videoDirectory).create(recursive: true);
