@@ -335,13 +335,13 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        !Platform.isIOS ? FloatingActionButton(
+        FloatingActionButton(
             child: renderRecordIcon(),
             backgroundColor: isRecording ? Colors.red : Colors.green,
             onPressed: () {
               isRecording ? stopRecording() : startRecording();
             }
-        ) : Container(),
+        ),
         Text("$recordSeconds"),
       ],
     );
