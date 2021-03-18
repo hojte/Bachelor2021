@@ -90,7 +90,7 @@ class _CameraState extends State<Camera> {
       controller = new CameraController(
           widget.cameras[useFrontCam],
           ResolutionPreset.veryHigh,
-          imageFormatGroup: ImageFormatGroup.jpeg
+          //imageFormatGroup: ImageFormatGroup.jpeg
       );
 
       controller.initialize().then((_) {
@@ -110,7 +110,7 @@ class _CameraState extends State<Camera> {
           }
           if (!isDetecting) {
             isDetecting = true;
-            imglib.Image orientedImg;
+            /*imglib.Image orientedImg;
             if(Platform.isAndroid) {
               imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
               imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
@@ -135,7 +135,7 @@ class _CameraState extends State<Camera> {
               ).then((recognitions) {
                 handleRecognitions(recognitions);
               });
-            else
+            else*/
               Tflite.detectObjectOnFrame( //BGRA - iOS
                 bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
                 model: "SSDMobileNet",
@@ -157,7 +157,7 @@ class _CameraState extends State<Camera> {
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
     else getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
-    videoDirectory = '${getDirectory.path}/Videos/VidITJpgSequence-$time';
+    videoDirectory = '${getDirectory.path}/Videos/VidITDir-$time';
     await Directory(videoDirectory).create(recursive: true);
     print('dir created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
@@ -173,23 +173,20 @@ class _CameraState extends State<Camera> {
     isRecording = false;
     waitForSave().then((value) {
       isProcessingVideo = true;
-      int realFrameRate = (currentSavedIndex/recordSeconds).round();
-      print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
-      String transposeCommand = '';
-      if(deviceRotationOnRecordStart==90) transposeCommand = '-vf \"transpose=1\"';
-      if(deviceRotationOnRecordStart==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
-
       int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
-      print('time recorded; $exactTimeRecorded');
-      var FFMPEGarguments = [
-        '-frames:v', '${currentFrameIndex}' // Frames saved/recorded
-            '-i', '$videoDirectory/VidIT%01d.jpg',
-        "-c:v", "libx264",
-        '$videoDirectory/aVidITCapture.mp4'];
-      if(deviceRotationOnRecordStart==90 && useFrontCam == 1) FFMPEGarguments.addAll(['-vf', '\"transpose=2\"']); //90 counter clockwise
-      else if(deviceRotationOnRecordStart==90) FFMPEGarguments.addAll(['-vf', '\"transpose=1\"']); // 90 clockwise
+      print('Exact time recorded = $exactTimeRecorded ms');
+      int realFrameRate = (currentSavedIndex/(exactTimeRecorded/1000)).floor();
+      print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
 
-      _flutterFFmpeg.executeWithArguments(FFMPEGarguments)
+      var argumentsFFMPEG = [
+        '-r', realFrameRate.toString(), // Frames saved/recorded
+        '-i', '$videoDirectory/VidIT%01d.jpg',
+      ];
+      if(deviceRotationOnRecordStart==90 && useFrontCam == 1) argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
+      else if(deviceRotationOnRecordStart==90) argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
+      argumentsFFMPEG.add('$videoDirectory/aVidITCapture.mp4');
+
+      _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
           .then((rc) {
         print("FFmpeg process exited with rc $rc");
         GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
