@@ -23,11 +23,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Can I fuck you</string>
+	<string>Allow Bluetooth usage?</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Can I use the camera please?</string>
+	<string>Allow Camera Usage</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Can I use the mic please?</string>
+	<string>Allow Microphone Usage</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>You need to accept the following in order to save the video in your album</string>
 	<key>UILaunchStoryboardName</key>
