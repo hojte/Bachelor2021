@@ -54,7 +54,7 @@ class _CameraState extends State<Camera> {
   int deviceRotationOnRecordStart;
   int recordStartTime;
   _CameraState(this.debugModeValue, this.screen);
-
+  String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
 
   @override
   void initState() {
@@ -78,10 +78,10 @@ class _CameraState extends State<Camera> {
   }
 
   Future<int> saveTemporaryFile(index, img) async {
-    String filePath = '$videoDirectory/VidIT$index.jpg';
+    String filePath = '$videoDirectory/VidIT$index.$fileType';
     if (Platform.isAndroid)
       await File(filePath).writeAsBytes(img.planes[0].bytes);
-    if (Platform.isIOS) {
+    if (Platform.isIOS)
       await File(filePath).writeAsBytes(imglib.Image.fromBytes( //maybe
         img.width,
         img.height,
@@ -89,7 +89,6 @@ class _CameraState extends State<Camera> {
         format: imglib.Format.bgra,
       ).getBytes());
       //await File(filePath).writeAsBytes(img.planes[0].bytes); // maybe II
-    }
     return index;
   }
 
@@ -162,7 +161,7 @@ class _CameraState extends State<Camera> {
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidITDir-$time';
     await Directory(videoDirectory).create(recursive: true);
-    print('dir created @ $videoDirectory');
+    print('Directory created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
     isRecording = true;
     recordStartTime = DateTime.now().millisecondsSinceEpoch;
@@ -183,7 +182,7 @@ class _CameraState extends State<Camera> {
 
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '$videoDirectory/VidIT%01d.jpg',
+        '-i', '$videoDirectory/VidIT%01d.$fileType',
       ];
       if(deviceRotationOnRecordStart==90 && useFrontCam == 1) argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
       else if(deviceRotationOnRecordStart==90) argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
@@ -198,9 +197,9 @@ class _CameraState extends State<Camera> {
           setState(() {}); // update state, trigger rerender
         });
         // CleanUp
-        print("Deleting $currentSavedIndex files");
+        //print("Deleting $currentSavedIndex files");
         for (int i = 1; i<currentSavedIndex+1; i++) {
-          File("$videoDirectory/VidIT$i.jpg").delete();
+          //File("$videoDirectory/VidIT$i.$fileType").delete();
         }
         currentFrameIndex = 0;
         currentSavedIndex = 0;
