@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -78,8 +79,13 @@ class _CameraState extends State<Camera> {
   }
 
   Future<int> saveTemporaryFile(index, img) async {
-    String filePath = '$videoDirectory/VidIT$index.jpg';
-    await File(filePath).writeAsBytes(img.planes[0].bytes);
+    //WriteBuffer allBytes = WriteBuffer();
+    //img.planes.forEach((Plane plane) => allBytes.putUint8List(plane.bytes));
+    //var lol = allBytes.done().buffer.asUint8List();
+    String filePath = '$videoDirectory/VidIT$index.';
+    await File(filePath+'Y').writeAsBytes(img.planes[0].bytes);
+    await File(filePath+'U').writeAsBytes(img.planes[1].bytes);
+    await File(filePath+'V').writeAsBytes(img.planes[2].bytes);
     return index;
   }
 
@@ -104,7 +110,7 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              //print("saved $value/$currentFrameIndex");
+              print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
@@ -180,7 +186,9 @@ class _CameraState extends State<Camera> {
 
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '$videoDirectory/VidIT%01d.jpg',
+        '-pix_fmt', 'yuv420p',
+        '-s', '1280x720',
+        '-i', '$videoDirectory/VidIT%d.Y',
       ];
       if(deviceRotationOnRecordStart==90 && useFrontCam == 1) argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
       else if(deviceRotationOnRecordStart==90) argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
@@ -196,9 +204,9 @@ class _CameraState extends State<Camera> {
         });
         // CleanUp
         print("Deleting $currentSavedIndex files");
-        for (int i = 1; i<currentSavedIndex+1; i++) {
-          File("$videoDirectory/VidIT$i.jpg").delete();
-        }
+        /*for (int i = 1; i<currentSavedIndex+1; i++) {
+          File("$videoDirectory/VidIT$i.yuv").delete();
+        }*/
         currentFrameIndex = 0;
         currentSavedIndex = 0;
       });
