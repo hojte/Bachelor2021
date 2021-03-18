@@ -53,6 +53,7 @@ class _CameraState extends State<Camera> {
   List<dynamic> filteredRecognitions = [];
   Size screen;
   int deviceRotationOnRecordStart;
+  int recordStartTime;
   _CameraState(this.debugModeValue, this.screen);
 
 
@@ -70,8 +71,9 @@ class _CameraState extends State<Camera> {
 
   //Returns when we are done saving images
   Future<void> waitForSave() async {
-    while(isSaving)
-      await Future.delayed(Duration(seconds: 1));
+    if (currentFrameIndex == currentSavedIndex) return;
+    //wait a bit more for last images to be saved
+    await Future.delayed(Duration(milliseconds: 500)); //fixme not good practise
     print('done saving');
     return;
   }
@@ -103,7 +105,7 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              print("saved $value/$currentFrameIndex");
+              //print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
@@ -131,7 +133,7 @@ class _CameraState extends State<Camera> {
                 handleRecognitions(recognitions);
               });
             else
-              Tflite.detectObjectOnFrame( //BGRA
+              Tflite.detectObjectOnFrame( //BGRA - iOS
                 bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
                 model: "SSDMobileNet",
                 numResultsPerClass: 3,
@@ -155,6 +157,7 @@ class _CameraState extends State<Camera> {
     print('dir created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
     isRecording = true;
+    recordStartTime = DateTime.now().millisecondsSinceEpoch;
     recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
@@ -163,33 +166,43 @@ class _CameraState extends State<Camera> {
 
   void stopRecording() {
     isRecording = false;
-    //waitForSave().then((value) {
-    isProcessingVideo = true;
-    int realFrameRate = (currentSavedIndex/recordSeconds).round();
-    print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
-    String transposeCommand = '';
-    if(deviceRotationOnRecordStart==90) transposeCommand = '-vf \"transpose=1\"';
-    if(deviceRotationOnRecordStart==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
-    _flutterFFmpeg.execute(
-        "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $transposeCommand $videoDirectory/aVidITCapture.mp4")
-        .then((rc) {
-      print("FFmpeg process exited with rc $rc");
-      GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
-        print("saved: $value");
-        isProcessingVideo = false;
-        setState(() {}); // update state, trigger rerender
+    waitForSave().then((value) {
+      isProcessingVideo = true;
+      int realFrameRate = (currentSavedIndex/recordSeconds).round();
+      print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
+      String transposeCommand = '';
+      if(deviceRotationOnRecordStart==90) transposeCommand = '-vf \"transpose=1\"';
+      if(deviceRotationOnRecordStart==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
+
+      int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
+      print('time recorded; $exactTimeRecorded');
+      var FFMPEGarguments = [
+        '-frames:v', '${currentFrameIndex}' // Frames saved/recorded
+            '-i', '$videoDirectory/VidIT%01d.jpg',
+        "-c:v", "libx264",
+        '$videoDirectory/aVidITCapture.mp4'];
+      if(deviceRotationOnRecordStart==90 && useFrontCam == 1) FFMPEGarguments.addAll(['-vf', '\"transpose=2\"']); //90 counter clockwise
+      else if(deviceRotationOnRecordStart==90) FFMPEGarguments.addAll(['-vf', '\"transpose=1\"']); // 90 clockwise
+
+      _flutterFFmpeg.executeWithArguments(FFMPEGarguments)
+          .then((rc) {
+        print("FFmpeg process exited with rc $rc");
+        GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
+          print("saved: $value");
+          isProcessingVideo = false;
+          setState(() {}); // update state, trigger rerender
+        });
+        // CleanUp
+        print("Deleting $currentSavedIndex files");
+        for (int i = 1; i<currentSavedIndex+1; i++) {
+          File("$videoDirectory/VidIT$i.jpg").delete();
+        }
+        currentFrameIndex = 0;
+        currentSavedIndex = 0;
       });
-      // CleanUp
-      print("Deleting $currentSavedIndex files");
-      for (int i = 1; i<currentSavedIndex+1; i++) {
-        File("$videoDirectory/VidIT$i.jpg").delete();
-      }
-      currentFrameIndex = 0;
-      currentSavedIndex = 0;
+      recordSeconds = 0;
+      timer.cancel();
     });
-    recordSeconds = 0;
-    timer.cancel();
-    //  });
   }
 
   void changeCameraLens() {
