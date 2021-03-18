@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -139,6 +138,8 @@ class _CameraState extends State<Camera> {
                 model: "SSDMobileNet",
                 numResultsPerClass: 3,
                 threshold: 0.45,
+                imageHeight: img.height,
+                imageWidth: img.width,
               ).then((recognitions) {
                 handleRecognitions(recognitions);
               });
@@ -290,8 +291,8 @@ class _CameraState extends State<Camera> {
     return Stack(
       children: [
         OverflowBox(
-         maxHeight: height,
-         // screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          maxHeight: height,
+          // screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
           maxWidth: width,
           //screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
           child: CameraPreview(controller),
