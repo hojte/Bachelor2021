@@ -88,9 +88,9 @@ class _CameraState extends State<Camera> {
       print('No camera is found');
     } else {
       controller = new CameraController(
-          widget.cameras[useFrontCam],
-          ResolutionPreset.veryHigh,
-          //imageFormatGroup: ImageFormatGroup.jpeg
+        widget.cameras[useFrontCam],
+        ResolutionPreset.veryHigh,
+        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.jpeg : ImageFormatGroup.bgra8888
       );
 
       controller.initialize().then((_) {
@@ -110,39 +110,31 @@ class _CameraState extends State<Camera> {
           }
           if (!isDetecting) {
             isDetecting = true;
-            /*imglib.Image orientedImg;
-            if(Platform.isAndroid) {
-              imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
-              imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
-              switch (MediaQuery.of(context).orientation) {
-                case Orientation.portrait:
-                  deviceRotation = 90;
-                  break;
-                case Orientation.landscape:
-                  deviceRotation = 0;
-                  break;
-              }
-              orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
-              if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
-            }
-
+            imglib.Image imageToBeAnalyzed;
             if(Platform.isAndroid)
+              imageToBeAnalyzed = imglib.decodeJpg(img.planes[0].bytes);
+            else imageToBeAnalyzed = imglib.Image.fromBytes(
+              img.width,
+              img.height,
+              img.planes[0].bytes,
+              format: imglib.Format.bgra,
+            );
+            imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 300, height: 300);
+            switch (MediaQuery.of(context).orientation) {
+              case Orientation.portrait:
+                deviceRotation = 90;
+                break;
+              case Orientation.landscape:
+                deviceRotation = 0;
+                break;
+            }
+            imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
+            if (useFrontCam == 1) imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
               Tflite.detectObjectOnBinary(
-                binary: imageToByteListUint8(orientedImg, 300),
+                binary: imageToByteListUint8(imageToBeAnalyzed, 300),
                 model: "SSDMobileNet",
                 numResultsPerClass: 3,
                 threshold: 0.45,
-              ).then((recognitions) {
-                handleRecognitions(recognitions);
-              });
-            else*/
-              Tflite.detectObjectOnFrame( //BGRA - iOS
-                bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
-                model: "SSDMobileNet",
-                numResultsPerClass: 3,
-                threshold: 0.45,
-                imageHeight: img.height,
-                imageWidth: img.width,
               ).then((recognitions) {
                 handleRecognitions(recognitions);
               });
