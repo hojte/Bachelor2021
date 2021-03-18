@@ -1,16 +1,10 @@
-import 'dart:typed_data';
-
-import 'dart:typed_data';
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:ituvidit/mountController.dart';
 
 const DEVICE_NAME = "VidItESP32";
-//const DEVICE_NAME = "PC-AdVGA6"; // Mathias test env
 FlutterBlue fBlue = FlutterBlue.instance;
 BluetoothDevice espDevice;
 BluetoothCharacteristic espCharacteristic;
@@ -134,17 +128,6 @@ class FindESPScreen extends HookWidget {
       waitForConnect().then((value) => null);
     }
 
-    /// UI rendering
-    Widget renderDeviceList() {
-      if (scanSnapshot.data.isEmpty)
-        return Text("No devices");
-      return Column(
-        children: scanSnapshot.data.map(
-              (r) => r.device.name.isNotEmpty ? Text(r.device.name) : Container(),
-        ).toList(),
-      );
-    }
-
     final alertDismissed = useState(false);
     Widget renderAlertWidget() {
       if (isScanningSnapshot.data || mountFound.value || alertDismissed.value) return Container(); // do not display alert
@@ -176,16 +159,18 @@ class FindESPScreen extends HookWidget {
     }
     return Center(
       child: SingleChildScrollView(
-        child: Column(
-            children: [
-              Row(children: [Text("Scan "), isScanningSnapshot.data ? CircularProgressIndicator() : Icon(Icons.check)]),
-              Row(children: [Text("Mount "), mountFound.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
-              Row(children: [Text("Connected           "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
-              renderDeviceList(),
-              renderAlertWidget(),
-              //TextButton(onPressed: () => sendDataToESP(utf8.encode("Right")), child: Text("Right")),
-              //TextButton(onPressed: () => sendDataToESP(utf8.encode("Left")), child: Text("Left"))
-            ]),
+        child: Stack(
+          children: [
+            Column(
+                children: [
+                  Row(children: [Text("Scan "), isScanningSnapshot.data ? CircularProgressIndicator() : Icon(Icons.check)]),
+                  Row(children: [Text("Mount "), mountFound.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
+                  Row(children: [Text("Connected           "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
+                ]),
+            renderAlertWidget(),
+          ],
+        )
+        ,
       ),
     );
   }

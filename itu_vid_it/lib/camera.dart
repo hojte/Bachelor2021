@@ -111,18 +111,22 @@ class _CameraState extends State<Camera> {
           }
           if (!isDetecting) {
             isDetecting = true;
-            imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
-            imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
-            switch (MediaQuery.of(context).orientation) {
-              case Orientation.portrait:
-                deviceRotation = 90;
-                break;
-              case Orientation.landscape:
-                deviceRotation = 0;
-                break;
+            imglib.Image orientedImg;
+            if(Platform.isAndroid) {
+              imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
+              imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
+              switch (MediaQuery.of(context).orientation) {
+                case Orientation.portrait:
+                  deviceRotation = 90;
+                  break;
+                case Orientation.landscape:
+                  deviceRotation = 0;
+                  break;
+              }
+              orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
+              if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
             }
-            imglib.Image orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
-            if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
+
             if(Platform.isAndroid)
               Tflite.detectObjectOnBinary(
                 binary: imageToByteListUint8(orientedImg, 300),
@@ -279,7 +283,7 @@ class _CameraState extends State<Camera> {
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
-
+/*
     var tmpSize = MediaQuery.of(context).size;
     var screenH = math.max(tmpSize.height, tmpSize.width);
     var screenW = math.min(tmpSize.height, tmpSize.width);
@@ -288,6 +292,9 @@ class _CameraState extends State<Camera> {
     var previewW = math.min(tmpSize.height, tmpSize.width);
     var screenRatio = screenH / screenW;
     var previewRatio = previewH / previewW;
+*/
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -298,10 +305,10 @@ class _CameraState extends State<Camera> {
     return Stack(
       children: [
         OverflowBox(
-          maxHeight:
-          screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
-          maxWidth:
-          screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
+         maxHeight: height,
+         // screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
+          maxWidth: width,
+          //screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
