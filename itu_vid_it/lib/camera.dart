@@ -13,6 +13,7 @@ import 'package:tflite/tflite.dart';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 
 import 'bndbox.dart';
 
@@ -182,7 +183,7 @@ class _CameraState extends State<Camera> {
 
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '$videoDirectory/VidIT%01d.$fileType', // might not work with bgra
+        '-i', '$videoDirectory/VidIT%d.$fileType', // might not work with bgra
       ];
       if(deviceRotationOnRecordStart==90 && useFrontCam == 1) argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
       else if(deviceRotationOnRecordStart==90) argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
