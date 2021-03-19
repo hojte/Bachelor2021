@@ -75,7 +75,6 @@ class HomeHooks extends HookWidget{
          appBar: AppBar(
             //Only show backarrow if _model.value is not ""
             leading: isTracking.value ? IconButton(
-              key: Key("isTracking"),
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 isTracking.value = false;
@@ -84,7 +83,7 @@ class HomeHooks extends HookWidget{
             title: Text("VidIt"),
             flexibleSpace: CustomAppBarDesign(),
           ),
-          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value),
+          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value) ,
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(

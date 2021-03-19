@@ -149,6 +149,7 @@ class FindESPScreen extends HookWidget {
             },
           ),
           TextButton(
+            key: Key("Dismiss"),
             child: Text('Dismiss'),
             onPressed: () {
               alertDismissed.value = true;

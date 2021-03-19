@@ -15,6 +15,7 @@ class CustomDrawer extends HookWidget{
       child: ListView(
         children: [
           SwitchListTile(
+            key: Key("Debug Mode"),
               activeColor: Colors.green,
               title: Text("Debug mode"),
               subtitle: Text("Do you want to display debug mode?"),
