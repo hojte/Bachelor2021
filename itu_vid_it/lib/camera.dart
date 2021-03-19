@@ -281,14 +281,6 @@ class _CameraState extends State<Camera> {
     return Stack(
 
       children: [
-        /*
-        Container(
-          height: screen.height,
-          //minHeight: screen.height,
-          width: screen.width,
-          child: CameraPreview(controller),
-        ),*/
-
 
         OverflowBox(
           maxHeight: screen.height,
