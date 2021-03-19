@@ -206,9 +206,8 @@ int deviceRotationOnRecordStart;
           setState(() {}); // update state, trigger rerender
         });
         // CleanUp
-        //print("Deleting $currentSavedIndex files");
         for (int i = 1; i<currentSavedIndex+1; i++) {
-          //File("$videoDirectory/VidIT$i.$fileType").delete();
+          File("$videoDirectory/VidIT$i.$fileType").delete();
         }
         currentFrameIndex = 0;
         currentSavedIndex = 0;
