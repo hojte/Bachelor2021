@@ -27,6 +27,32 @@ class HomeHooks extends HookWidget{
     print(res);
   }
 
+  Widget startTrackingButton(ValueNotifier<bool> isTracking){
+    return RaisedButton(
+      color: Colors.teal,
+      child: const Text(
+        "Start Tracking",
+        style: TextStyle(color: Colors.black),
+      ),
+      onPressed: () {
+        loadModel();
+        isTracking.value = true;
+      },
+    );
+  }
+
+  Widget detectImageButton(BuildContext context){
+    return RaisedButton(
+      child: Text("Detect in Image"),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => StaticImage(),
+        ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     //Values and setter used for debugmode in the drawer
@@ -64,52 +90,16 @@ class HomeHooks extends HookWidget{
             child: isPortrait ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                RaisedButton(
-                  color: Colors.teal,
-                  child: const Text(
-                    "Start Tracking",
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  onPressed: () {
-                    loadModel();
-                    isTracking.value = true;
-                  },
-                ),
-                RaisedButton(
-                  child: Text("Detect in Image"),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => StaticImage(),
-                    ),
-                    );
-                  },
-                ),
+                startTrackingButton(isTracking),
+                detectImageButton(context),
                 FlutterBlueWidget(setCharacteristic),
               ],
             ) : Row(children: [
               FlutterBlueWidget(setCharacteristic),
               Column(
                 children: [
-                  RaisedButton(
-                    color: Colors.teal,
-                    child: const Text(
-                      "Start Tracking",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    onPressed: () {
-                      loadModel();
-                      isTracking.value = true;
-                    },
-                  ),
-                  RaisedButton(
-                    child: Text("Detect in Image"),
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => StaticImage(),
-                      ),
-                      );
-                    },
-                  )
+                  startTrackingButton(isTracking),
+                  detectImageButton(context),
                 ],
               ),
             ],)
