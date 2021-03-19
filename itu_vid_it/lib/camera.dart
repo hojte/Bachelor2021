@@ -145,11 +145,8 @@ class _CameraState extends State<Camera> {
             }
             imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
             if (useFrontCam == 1) {
-              if (deviceRotation == 0) {
+              if (deviceRotation == 0 && Platform.isAndroid) {
                 imglib.flipHorizontal(imageToBeAnalyzed);
-                if (Platform.isIOS) {
-                  imglib.flipVertical(imageToBeAnalyzed);
-                }
               }
               else imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
             }
