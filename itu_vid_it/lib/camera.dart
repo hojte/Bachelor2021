@@ -13,6 +13,7 @@ import 'package:tflite/tflite.dart';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 
 import 'bndbox.dart';
 
@@ -51,8 +52,11 @@ class _CameraState extends State<Camera> {
   List<dynamic> filteredRecognitions = [];
   Size screen;
 
+int deviceRotationOnRecordStart;
+  int recordStartTime;
   _CameraState(this.debugModeValue);
-
+  String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
+  NativeDeviceOrientation nativeDeviceOrientation;
 
   @override
   void initState() {
@@ -68,15 +72,25 @@ class _CameraState extends State<Camera> {
 
   //Returns when we are done saving images
   Future<void> waitForSave() async {
-    while(isSaving)
-      await Future.delayed(Duration(seconds: 1));
+    if (currentFrameIndex == currentSavedIndex) return;
+    //wait a bit more for last images to be saved
+    await Future.delayed(Duration(milliseconds: 500)); //fixme not good practise
     print('done saving');
     return;
   }
 
   Future<int> saveTemporaryFile(index, img) async {
-    String filePath = '$videoDirectory/VidIT$index.jpg';
-    await File(filePath).writeAsBytes(img.planes[0].bytes);
+    String filePath = '$videoDirectory/VidIT$index.$fileType';
+    if (Platform.isAndroid)
+      await File(filePath).writeAsBytes(img.planes[0].bytes);
+    if (Platform.isIOS)
+      await File(filePath).writeAsBytes(imglib.Image.fromBytes( //maybe
+        img.width,
+        img.height,
+        img.planes[0].bytes,
+        format: imglib.Format.bgra,
+      ).getBytes());
+      //await File(filePath).writeAsBytes(img.planes[0].bytes); // maybe II
     return index;
   }
 
@@ -85,9 +99,9 @@ class _CameraState extends State<Camera> {
       print('No camera is found');
     } else {
       controller = new CameraController(
-          widget.cameras[useFrontCam],
-          ResolutionPreset.veryHigh,
-          imageFormatGroup: ImageFormatGroup.jpeg
+        widget.cameras[useFrontCam],
+        ResolutionPreset.veryHigh,
+        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.jpeg : ImageFormatGroup.bgra8888
       );
 
       controller.initialize().then((_) {
@@ -101,45 +115,38 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              print("saved $value/$currentFrameIndex");
+              //print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
           if (!isDetecting) {
             isDetecting = true;
-            imglib.Image orientedImg;
-            if(Platform.isAndroid) {
-              imglib.Image oriImage = imglib.decodeJpg(img.planes[0].bytes);
-              imglib.Image resizedImg = imglib.copyResize(oriImage, width: 300, height: 300);
-              switch (MediaQuery.of(context).orientation) {
-                case Orientation.portrait:
-                  deviceRotation = 90;
-                  break;
-                case Orientation.landscape:
-                  deviceRotation = 0;
-                  break;
-              }
-              orientedImg = imglib.copyRotate(resizedImg, deviceRotation);
-              if (useFrontCam == 1) orientedImg = imglib.flipVertical(orientedImg);
-            }
-
+            imglib.Image imageToBeAnalyzed;
             if(Platform.isAndroid)
+              imageToBeAnalyzed = imglib.decodeJpg(img.planes[0].bytes);
+            else if (Platform.isIOS) imageToBeAnalyzed = imglib.Image.fromBytes(
+              img.width,
+              img.height,
+              img.planes[0].bytes,
+              format: imglib.Format.bgra,
+            );
+
+            imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 300, height: 300);
+            switch (MediaQuery.of(context).orientation) {
+              case Orientation.portrait:
+                deviceRotation = 90;
+                break;
+              case Orientation.landscape:
+                deviceRotation = 0;
+                break;
+            }
+            imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
+            if (useFrontCam == 1) imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
               Tflite.detectObjectOnBinary(
-                binary: imageToByteListUint8(orientedImg, 300),
+                binary: imageToByteListUint8(imageToBeAnalyzed, 300),
                 model: "SSDMobileNet",
                 numResultsPerClass: 3,
                 threshold: 0.45,
-              ).then((recognitions) {
-                handleRecognitions(recognitions);
-              });
-            else
-              Tflite.detectObjectOnFrame( //BGRA
-                bytesList: img.planes.map((plane) {return plane.bytes;}).toList(),
-                model: "SSDMobileNet",
-                numResultsPerClass: 3,
-                threshold: 0.45,
-                imageHeight: img.height,
-                imageWidth: img.width,
               ).then((recognitions) {
                 handleRecognitions(recognitions);
               });
@@ -152,12 +159,15 @@ class _CameraState extends State<Camera> {
   void startRecording() async {
     Directory getDirectory;
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
-    else getDirectory = await pathProvider.getExternalStorageDirectory();
+    else if (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
-    videoDirectory = '${getDirectory.path}/Videos/VidITJpgSequence-$time';
+    videoDirectory = '${getDirectory.path}/Videos/VidITDir-$time';
     await Directory(videoDirectory).create(recursive: true);
-    print('dir created @ $videoDirectory');
+    print('Directory created @ $videoDirectory');
+    deviceRotationOnRecordStart = deviceRotation;
+    nativeDeviceOrientation = await NativeDeviceOrientationCommunicator().orientation();
     isRecording = true;
+    recordStartTime = DateTime.now().millisecondsSinceEpoch;
     recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
@@ -166,33 +176,46 @@ class _CameraState extends State<Camera> {
 
   void stopRecording() {
     isRecording = false;
-    //waitForSave().then((value) {
-    isProcessingVideo = true;
-    int realFrameRate = (currentSavedIndex/recordSeconds).round();
-    print("Frames per second = $currentSavedIndex/$recordSeconds = $realFrameRate");
-    String transposeCommand = '';
-    if(deviceRotation==90) transposeCommand = '-vf \"transpose=1\"';
-    if(deviceRotation==90 && useFrontCam == 1) transposeCommand = '-vf \"transpose=2\"';
-    _flutterFFmpeg.execute(
-        "-r $realFrameRate -f image2 -s ${imgWidth}x$imgHeight -i $videoDirectory/VidIT%01d.jpg -c:v libx264 $transposeCommand $videoDirectory/aVidITCapture.mp4")
-        .then((rc) {
-      print("FFmpeg process exited with rc $rc");
-      GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
-        print("saved: $value");
-        isProcessingVideo = false;
-        setState(() {}); // update state, trigger rerender
+    waitForSave().then((value) {
+      isProcessingVideo = true;
+      int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
+      print('Exact time recorded = $exactTimeRecorded ms');
+      int realFrameRate = (currentSavedIndex/(exactTimeRecorded/1000)).floor();
+      print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
+
+      var argumentsFFMPEG = [
+        '-r', realFrameRate.toString(), // Frames saved/recorded
+        '-i', '$videoDirectory/VidIT%d.$fileType', // might not work with bgra
+      ];
+      // check if in portrait mode
+      print('ORIENTATION = '+nativeDeviceOrientation.toString());
+      if(deviceRotationOnRecordStart==90 && useFrontCam == 1)
+        argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
+      else if(deviceRotationOnRecordStart==90)
+        argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
+      else if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight)
+        argumentsFFMPEG.addAll(['-vf', 'transpose=2,transpose=2']); //upside down 180
+      argumentsFFMPEG.add('$videoDirectory/aVidITCapture.mp4');
+
+      _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
+          .then((rc) {
+        print("FFmpeg process exited with rc $rc");
+        GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
+          print("saved: $value");
+          isProcessingVideo = false;
+          setState(() {}); // update state, trigger rerender
+        });
+        // CleanUp
+        //print("Deleting $currentSavedIndex files");
+        for (int i = 1; i<currentSavedIndex+1; i++) {
+          //File("$videoDirectory/VidIT$i.$fileType").delete();
+        }
+        currentFrameIndex = 0;
+        currentSavedIndex = 0;
       });
-      // CleanUp
-      print("Deleting $currentSavedIndex files");
-      for (int i = 1; i<currentSavedIndex+1; i++) {
-        File("$videoDirectory/VidIT$i.jpg").delete();
-      }
-      currentFrameIndex = 0;
-      currentSavedIndex = 0;
+      recordSeconds = 0;
+      timer.cancel();
     });
-    recordSeconds = 0;
-    timer.cancel();
-    //  });
   }
 
   void changeCameraLens() {
@@ -312,13 +335,13 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        !Platform.isIOS ? FloatingActionButton(
+        FloatingActionButton(
             child: renderRecordIcon(),
             backgroundColor: isRecording ? Colors.red : Colors.green,
             onPressed: () {
               isRecording ? stopRecording() : startRecording();
             }
-        ) : Container(),
+        ),
         Text("$recordSeconds"),
       ],
     );

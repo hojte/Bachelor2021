@@ -32,7 +32,7 @@ dependencies:
   gallery_saver: ^2.0.3
   image_picker: ^0.6.7+22
   flutter_ffmpeg: ^0.3.1
-
+  native_device_orientation: ^0.4.3
 
 flutter_launcher_icons:
   path: ../
