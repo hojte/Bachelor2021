@@ -40,7 +40,7 @@ class HomeHooks extends HookWidget{
       bleCharacteristic.value = characteristic;
     }
 
-    Size screen = MediaQuery.of(context).size;
+
     final isTracking = useState(false);
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
@@ -120,7 +120,6 @@ class HomeHooks extends HookWidget{
                 cameras,
                 bleCharacteristic.value,
                 debugModeValue,
-                screen
               ),
             ],
           ),

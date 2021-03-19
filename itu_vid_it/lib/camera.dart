@@ -24,11 +24,10 @@ class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final BluetoothCharacteristic _bleCharacteristic;
   final debugModeValue;
-  final screen;
-  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.screen);
+  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue);
 
   @override
-  _CameraState createState() => new _CameraState(debugModeValue, screen);
+  _CameraState createState() => new _CameraState(debugModeValue);
 }
 
 class _CameraState extends State<Camera> {
@@ -51,7 +50,8 @@ class _CameraState extends State<Camera> {
   final debugModeValue;
   List<dynamic> filteredRecognitions = [];
   Size screen;
-  _CameraState(this.debugModeValue, this.screen);
+
+  _CameraState(this.debugModeValue);
 
 
   @override
@@ -270,8 +270,7 @@ class _CameraState extends State<Camera> {
       return Container();
     }
 
-    var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
+    screen = MediaQuery.of(context).size;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -280,10 +279,22 @@ class _CameraState extends State<Camera> {
     }
 
     return Stack(
+
       children: [
+        /*
         Container(
-          height: height,
-          width: width,
+          height: screen.height,
+          //minHeight: screen.height,
+          width: screen.width,
+          child: CameraPreview(controller),
+        ),*/
+
+
+        OverflowBox(
+          maxHeight: screen.height,
+          //minHeight: screen.height,
+          maxWidth: screen.width,
+          minWidth: screen.width,
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
