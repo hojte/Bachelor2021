@@ -56,6 +56,7 @@ class _CameraState extends State<Camera> {
   int recordStartTime;
   _CameraState(this.debugModeValue, this.screen);
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
+  NativeDeviceOrientation nativeDeviceOrientation;
 
   @override
   void initState() {
@@ -158,12 +159,13 @@ class _CameraState extends State<Camera> {
   void startRecording() async {
     Directory getDirectory;
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
-    else if  (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
+    else if (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/Videos/VidITDir-$time';
     await Directory(videoDirectory).create(recursive: true);
     print('Directory created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
+    nativeDeviceOrientation = await NativeDeviceOrientationCommunicator().orientation();
     isRecording = true;
     recordStartTime = DateTime.now().millisecondsSinceEpoch;
     recordSeconds = 0;
@@ -185,8 +187,14 @@ class _CameraState extends State<Camera> {
         '-r', realFrameRate.toString(), // Frames saved/recorded
         '-i', '$videoDirectory/VidIT%d.$fileType', // might not work with bgra
       ];
-      if(deviceRotationOnRecordStart==90 && useFrontCam == 1) argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
-      else if(deviceRotationOnRecordStart==90) argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
+      // check if in portrait mode
+      print('ORIENTATION = '+nativeDeviceOrientation.toString());
+      if(deviceRotationOnRecordStart==90 && useFrontCam == 1)
+        argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
+      else if(deviceRotationOnRecordStart==90)
+        argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
+      else if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight)
+        argumentsFFMPEG.addAll(['-vf', 'transpose=2,transpose=2']); //upside down 180
       argumentsFFMPEG.add('$videoDirectory/aVidITCapture.mp4');
 
       _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
