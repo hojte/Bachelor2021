@@ -182,7 +182,7 @@ class _CameraState extends State<Camera> {
 
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '$videoDirectory/VidIT%01d.$fileType',
+        '-i', '$videoDirectory/VidIT%01d.$fileType', // might not work with bgra
       ];
       if(deviceRotationOnRecordStart==90 && useFrontCam == 1) argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
       else if(deviceRotationOnRecordStart==90) argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
