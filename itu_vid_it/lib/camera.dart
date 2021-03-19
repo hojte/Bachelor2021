@@ -122,7 +122,7 @@ class _CameraState extends State<Camera> {
             imglib.Image imageToBeAnalyzed;
             if(Platform.isAndroid)
               imageToBeAnalyzed = imglib.decodeJpg(img.planes[0].bytes);
-            else imageToBeAnalyzed = imglib.Image.fromBytes(
+            else if (Platform.isIOS) imageToBeAnalyzed = imglib.Image.fromBytes(
               img.width,
               img.height,
               img.planes[0].bytes,
