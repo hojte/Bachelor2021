@@ -147,6 +147,9 @@ class _CameraState extends State<Camera> {
             if (useFrontCam == 1) {
               if (deviceRotation == 0) {
                 imglib.flipHorizontal(imageToBeAnalyzed);
+                if (Platform.isIOS) {
+                  imglib.flipVertical(imageToBeAnalyzed);
+                }
               }
               else imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
             }
