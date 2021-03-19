@@ -45,18 +45,18 @@ class _CameraState extends State<Camera> {
   int currentSavedIndex = 0;
   int imgWidth = 1920;
   int imgHeight = 1080;
-  int deviceRotation;
   Timer timer;
   int recordSeconds = 0;
   final debugModeValue;
   List<dynamic> filteredRecognitions = [];
-  Size screen;
 
-int deviceRotationOnRecordStart;
+  int deviceRotation;
+  int deviceRotationOnRecordStart;
   int recordStartTime;
   _CameraState(this.debugModeValue);
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
   NativeDeviceOrientation nativeDeviceOrientation;
+  NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
 
   @override
   void initState() {
@@ -90,7 +90,7 @@ int deviceRotationOnRecordStart;
         img.planes[0].bytes,
         format: imglib.Format.bgra,
       ).getBytes());
-      //await File(filePath).writeAsBytes(img.planes[0].bytes); // maybe II
+    //await File(filePath).writeAsBytes(img.planes[0].bytes); // maybe II
     return index;
   }
 
@@ -99,9 +99,9 @@ int deviceRotationOnRecordStart;
       print('No camera is found');
     } else {
       controller = new CameraController(
-        widget.cameras[useFrontCam],
-        ResolutionPreset.veryHigh,
-        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.jpeg : ImageFormatGroup.bgra8888
+          widget.cameras[useFrontCam],
+          ResolutionPreset.veryHigh,
+          imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.jpeg : ImageFormatGroup.bgra8888
       );
 
       controller.initialize().then((_) {
@@ -111,6 +111,9 @@ int deviceRotationOnRecordStart;
         setState(() {}); //update state
 
         controller.startImageStream((CameraImage img) {
+          if (deviceRotation == 0) // update native rotation
+            NativeDeviceOrientationCommunicator().orientation()
+                .then((rotation) => nativeDeviceOrientation = rotation);
           if (isRecording) {
             currentFrameIndex++;
             isSaving = true;
@@ -141,15 +144,24 @@ int deviceRotationOnRecordStart;
                 break;
             }
             imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
-            if (useFrontCam == 1) imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
-              Tflite.detectObjectOnBinary(
-                binary: imageToByteListUint8(imageToBeAnalyzed, 300),
-                model: "SSDMobileNet",
-                numResultsPerClass: 3,
-                threshold: 0.45,
-              ).then((recognitions) {
-                handleRecognitions(recognitions);
-              });
+            if (useFrontCam == 1) {
+              if (deviceRotation == 0) {
+                imglib.flipHorizontal(imageToBeAnalyzed);
+              }
+              else imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
+            }
+            if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight){
+              imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
+              imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
+            }
+            Tflite.detectObjectOnBinary(
+              binary: imageToByteListUint8(imageToBeAnalyzed, 300),
+              model: "SSDMobileNet",
+              numResultsPerClass: 3,
+              threshold: 0.45,
+            ).then((recognitions) {
+              handleRecognitions(recognitions);
+            });
           }
         });
       });
@@ -165,7 +177,7 @@ int deviceRotationOnRecordStart;
     await Directory(videoDirectory).create(recursive: true);
     print('Directory created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
-    nativeDeviceOrientation = await NativeDeviceOrientationCommunicator().orientation();
+    nativeDeviceOrientationOnStartRec = await NativeDeviceOrientationCommunicator().orientation();
     isRecording = true;
     recordStartTime = DateTime.now().millisecondsSinceEpoch;
     recordSeconds = 0;
@@ -193,7 +205,7 @@ int deviceRotationOnRecordStart;
         argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
       else if(deviceRotationOnRecordStart==90)
         argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
-      else if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight)
+      else if(nativeDeviceOrientationOnStartRec == NativeDeviceOrientation.landscapeRight)
         argumentsFFMPEG.addAll(['-vf', 'transpose=2,transpose=2']); //upside down 180
       argumentsFFMPEG.add('$videoDirectory/aVidITCapture.mp4');
 
@@ -292,7 +304,7 @@ int deviceRotationOnRecordStart;
       return Container();
     }
 
-    screen = MediaQuery.of(context).size;
+    Size screen = MediaQuery.of(context).size;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
