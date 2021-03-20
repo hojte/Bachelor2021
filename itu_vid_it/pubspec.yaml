@@ -25,7 +25,7 @@ dependencies:
     sdk: flutter
   camera: ^0.7.0+2
   flutter_hooks: ^0.15.0
-  flutter_launcher_icons: ^0.8.1
+  flutter_launcher_icons: ^0.9.0
   tflite: ^1.1.1
   flutter_blue: ^0.7.3
   path_provider: ^1.2.0
@@ -35,15 +35,16 @@ dependencies:
   native_device_orientation: ^0.4.3
 
 flutter_launcher_icons:
-  path: ../
+  path: ../..
 
 flutter_icons:
-  image_path_android: "assets/images/app_icon.png"
-  image_path_ios: "assets/images/app_icon.png"
+  #image_path: "assets/images/VidItIcon_new.png"
+  image_path_android: "assets/images/VidItIcon_new.png"
+  image_path_ios: "assets/images/VidItIcon_new.png"
   android: true
   ios: true
-  adaptive_icon_background: "assets/images/app_icon.png" #only works on android 8.0 or more
-  adaptive_icon_foreground: "assets/images/app_icon.png" #only works on android 8.0 or more
+  adaptive_icon_background: "assets/images/VidItBackground_new.png" #only works on android 8.0 or more
+  adaptive_icon_foreground: "assets/images/VidItForeground_new.png" #only works on android 8.0 or more
 
 
 
