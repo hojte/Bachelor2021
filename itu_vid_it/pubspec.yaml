@@ -37,15 +37,12 @@ dependencies:
 flutter_launcher_icons:
   path: ../..
 
+#Error in plugin for android, image needs to be resized manually.
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/images/VidItIcon_new.png"
-  #image_path_android: "assets/images/VidItIcon_new.png"
-  #image_path_ios: "assets/images/VidItIcon_new.png"
 
-  adaptive_icon_background: "assets/images/VidItBackground_new.png" #only works on android 8.0 or more
-  adaptive_icon_foreground: "assets/images/VidItForeground_new.png" #only works on android 8.0 or more
 
 
 
