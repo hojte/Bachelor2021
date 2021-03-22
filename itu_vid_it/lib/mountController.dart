@@ -92,10 +92,10 @@ class ComputeData {
         return "Left:"+speed;
       }
       else if(ycenter > maxY){
-        return "Down:"+speed;
+        return "Down:"+1000.0.toString();
       }
       else if(ycenter<minY){
-        return "Up:"+speed;
+        return "Up:"+1000.0.toString();
       }
       else return "Hold";
     }
