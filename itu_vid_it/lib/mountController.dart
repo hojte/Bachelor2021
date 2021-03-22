@@ -69,38 +69,49 @@ class ComputeData {
       double ycenter = y + h/2.0;
       double minX = 0.45;
       double maxX = 0.55;
-      double minY = 0.45;
-      double maxY = 0.55;
+      double minY = 0.55;
+      double maxY = 0.65;
+
+      double xSpeed = calculateSpeed(xcenter);
+      double ySpeed = calculateSpeed(ycenter);
+
 
 
       if(ycenter<minY && xcenter > maxX){
-        return "Up & Right:"+speed;
+        return "Up & Right:"+xSpeed.toString();
       }
       else if(ycenter<minY && xcenter<minX){
-        return "Up & Left:"+speed;
+        return "Up & Left:"+xSpeed.toString();
       }
       else if(ycenter > maxY && xcenter > maxX){
-        return "Down & Right:"+speed;
+        return "Down & Right:"+xSpeed.toString();
       }
       else if(ycenter > maxY && xcenter<minX){
-        return "Down & Left:"+speed;
+        return "Down & Left:"+xSpeed.toString();
       }
       else if(xcenter > maxX){
-        return "Right:"+speed;
+        return "Right:"+xSpeed.toString();
       }
       else if(xcenter<minX){
-        return "Left:"+speed;
+        return "Left:"+xSpeed.toString();
       }
       else if(ycenter > maxY){
-        return "Down:"+1000.0.toString();
+        return "Down:"+ySpeed.toString();
       }
       else if(ycenter<minY){
-        return "Up:"+1000.0.toString();
+        return "Up:"+ySpeed.toString();
       }
       else return "Hold";
     }
     //Dont return anything to keep motor moving
   }
+
+  double calculateSpeed(double position){
+    position=position-0.5;
+    if (position<0) position=position*(-1.0);
+    return position*10000.0;
+  }
+
 
 
   String get checkData{

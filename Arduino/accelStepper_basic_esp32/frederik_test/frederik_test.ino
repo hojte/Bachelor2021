@@ -4,8 +4,9 @@
 // Define pin connections
 const int dirPin =32;
 const int stepPin = 33;
-const int qStep = 18; //Set high for quarterStep
-const int eightStep = 19; //Set qStep and eightStep to HIGH.
+const int MS1_1 = 27; 
+const int MS2_1 = 26; 
+const int MS3_1 = 25;
 
 // Define motor interface type
 #define motorInterfaceType 1
@@ -15,11 +16,20 @@ AccelStepper myStepper(motorInterfaceType, stepPin, dirPin);
 
 
 void setup() {
-   myStepper.setMaxSpeed(2200);
-    //myStepper.setAcceleration(500.0);
-    myStepper.setSpeed(2000);
+    pinMode(MS3_1,OUTPUT);
+  pinMode(MS2_1,OUTPUT);
+  pinMode(MS1_1,OUTPUT);
+  digitalWrite(MS3_1,HIGH);
+  digitalWrite(MS2_1,HIGH);
+  digitalWrite(MS1_1,HIGH);
+  
+myStepper.setMaxSpeed(10000.0);
+myStepper.setAcceleration(5000.0);
+myStepper.moveTo(3200);
 }
 
 void loop() {
-    myStepper.runSpeed();
+if (myStepper.distanceToGo() == 0)
+  myStepper.moveTo(-myStepper.currentPosition()+3200);
+myStepper.run();
 }
