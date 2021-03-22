@@ -156,22 +156,13 @@ class _CameraState extends State<Camera> {
                 if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight) {
                   imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
                   imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
-
-
                 }
-
               }
-
-              }
-
-
-
+            }
             else if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight){
               imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
               imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
             }
-
-
             Tflite.detectObjectOnBinary(
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
