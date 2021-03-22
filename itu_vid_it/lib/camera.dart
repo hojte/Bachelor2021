@@ -156,7 +156,7 @@ class _CameraState extends State<Camera> {
                 if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight) {
                   imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
                   imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
-                  print("right");
+
 
                 }
 
