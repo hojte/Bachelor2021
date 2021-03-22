@@ -148,8 +148,8 @@ void loop() {
     //Removes the direction from the string and finds the speed
     inputFromAPP.erase(0, inputFromAPP.find(delimiter) + delimiter.length());
     std::string _speed = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
-    //double convertedSpeed = atof(_speed.c_str()); 
-    double convertedSpeed = 1000.0; 
+    double convertedSpeed = atof(_speed.c_str()); 
+    //double convertedSpeed = 1000.0; 
 
     
     //Debug statement - printing in console.

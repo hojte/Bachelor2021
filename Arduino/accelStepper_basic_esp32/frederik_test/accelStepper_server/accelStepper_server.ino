@@ -122,7 +122,7 @@ void loop() {
     inputFromAPP.erase(0, inputFromAPP.find(delimiter) + delimiter.length());
     std::string _speed = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
     double convertedSpeed = atof(_speed.c_str()); 
-    //double convertedSpeed = 50000.0; 
+    // double convertedSpeed = 50000.0; 
     int upDownSpeed = convertedSpeed; 
     int leftRightSpeed= convertedSpeed;
     Serial.println(upDownSpeed);

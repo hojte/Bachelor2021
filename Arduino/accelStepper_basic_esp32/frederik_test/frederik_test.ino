@@ -11,7 +11,7 @@ const int MS3_1 = 25;
 // Define motor interface type
 #define motorInterfaceType 1
 
-// Creates an instance
+// Creates an instance accelstepper
 AccelStepper myStepper(motorInterfaceType, stepPin, dirPin);
 
 
