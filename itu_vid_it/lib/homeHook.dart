@@ -7,9 +7,11 @@ import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
+import 'package:ituvidit/mountRemoteControls.dart';
 import 'package:ituvidit/static.dart';
 import 'package:tflite/tflite.dart';
 import 'camera.dart';
+
 
 
 
@@ -47,6 +49,18 @@ class HomeHooks extends HookWidget{
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(
           builder: (context) => StaticImage(),
+        ),
+        );
+      },
+    );
+  }
+
+  Widget remoteControls(BuildContext context){
+    return RaisedButton(
+      child: Text("Mount Remote Controls"),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(
+            builder: (context) => MountRemoteControls(),
         ),
         );
       },
@@ -92,6 +106,7 @@ class HomeHooks extends HookWidget{
               children: <Widget>[
                 startTrackingButton(isTracking),
                 detectImageButton(context),
+                remoteControls(context),
                 FlutterBlueWidget(setCharacteristic),
               ],
             ) : Row(children: [
@@ -100,6 +115,7 @@ class HomeHooks extends HookWidget{
                 children: [
                   startTrackingButton(isTracking),
                   detectImageButton(context),
+                  remoteControls(context),
                 ],
               ),
             ],)
