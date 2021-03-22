@@ -145,15 +145,33 @@ class _CameraState extends State<Camera> {
             }
             imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
             if (useFrontCam == 1) {
-              if (deviceRotation == 0 && Platform.isAndroid) {
-                imglib.flipHorizontal(imageToBeAnalyzed);
+              if(Platform.isAndroid){
+                imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
+                if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeLeft) {
+                  imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
+                  imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
+                }
               }
-              else imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
-            }
-            if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight){
+              if(Platform.isIOS){
+                if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight) {
+                  imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
+                  imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
+                  print("right");
+
+                }
+
+              }
+
+              }
+
+
+
+            else if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight){
               imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
               imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
             }
+
+
             Tflite.detectObjectOnBinary(
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
