@@ -12,13 +12,13 @@ class StaticImage extends StatefulWidget {
 class _StaticImageState extends State<StaticImage> {
   File _image;
   List _recognitions;
-  bool _busy;
+  bool loading;
   double _imageWidth, _imageHeight;
 
   final picker = ImagePicker();
 
   // this function loads the model
-  loadTfModel() async {
+  loadModel() async {
     await Tflite.loadModel(
       model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
       labels: "assets/ssd_mobilenet.txt",
@@ -28,13 +28,9 @@ class _StaticImageState extends State<StaticImage> {
   // this function detects the objects on the image
   detectObject(File image) async {
     var recognitions = await Tflite.detectObjectOnImage(
-        path: image.path,       // required
+        path: image.path,
         model: "SSDMobileNet",
-        imageMean: 127.5,
-        imageStd: 127.5,
-        threshold: 0.4,       // defaults to 0.1
-        numResultsPerClass: 10,// defaults to 5
-        asynch: true          // defaults to true
+        threshold: 0.45
     );
     FileImage(image)
         .resolve(ImageConfiguration())
@@ -52,10 +48,10 @@ class _StaticImageState extends State<StaticImage> {
   @override
   void initState() {
     super.initState();
-    _busy = true;
-    loadTfModel().then((val) {{
+    loading = true;
+    loadModel().then((val) {{
       setState(() {
-        _busy = false;
+        loading = false;
       });
     }});
   }
@@ -67,7 +63,6 @@ class _StaticImageState extends State<StaticImage> {
     double factorX = screen.width;
     double factorY = _imageHeight / _imageHeight * screen.width;
 
-    Color blue = Colors.blue;
 
     return _recognitions.map((re) {
       return Container(
@@ -79,15 +74,14 @@ class _StaticImageState extends State<StaticImage> {
             child: ((re["confidenceInClass"] > 0.50))? Container(
               decoration: BoxDecoration(
                   border: Border.all(
-                    color: blue,
+                    color: Colors.blue,
                     width: 3,
                   )
               ),
               child: Text(
                 "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
                 style: TextStyle(
-                  background: Paint()..color = blue,
-                  color: Colors.white,
+                  color: Colors.blue,
                   fontSize: 15,
                 ),
               ),
@@ -101,9 +95,9 @@ class _StaticImageState extends State<StaticImage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
-    List<Widget> stackChildren = [];
+    var stackRender = [];
 
-    stackChildren.add(
+    stackRender.add(
         Positioned(
           // using ternary operator
           child: _image == null ?
@@ -122,10 +116,10 @@ class _StaticImageState extends State<StaticImage> {
         )
     );
 
-    stackChildren.addAll(renderBoxes(size));
+    stackRender.addAll(renderBoxes(size));
 
-    if (_busy) {
-      stackChildren.add(
+    if (loading) {
+      stackRender.add(
           Center(
             child: CircularProgressIndicator(),
           )
@@ -134,7 +128,7 @@ class _StaticImageState extends State<StaticImage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Object Detector"),
+        title: Text("Detect In Image"),
       ),
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -154,8 +148,8 @@ class _StaticImageState extends State<StaticImage> {
       ),
       body: Container(
         alignment: Alignment.center,
-        child:Stack(
-          children: stackChildren,
+        child: Stack(
+          children: stackRender,
         ),
       ),
     );
