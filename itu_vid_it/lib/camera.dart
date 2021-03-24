@@ -35,7 +35,7 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
   int useFrontCam = 0;
   bool isRecording = false;
   bool isSaving = false;
@@ -291,8 +291,8 @@ class _CameraState extends State<Camera> {
         String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
         String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
-        double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
 
       } else if (Platform.isIOS) {
         String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
@@ -300,11 +300,11 @@ class _CameraState extends State<Camera> {
         String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
         String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
 
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0);
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
       }
     }
     else{
-      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
