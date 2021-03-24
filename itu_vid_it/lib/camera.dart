@@ -67,6 +67,7 @@ class _CameraState extends State<Camera> {
   @override
   void dispose() {
     controller?.dispose();
+    if (isRecording) stopRecording();
     super.dispose();
   }
 
@@ -74,7 +75,7 @@ class _CameraState extends State<Camera> {
   Future<void> waitForSave() async {
     if (currentFrameIndex == currentSavedIndex) return;
     //wait a bit more for last images to be saved
-    await Future.delayed(Duration(milliseconds: 500)); //fixme not good practise
+    await Future.delayed(Duration(milliseconds: 200)); //fixme not good practise
     print('done saving');
     return;
   }
@@ -135,14 +136,15 @@ class _CameraState extends State<Camera> {
             );
 
             imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 300, height: 300);
-            switch (MediaQuery.of(context).orientation) {
-              case Orientation.portrait:
-                deviceRotation = 90;
-                break;
-              case Orientation.landscape:
-                deviceRotation = 0;
-                break;
-            }
+            if (mounted)
+              switch (MediaQuery.of(context).orientation) {
+                case Orientation.portrait:
+                  deviceRotation = 90;
+                  break;
+                case Orientation.landscape:
+                  deviceRotation = 0;
+                  break;
+              }
             imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
             if (useFrontCam == 1) {
               if(Platform.isAndroid){
@@ -156,15 +158,9 @@ class _CameraState extends State<Camera> {
                 if(nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight) {
                   imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
                   imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
-
-
                 }
-
               }
-
-              }
-
-
+            }
 
             else if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight){
               imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
@@ -235,7 +231,7 @@ class _CameraState extends State<Camera> {
           isProcessingVideo = false;
           //Delete MP4:
           File(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').delete();
-          setState(() {}); // update state, trigger rerender
+          if(mounted) setState(() {}); // update state, trigger rerender
         });
         // CleanUp
         for (int i = 1; i<currentSavedIndex+1; i++) {
@@ -315,7 +311,7 @@ class _CameraState extends State<Camera> {
       _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
     }
     isDetecting = false;
-    setState(() {}); // update state, trigger rerender
+    if(mounted) setState(() {}); // update state, trigger rerender
   }
 
   @override
