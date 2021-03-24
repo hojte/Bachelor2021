@@ -376,7 +376,7 @@ class _CameraState extends State<Camera> {
           alignment: Alignment.topRight,
           margin: EdgeInsets.only(top: 20),
           child: IconButton(
-            icon: Icon(Icons.flip_camera_android, color: Colors.white),
+            icon: Platform.isAndroid ? Icon(Icons.flip_camera_android, color: Colors.white) : Icon(Icons.flip_camera_ios, color: Colors.white),
             onPressed: () {
               changeCameraLens();
             },
