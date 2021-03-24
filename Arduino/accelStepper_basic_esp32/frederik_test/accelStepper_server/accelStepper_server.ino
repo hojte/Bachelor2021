@@ -49,7 +49,7 @@ AccelStepper stepper2(motorInterfaceType, stepPin_2, dirPin_2);
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("STARTING BLE FOR VIDIT");
+  //Serial.println("STARTING BLE FOR VIDIT");
   pinMode(ledPin, OUTPUT);
 
   //Init the BLE device with the name.
@@ -68,7 +68,7 @@ void setup() {
                                        );
                                        
   //The setValue should be changed in the future to display the state
-  VidItCharacteristic->setValue("LOL");
+  //VidItCharacteristic->setValue("LOL");
   VidItService->start();
   //The following sets the attributes for the advertising. Such as the UUID, the scan response and start 
   //the BLE adverstising so BT devices can find it. 
@@ -79,8 +79,7 @@ void setup() {
   VidItAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
   
-  Serial.println("READY TO BE PAIRED");
-
+  //Serial.println("READY TO BE PAIRED");
   
   pinMode(MS3_1,OUTPUT);
   pinMode(MS2_1,OUTPUT);
@@ -95,86 +94,69 @@ void setup() {
   digitalWrite(MS3_2,HIGH);
   digitalWrite(MS2_2,HIGH);
   digitalWrite(MS1_2,HIGH);  
-  
-  
-  
-  
 }
 
 int connectedUsers = 0;
 
 void loop() {
-  stepper1.setMaxSpeed(1000000);     
-  stepper2.setMaxSpeed(1000000);     
+  stepper1.setMaxSpeed(10000.0); 
+  stepper2.setMaxSpeed(10000.0); 
   
   connectedUsers = VidItServer->getConnectedCount();
   
-  if(connectedUsers > 0){    
+  if(connectedUsers > 0){
     digitalWrite(ledPin, HIGH);
-    Serial.println(VidItCharacteristic->getValue().c_str());
 
     //Splitting the input string into direction and speed
     std::string inputFromAPP = VidItCharacteristic->getValue().c_str();
     std::string delimiter = ":"; 
     std::string _direction = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
 
-    //Removes the direction from the string and finds the speed
+    //Removes the direction from the string and finds the xspeed
     inputFromAPP.erase(0, inputFromAPP.find(delimiter) + delimiter.length());
-    std::string _speed = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
-    double convertedSpeed = atof(_speed.c_str()); 
-    // double convertedSpeed = 50000.0; 
-    int upDownSpeed = convertedSpeed; 
-    int leftRightSpeed= convertedSpeed;
-    Serial.println(upDownSpeed);
-    Serial.println(leftRightSpeed);
+    std::string xSpeed = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
+    double convertedXSpeed = atof(xSpeed.c_str()); 
 
-
+    //Removes the direction from the string and finds the yspeed
+    xSpeed.erase(0, xSpeed.find(delimiter) + delimiter.length());
+    std::string ySpeed = xSpeed.substr(0,xSpeed.find(delimiter));
+    double convertedYSpeed = atof(ySpeed.c_str()); 
     
     //Debug statement - printing in console.
     if (_direction== "Right"){
-      stepper1.setSpeed(-leftRightSpeed);
-      stepper1.runSpeed();
+      stepper1.setSpeed(-convertedXSpeed);
       }
       else if (_direction== "Left"){
-        stepper1.setSpeed(leftRightSpeed); 
-        stepper1.runSpeed();
+        stepper1.setSpeed(convertedXSpeed); 
         }
       else if(_direction== "Up"){
-        stepper2.setSpeed(upDownSpeed);
-        stepper2.runSpeed();
+        stepper2.setSpeed(convertedYSpeed);
         }
       else if(_direction== "Down"){
-        stepper2.setSpeed(-upDownSpeed); 
-        stepper2.runSpeed();
+        stepper2.setSpeed(-convertedYSpeed); 
         }
       else if(_direction== "Up & Right"){
-        stepper1.setSpeed(-leftRightSpeed);
-        stepper2.setSpeed(upDownSpeed);
-        stepper1.runSpeed();
-        stepper2.runSpeed();
+        stepper1.setSpeed(-convertedXSpeed);
+        stepper2.setSpeed(convertedYSpeed);
         }
       else if(_direction== "Up & Left"){
-        stepper1.setSpeed(leftRightSpeed);
-        stepper2.setSpeed(upDownSpeed);
-        stepper1.runSpeed();
-        stepper2.runSpeed();
+        stepper1.setSpeed(convertedXSpeed);
+        stepper2.setSpeed(convertedYSpeed);
         }
       else if(_direction== "Down & Right"){
-        stepper1.setSpeed(-leftRightSpeed);
-        stepper2.setSpeed(-upDownSpeed);
-        stepper1.runSpeed();
-        stepper2.runSpeed();
+        stepper1.setSpeed(-convertedXSpeed);
+        stepper2.setSpeed(-convertedYSpeed);
         }
       else if(_direction== "Down & Left"){
-        stepper1.setSpeed(leftRightSpeed);
-        stepper2.setSpeed(-upDownSpeed);
-        stepper1.runSpeed();
-        stepper2.runSpeed();
+        stepper1.setSpeed(convertedXSpeed);
+        stepper2.setSpeed(-convertedYSpeed);
         }
       else{
-        //Do nothing
-        //Serial.println("FUCKING HOLD BITHC");  
-     }          
+        stepper1.setSpeed(0.0);
+        stepper2.setSpeed(0.0);
+     } 
+     stepper1.runSpeed();   
+     stepper2.runSpeed();       
   }
   else{
     digitalWrite(ledPin, LOW);

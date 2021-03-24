@@ -74,42 +74,49 @@ class ComputeData {
 
       double xSpeed = calculateSpeed(xcenter);
       double ySpeed = calculateSpeed(ycenter);
+      String xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
 
 
 
       if(ycenter<minY && xcenter > maxX){
-        return "Up & Right:"+xSpeed.toString();
+        return "Up & Right:"+xAndYSpeed;
       }
       else if(ycenter<minY && xcenter<minX){
-        return "Up & Left:"+xSpeed.toString();
+        return "Up & Left:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter > maxX){
-        return "Down & Right:"+xSpeed.toString();
+        return "Down & Right:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter<minX){
-        return "Down & Left:"+xSpeed.toString();
+        return "Down & Left:"+xAndYSpeed;
       }
       else if(xcenter > maxX){
-        return "Right:"+xSpeed.toString();
+        return "Right:"+xAndYSpeed;
       }
       else if(xcenter<minX){
-        return "Left:"+xSpeed.toString();
+        return "Left:"+xAndYSpeed;
       }
       else if(ycenter > maxY){
-        return "Down:"+ySpeed.toString();
+        return "Down:"+xAndYSpeed;
       }
       else if(ycenter<minY){
-        return "Up:"+ySpeed.toString();
+        return "Up:"+xAndYSpeed;
       }
-      else return "Hold";
+      else return "Hold:"+xAndYSpeed;
     }
     //Dont return anything to keep motor moving
   }
 
   double calculateSpeed(double position){
-    position=position-0.5;
-    if (position<0) position=position*(-1.0);
-    return position*10000.0;
+    double maxSpeed = 10000.0;
+    double mediumMaxSpeed = 7500.0;
+    double mediumMinSpeed = 5000.0;
+    double minSpeed = 2500.0;
+    if(position>0.0 && position<0.125 || position>0.875 && position<1.0 ) return maxSpeed;
+    else if (position>0.125 && position <0.25 || position>0.75 && position<0.875) return mediumMaxSpeed;
+    else if (position>0.25 && position <0.375 || position>0.625 && position<0.75) return mediumMinSpeed;
+    else if (position>0.375 && position <0.5 || position>0.5 && position<0.625) return minSpeed;
+    else return 0.0;
   }
 
 

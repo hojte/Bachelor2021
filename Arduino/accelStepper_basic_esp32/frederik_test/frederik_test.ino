@@ -23,13 +23,10 @@ void setup() {
   digitalWrite(MS2_1,HIGH);
   digitalWrite(MS1_1,HIGH);
   
-myStepper.setMaxSpeed(10000.0);
-myStepper.setAcceleration(5000.0);
-myStepper.moveTo(3200);
+myStepper.setMaxSpeed(20000.0);
+myStepper.setSpeed(20000.0);
 }
 
 void loop() {
-if (myStepper.distanceToGo() == 0)
-  myStepper.moveTo(-myStepper.currentPosition()+3200);
-myStepper.run();
+myStepper.runSpeed();
 }
