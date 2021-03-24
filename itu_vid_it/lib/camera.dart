@@ -16,6 +16,7 @@ import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
 import 'bndbox.dart';
+import 'colors.dart';
 
 final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
 
@@ -320,9 +321,12 @@ class _CameraState extends State<Camera> {
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
-      else if (isRecording) return Icon(Icons.stop_circle, color: Colors.red,);
-      else return Icon(Icons.slow_motion_video_sharp, color: Colors.white,);
+      else if (isRecording) return Icon(Icons.stop, color: Colors.red);
+      else return Icon(Icons.fiber_manual_record_rounded, color: Colors.red);
     }
+
+    int previewH = math.max(imgHeight, imgWidth);
+    int previewW = math.min(imgHeight, imgWidth);
 
     return Stack(
       children: [
@@ -334,36 +338,34 @@ class _CameraState extends State<Camera> {
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
-            Stack(
-              children: [
-                BndBox(
-                  filteredRecognitions,
-                  math.max(imgHeight, imgWidth),
-                  math.min(imgHeight, imgWidth),
-                  screen.height,
-                  screen.width,
-                ),
-                Positioned(
-                  top: (screen.height/100)*35,
-                    child: Container(color: Colors.green,width: screen.width,height: 2.0,)
-                ),
+        Stack(
+          children: [
+            BndBox(
+              filteredRecognitions,
+              previewH,
+              previewW,
+              screen.height,
+              screen.width,
+            ),
+            Positioned(
+                top: (screen.height/100)*35,
+                child: Container(color: Colors.green,width: screen.width,height: 2.0,)
+            ),
 
-                Positioned(
-                    top: (screen.height/100)*45,
-                    child: Container(color: Colors.green,width: screen.width,height: 2.0,)
-                ),
+            Positioned(
+                top: (screen.height/100)*45,
+                child: Container(color: Colors.green,width: screen.width,height: 2.0,)
+            ),
 
-                Positioned(
-                    left: (screen.width/100)*45,
-                    child: Container(color: Colors.green,width: 2.0,height: screen.height,)
-                ),
+            Positioned(
+                left: (screen.width/100)*45,
+                child: Container(color: Colors.green,width: 2.0,height: screen.height,)
+            ),
 
-                Positioned(
-                    left: (screen.width/100)*55,
-                    child: Container(color: Colors.green,width: 2.0,height: screen.height,)
-                )
-
-
+            Positioned(
+                left: (screen.width/100)*55,
+                child: Container(color: Colors.green,width: 2.0,height: screen.height,)
+            )
 
               ],
             )
@@ -378,6 +380,7 @@ class _CameraState extends State<Camera> {
             onPressed: () {
               changeCameraLens();
             },
+            iconSize: 40,
           ) ,
         ),
 
@@ -385,17 +388,27 @@ class _CameraState extends State<Camera> {
         MountController(_trackingData, widget._bleCharacteristic),
 
         Container(
-          alignment: Alignment.bottomCenter,
-          padding: EdgeInsets.all(10),
-          margin: EdgeInsets.all(10),
-          child: IconButton(
-              icon: renderRecordIcon(),
-              onPressed: () {
-                isRecording ? stopRecording() : startRecording();
-              }
-          ),
+            alignment: Alignment.bottomCenter,
+            margin: EdgeInsets.all(25),
+            child: new Material(
+              color: Colors.transparent,
+              child: Ink(
+                decoration: ShapeDecoration(
+                    color: appBarSecondary.withOpacity(0.3),
+                    shape: CircleBorder()
+                ),
+                child: IconButton(
+                  icon: renderRecordIcon(),
+                  onPressed: () {
+                    isRecording ? stopRecording() : startRecording();
+                  },
+                  iconSize: 40,
+                ),
+              ),
+            )
+
         ),
-        Text("$recordSeconds"),
+        Text("${(recordSeconds/60/60).floor()}:${(recordSeconds/60).floor()-(recordSeconds/60/60).floor()*60}:${recordSeconds-(recordSeconds/60).floor()*60}"),
       ],
     );
   }

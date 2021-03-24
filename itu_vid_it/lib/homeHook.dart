@@ -7,7 +7,7 @@ import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
-import 'package:ituvidit/mountRemoteControls.dart';
+import 'package:ituvidit/mountManualController.dart';
 import 'package:tflite/tflite.dart';
 import 'camera.dart';
 
@@ -28,7 +28,7 @@ class HomeHooks extends HookWidget{
       child: Text("Mount Remote Controls", style: TextStyle(color: Colors.black),),
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(
-          builder: (context) => MountRemoteControls(bleCharacteristic),
+          builder: (context) => MountManualController(bleCharacteristic),
         ),
         );
       },
