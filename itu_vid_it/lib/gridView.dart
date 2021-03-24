@@ -5,11 +5,11 @@ List<Widget> Grids(Size screen)
 {
   return [
     Positioned(
-        top: (screen.height/100)*35,
+        top: (screen.height/100)*65,
         child: Container(color: Colors.green,width: screen.width,height: 2.0,)
     ),
     Positioned(
-        top: (screen.height/100)*45,
+        top: (screen.height/100)*55,
         child: Container(color: Colors.green,width: screen.width,height: 2.0,)
     ),
     Positioned(
