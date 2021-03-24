@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_blue/gen/flutterblue.pbserver.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/mountController.dart';
@@ -17,8 +18,9 @@ class MountRemoteControls extends HookWidget {
         icon: Icon(Icons.north, color: Colors.white, size: 100),
         iconSize: 100,
         onPressed: () {
-          var trackingData = TrackingData("1","0","0","0",5000);
+          var trackingData = TrackingData("1","0","0","0",0,1000);
           var compute = ComputeData(trackingData);
+          print(compute.boundingBoxCenter);
           MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
         },
     );
@@ -29,8 +31,9 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.south, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("1","0.05","1","1",5000);
+        var trackingData = TrackingData("1","0.05","1","1",0,1000);
         var compute = ComputeData(trackingData);
+        print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -40,7 +43,7 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.motion_photos_pause_outlined, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("1","0.05","1","0.05",5000);
+        var trackingData = TrackingData("1","0.05","1","0.05",0,0);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -51,8 +54,9 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("0","0","1","0",5000);
+        var trackingData = TrackingData("0","0","1","0",5000,0);
         var compute = ComputeData(trackingData);
+        print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -62,7 +66,7 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("1","1","1","0",5000);
+        var trackingData = TrackingData("1","1","1","0",5000,0);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -73,7 +77,7 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.north_east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("1","1","0","0",5000);
+        var trackingData = TrackingData("1","1","0","0",5000,5000);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -84,7 +88,7 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.north_west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("0","0","0","0",5000);
+        var trackingData = TrackingData("0","0","0","0",5000,5000);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -95,7 +99,7 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.south_east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("1","1","1","1",5000);
+        var trackingData = TrackingData("1","1","1","1",5000,5000);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -106,7 +110,7 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.south_west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData("0","0","1","1",5000);
+        var trackingData = TrackingData("0","0","1","1",5000,5000);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },

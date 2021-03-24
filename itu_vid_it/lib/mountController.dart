@@ -35,15 +35,17 @@ class TrackingData {
   String xCoord;
   String hCoord;
   String yCoord;
-  double speed;
-  TrackingData(this.wCoord, this.xCoord, this.hCoord, this.yCoord, this.speed);
+  double xSpeed;
+  double ySpeed;
+  TrackingData(this.wCoord, this.xCoord, this.hCoord, this.yCoord, this.xSpeed,this.ySpeed);
   Map<String,dynamic> get map {
     return {
       "wCoord":wCoord,
       "xCoord":xCoord,
       "hCoord":hCoord,
       "yCoord":yCoord,
-      "speed":speed,
+      "xSpeed":xSpeed,
+      "ySpeed":ySpeed
     };
   }
 
@@ -56,7 +58,9 @@ class ComputeData {
 
   String get boundingBoxCenter {
     if(trackingData.xCoord != null){
-      String speed =  trackingData.speed.toString();
+      String tXSpeed =  trackingData.xSpeed.toString();
+      String tYSpeed =  trackingData.ySpeed.toString();
+
 
       double x = double.parse(trackingData.xCoord);
       double y = double.parse(trackingData.yCoord);
@@ -73,14 +77,13 @@ class ComputeData {
       double xSpeed = calculateSpeed(xcenter);
       double ySpeed = calculateSpeed(ycenter);
       String xAndYSpeed;
-      if(speed == "0.0"){
+      if(tXSpeed == "0" && tYSpeed=="0"){
         xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
       }
       else{
-        xAndYSpeed= speed+":"+speed;
+        xAndYSpeed= tXSpeed+":"+tYSpeed;
       }
-      print("XXXXXXXXXXXXXXX: "+xAndYSpeed);
-
+      //print(xAndYSpeed);
 
 
 
