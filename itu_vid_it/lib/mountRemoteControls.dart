@@ -34,7 +34,7 @@ class MountRemoteControls extends HookWidget {
   }
   Widget stop(BuildContext context){
     return IconButton(
-      icon: Icon(Icons.stop_circle, color: Colors.white, size: 100),
+      icon: Icon(Icons.motion_photos_pause_outlined, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
         var data = TrackingData("1","0.05","1","0.05",0.0);
