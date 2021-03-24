@@ -184,7 +184,6 @@ class _CameraState extends State<Camera> {
     Directory getDirectory;
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
     else if (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
-    String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/tmp';
     await Directory(videoDirectory).create(recursive: true);
     print('Directory created @ $videoDirectory');
@@ -321,8 +320,8 @@ class _CameraState extends State<Camera> {
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
-      else if (isRecording) return Icon(Icons.stop_circle);
-      else return Icon(Icons.slow_motion_video_sharp);
+      else if (isRecording) return Icon(Icons.stop_circle, color: Colors.red,);
+      else return Icon(Icons.slow_motion_video_sharp, color: Colors.white);
     }
 
     return Stack(
@@ -348,8 +347,8 @@ class _CameraState extends State<Camera> {
         Container(),
         Container(
           alignment: Alignment.topRight,
-          child: FloatingActionButton(
-            child: Icon(Icons.flip_camera_android),
+          child: IconButton(
+            icon: Icon(Icons.flip_camera_android, color: Colors.white),
             onPressed: () {
               changeCameraLens();
             },
@@ -359,9 +358,8 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        FloatingActionButton(
-            child: renderRecordIcon(),
-            backgroundColor: isRecording ? Colors.red : Colors.green,
+        IconButton(
+            icon: renderRecordIcon(),
             onPressed: () {
               isRecording ? stopRecording() : startRecording();
             }
