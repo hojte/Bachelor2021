@@ -334,13 +334,35 @@ class _CameraState extends State<Camera> {
           child: CameraPreview(controller),
         ),
         debugModeValue.value ?
-        BndBox(
-          filteredRecognitions,
-          math.max(imgHeight, imgWidth),
-          math.min(imgHeight, imgWidth),
-          screen.height,
-          screen.width,
-        )
+            Stack(
+              children: [
+                BndBox(
+                  filteredRecognitions,
+                  math.max(imgHeight, imgWidth),
+                  math.min(imgHeight, imgWidth),
+                  screen.height,
+                  screen.width,
+                ),
+                Positioned(
+                  top: 250,
+                    child: Container(color: Colors.green,width: screen.width,height: 2.0,)
+                ),
+                Positioned(
+                    top: 350,
+                    child: Container(color: Colors.green,width: screen.width,height: 2.0,)
+                ),
+                Positioned(
+                    left: 150,
+                    child: Container(color: Colors.green,width: 2.0,height: screen.height,)
+                ),
+                Positioned(
+                    left: 250,
+                    child: Container(color: Colors.green,width: 2.0,height: screen.height,)
+                )
+
+              ],
+            )
+
             :
         Container(),
         Container(
