@@ -55,12 +55,12 @@ class HomeHooks extends HookWidget{
     );
   }
 
-  Widget remoteControls(BuildContext context){
+  Widget remoteControls(BuildContext context, BluetoothCharacteristic bleCharacteristic){
     return RaisedButton(
       child: Text("Mount Remote Controls"),
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(
-            builder: (context) => MountRemoteControls(),
+            builder: (context) => MountRemoteControls(bleCharacteristic),
         ),
         );
       },
@@ -106,7 +106,7 @@ class HomeHooks extends HookWidget{
               children: <Widget>[
                 startTrackingButton(isTracking),
                 detectImageButton(context),
-                remoteControls(context),
+                remoteControls(context, bleCharacteristic.value),
                 FlutterBlueWidget(setCharacteristic),
               ],
             ) : Row(children: [
@@ -115,7 +115,7 @@ class HomeHooks extends HookWidget{
                 children: [
                   startTrackingButton(isTracking),
                   detectImageButton(context),
-                  remoteControls(context),
+                  remoteControls(context, bleCharacteristic.value),
                 ],
               ),
             ],)

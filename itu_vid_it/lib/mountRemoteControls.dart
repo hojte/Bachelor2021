@@ -9,16 +9,18 @@ import 'package:ituvidit/mountController.dart';
 import 'customAppBarDesign.dart';
 
 class MountRemoteControls extends HookWidget {
+  final bleCharacteristic;
+  MountRemoteControls(this.bleCharacteristic);
 
   Widget upArrow(BuildContext context){
     return IconButton(
         icon: Icon(Icons.north, color: Colors.white, size: 100),
         iconSize: 100,
         onPressed: () {
-          var data = TrackingData("1","0","0","0",5000);
-          var compute = ComputeData(data);
+          var trackingData = TrackingData("1","0","0","0",5000);
+          var compute = ComputeData(trackingData);
           compute.boundingBoxCenter;
-
+          MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
         },
     );
   }
@@ -28,9 +30,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.south, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("1","0.05","1","1",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("1","0.05","1","1",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -39,9 +42,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.motion_photos_pause_outlined, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("1","0.05","1","0.05",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("1","0.05","1","0.05",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -50,9 +54,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("0","0","1","0",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("0","0","1","0",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -61,9 +66,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("1","1","1","0",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("1","1","1","0",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -72,9 +78,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.north_east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("1","1","0","0",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("1","1","0","0",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -83,9 +90,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.north_west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("0","0","0","0",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("0","0","0","0",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -94,9 +102,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.south_east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("1","1","1","1",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("1","1","1","1",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
@@ -105,11 +114,10 @@ class MountRemoteControls extends HookWidget {
       icon: Icon(Icons.south_west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var data = TrackingData("0","0","1","1",5000);
-        var compute = ComputeData(data);
+        var trackingData = TrackingData("0","0","1","1",5000);
+        var compute = ComputeData(trackingData);
         compute.boundingBoxCenter;
-        MountController().sendDataToESP(utf8.encode(compute.boundingBoxCenter));
-
+        MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
   }
