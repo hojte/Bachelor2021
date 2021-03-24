@@ -35,7 +35,7 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
   int useFrontCam = 0;
   bool isRecording = false;
   bool isSaving = false;
@@ -182,7 +182,7 @@ class _CameraState extends State<Camera> {
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
     else if (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
     String time = DateTime.now().toIso8601String();
-    videoDirectory = '${getDirectory.path}/Videos/VidITDir-$time';
+    videoDirectory = '${getDirectory.path}/tmp';
     await Directory(videoDirectory).create(recursive: true);
     print('Directory created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
@@ -203,27 +203,29 @@ class _CameraState extends State<Camera> {
       print('Exact time recorded = $exactTimeRecorded ms');
       int realFrameRate = (currentSavedIndex/(exactTimeRecorded/1000)).floor();
       print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
-
+      String saveTimeStamp = DateTime.now().toIso8601String();
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '$videoDirectory/VidIT%d.$fileType', // might not work with bgra
+        '-i', '$videoDirectory/VidIT%d.$fileType',
+        '-preset', 'ultrafast',
       ];
       // check if in portrait mode
-      print('ORIENTATION = '+nativeDeviceOrientation.toString());
       if(deviceRotationOnRecordStart==90 && useFrontCam == 1)
         argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
       else if(deviceRotationOnRecordStart==90)
         argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
       else if(nativeDeviceOrientationOnStartRec == NativeDeviceOrientation.landscapeRight)
         argumentsFFMPEG.addAll(['-vf', 'transpose=2,transpose=2']); //upside down 180
-      argumentsFFMPEG.add('$videoDirectory/aVidITCapture.mp4');
+      argumentsFFMPEG.add('$videoDirectory/aVidITCapture$saveTimeStamp.mp4');
 
       _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
           .then((rc) {
         print("FFmpeg process exited with rc $rc");
-        GallerySaver.saveVideo(videoDirectory+'/aVidITCapture.mp4').then((value) {
+        GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
           print("saved: $value");
           isProcessingVideo = false;
+          //Delete MP4:
+          File(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').delete();
           setState(() {}); // update state, trigger rerender
         });
         // CleanUp
@@ -287,8 +289,8 @@ class _CameraState extends State<Camera> {
         String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
         String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
 
-        double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
 
       } else if (Platform.isIOS) {
         String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
@@ -296,12 +298,11 @@ class _CameraState extends State<Camera> {
         String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
         String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
 
-        double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
       }
     }
     else{
-      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0);
+      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
     }
     isDetecting = false;
     setState(() {}); // update state, trigger rerender
