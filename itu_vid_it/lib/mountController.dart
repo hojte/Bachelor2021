@@ -88,27 +88,35 @@ class ComputeData {
 
 
       if(ycenter<minY && xcenter > maxX){
+        print("Up & Right:");
         return "Up & Right:"+xAndYSpeed;
       }
       else if(ycenter<minY && xcenter<minX){
+        print("Up & Left:");
         return "Up & Left:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter > maxX){
+        print("Down & Right:");
         return "Down & Right:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter<minX){
+        print("Down & Left:");
         return "Down & Left:"+xAndYSpeed;
       }
       else if(xcenter > maxX){
+        print("right");
         return "Right:"+xAndYSpeed;
       }
       else if(xcenter<minX){
+        print("left");
         return "Left:"+xAndYSpeed;
       }
       else if(ycenter > maxY){
+        print("down");
         return "Down:"+xAndYSpeed;
       }
       else if(ycenter<minY){
+        print("up");
         return "Up:"+xAndYSpeed;
       }
       else return "Hold:"+xAndYSpeed;
