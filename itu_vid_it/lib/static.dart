@@ -95,7 +95,7 @@ class _StaticImageState extends State<StaticImage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
-    var stackRender = [];
+    List<Widget> stackRender = [];
 
     stackRender.add(
         Positioned(
