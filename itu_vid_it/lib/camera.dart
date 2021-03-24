@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:ituvidit/gridView.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
 import 'package:tflite/tflite.dart';
@@ -347,26 +348,8 @@ class _CameraState extends State<Camera> {
               screen.height,
               screen.width,
             ),
-            Positioned(
-                top: (screen.height/100)*35,
-                child: Container(color: Colors.green,width: screen.width,height: 2.0,)
-            ),
-
-            Positioned(
-                top: (screen.height/100)*45,
-                child: Container(color: Colors.green,width: screen.width,height: 2.0,)
-            ),
-
-            Positioned(
-                left: (screen.width/100)*45,
-                child: Container(color: Colors.green,width: 2.0,height: screen.height,)
-            ),
-
-            Positioned(
-                left: (screen.width/100)*55,
-                child: Container(color: Colors.green,width: 2.0,height: screen.height,)
-            )
-
+            //Spread operator === ULÆKKERT
+            ...Grids(screen),
               ],
             )
 
