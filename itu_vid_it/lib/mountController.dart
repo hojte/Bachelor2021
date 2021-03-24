@@ -74,38 +74,41 @@ class ComputeData {
 
 
       if(ycenter<minY && xcenter > maxX){
-        print("UP/RIGHT");
+        //print("UP/RIGHT");
         return "Up & Right:"+speed;
       }
       else if(ycenter<minY && xcenter<minX){
-        print("UP/LEFT");
+        //print("UP/LEFT");
         return "Up & Left:"+speed;
       }
       else if(ycenter > maxY && xcenter > maxX){
-        print("DOWN/RIGHT");
+        //print("DOWN/RIGHT");
         return "Down & Right:"+speed;
       }
       else if(ycenter > maxY && xcenter<minX){
-        print("DOWN/LEFT");
+        //print("DOWN/LEFT");
         return "Down & Left:"+speed;
       }
       else if(xcenter > maxX){
-        print("RIGHT");
+        //print("RIGHT");
         return "Right:"+speed;
       }
       else if(xcenter<minX){
-        print("LEFT");
+        //print("LEFT");
         return "Left:"+speed;
       }
       else if(ycenter > maxY){
-        print("DOWN");
+        //print("DOWN");
         return "Down:"+1000.0.toString();
       }
       else if(ycenter<minY){
-        print("UP");
+        //print("UP");
         return "Up:"+1000.0.toString();
       }
-      else return "Hold";
+      else {
+        //print("stop");
+        return "Hold";
+      }
     }
     //Dont return anything to keep motor moving
   }
