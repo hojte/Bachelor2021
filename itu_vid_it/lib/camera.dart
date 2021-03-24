@@ -321,7 +321,7 @@ class _CameraState extends State<Camera> {
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
       else if (isRecording) return Icon(Icons.stop_circle, color: Colors.red,);
-      else return Icon(Icons.slow_motion_video_sharp, color: Colors.white);
+      else return Icon(Icons.slow_motion_video_sharp, color: Colors.white,);
     }
 
     return Stack(
@@ -345,6 +345,7 @@ class _CameraState extends State<Camera> {
         Container(),
         Container(
           alignment: Alignment.topRight,
+          margin: EdgeInsets.only(top: 20),
           child: IconButton(
             icon: Icon(Icons.flip_camera_android, color: Colors.white),
             onPressed: () {
@@ -358,6 +359,8 @@ class _CameraState extends State<Camera> {
 
         Container(
           alignment: Alignment.bottomCenter,
+          padding: EdgeInsets.all(10),
+          margin: EdgeInsets.all(10),
           child: IconButton(
               icon: renderRecordIcon(),
               onPressed: () {
