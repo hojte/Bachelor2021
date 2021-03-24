@@ -23,8 +23,9 @@ class HomeHooks extends HookWidget{
     print(res);
   }
   Widget remoteControls(BuildContext context, BluetoothCharacteristic bleCharacteristic){
-    return RaisedButton(
-      child: Text("Mount Remote Controls"),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
+      child: Text("Mount Remote Controls", style: TextStyle(color: Colors.black),),
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(
           builder: (context) => MountRemoteControls(bleCharacteristic),
