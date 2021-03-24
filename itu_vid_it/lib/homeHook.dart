@@ -7,6 +7,7 @@ import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
+import 'package:ituvidit/mountRemoteControls.dart';
 import 'package:tflite/tflite.dart';
 import 'camera.dart';
 
@@ -20,6 +21,17 @@ class HomeHooks extends HookWidget{
         model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
         labels: "assets/ssd_mobilenet.txt");
     print(res);
+  }
+  Widget remoteControls(BuildContext context, BluetoothCharacteristic bleCharacteristic){
+    return RaisedButton(
+      child: Text("Mount Remote Controls"),
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => MountRemoteControls(bleCharacteristic),
+        ),
+        );
+      },
+    );
   }
 
   @override
@@ -71,6 +83,7 @@ class HomeHooks extends HookWidget{
                 children: <Widget>[
                   renderStartTrackingButton(),
                   FlutterBlueWidget(setCharacteristic),
+                  remoteControls(context, bleCharacteristic.value),
                 ],
               ),
           )

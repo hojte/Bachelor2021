@@ -166,8 +166,6 @@ class _CameraState extends State<Camera> {
               imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
               imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
             }
-
-
             Tflite.detectObjectOnBinary(
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
@@ -303,8 +301,7 @@ class _CameraState extends State<Camera> {
         String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
         String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
 
-        double testSpeed = 0.0;//todo --> fix this compared to earlier frame coords
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, testSpeed);
+        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0);
       }
     }
     else{

@@ -23,9 +23,7 @@ return true;
 
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
-      //print(cd.boundingBoxCenter);
       sendDataToESP(utf8.encode(cd.boundingBoxCenter));
-      //sendDataToESP(utf8.encode(cd.boundingBoxYCenter));
 
     }
     return Container();
@@ -69,38 +67,64 @@ class ComputeData {
       double ycenter = y + h/2.0;
       double minX = 0.45;
       double maxX = 0.55;
-      double minY = 0.45;
-      double maxY = 0.55;
+      double minY = 0.55;
+      double maxY = 0.65;
+
+      double xSpeed = calculateSpeed(xcenter);
+      double ySpeed = calculateSpeed(ycenter);
+      String xAndYSpeed;
+      if(speed == "0.0"){
+        xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
+      }
+      else{
+        xAndYSpeed= speed+":"+speed;
+      }
+      print("XXXXXXXXXXXXXXX: "+xAndYSpeed);
+
+
 
 
       if(ycenter<minY && xcenter > maxX){
-        return "Up & Right:"+speed;
+        return "Up & Right:"+xAndYSpeed;
       }
       else if(ycenter<minY && xcenter<minX){
-        return "Up & Left:"+speed;
+        return "Up & Left:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter > maxX){
-        return "Down & Right:"+speed;
+        return "Down & Right:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter<minX){
-        return "Down & Left:"+speed;
+        return "Down & Left:"+xAndYSpeed;
       }
       else if(xcenter > maxX){
-        return "Right:"+speed;
+        return "Right:"+xAndYSpeed;
       }
       else if(xcenter<minX){
-        return "Left:"+speed;
+        return "Left:"+xAndYSpeed;
       }
       else if(ycenter > maxY){
-        return "Down:"+1000.0.toString();
+        return "Down:"+xAndYSpeed;
       }
       else if(ycenter<minY){
-        return "Up:"+1000.0.toString();
+        return "Up:"+xAndYSpeed;
       }
-      else return "Hold";
+      else return "Hold:"+xAndYSpeed;
     }
     //Dont return anything to keep motor moving
   }
+
+  double calculateSpeed(double position){
+    double maxSpeed = 10000.0;
+    double mediumMaxSpeed = 7500.0;
+    double mediumMinSpeed = 5000.0;
+    double minSpeed = 2500.0;
+    if(position>0.0 && position<0.125 || position>0.875 && position<1.0 ) return maxSpeed;
+    else if (position>0.125 && position <0.25 || position>0.75 && position<0.875) return mediumMaxSpeed;
+    else if (position>0.25 && position <0.375 || position>0.625 && position<0.75) return mediumMinSpeed;
+    else if (position>0.375 && position <0.5 || position>0.5 && position<0.625) return minSpeed;
+    else return 0.0;
+  }
+
 
 
   String get checkData{
