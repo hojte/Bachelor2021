@@ -151,7 +151,8 @@ class FindESPScreen extends HookWidget {
           children: [
             Text("The VidIT mount was not found"),
             Text("Make sure it is turned on or reboot and connect again"),
-            Text("Or you can proceed to tracking without connection to the mount"),
+            Text("Or you can proceed to the tracking"),
+            Text("without connection to the mount."),
           ],
         )
             : Container()
