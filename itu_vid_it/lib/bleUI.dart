@@ -51,13 +51,15 @@ class FindESPScreen extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    fBlue.setLogLevel(LogLevel.notice);
     final scanSnapshot = useStream(fBlue.scanResults);
     final isScanningSnapshot = useStream(fBlue.isScanning);
+    final isConnecting = useState(false);
     final mountConnected = useState(false);
     final mountFound = useState(false);
     final isLoading = useState(true);
     final tryConnect = useState(false);
+    final firstScan = useState(false);
+
     isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
 
@@ -69,7 +71,7 @@ class FindESPScreen extends HookWidget {
           mountFound.value = true,
         }
       });
-      fBlue.startScan(timeout: Duration(seconds: 1));
+      //fBlue.startScan(timeout: Duration(seconds: 1));
       return fBlue.stopScan;
     },
       [], // call once
@@ -100,6 +102,7 @@ class FindESPScreen extends HookWidget {
       [scanSnapshot.data.length],
     );
     Future waitForConnect() async {
+      isConnecting.value = true;
       //print("ran waitForConnect()");
       try {
         await espDevice.connect(autoConnect: true);
@@ -115,12 +118,13 @@ class FindESPScreen extends HookWidget {
               if (characteristic.uuid.toString() == "91235981-23ee-4bca-b7b2-2aec7d075438") {
                 espCharacteristic = characteristic;
                 _setBleCharacteristic(characteristic);
-                var readValue = await characteristic.read();
-                print("redVal: " + utf8.decode(readValue));
-                await characteristic.write(utf8.encode("Frederik"), withoutResponse: true);
+                //var readValue = await characteristic.read();
+                //print("redVal: " + utf8.decode(readValue));
+                await characteristic.write(utf8.encode("initialTest"), withoutResponse: true);
               }
             }
         }
+      isConnecting.value = false;
       return true;
     }
     if (espDevice != null && !tryConnect.value) { // run once
@@ -128,50 +132,30 @@ class FindESPScreen extends HookWidget {
       waitForConnect().then((value) => null);
     }
 
-    final alertDismissed = useState(false);
-    Widget renderAlertWidget() {
-      if (isScanningSnapshot.data || mountFound.value || alertDismissed.value) return Container(); // do not display alert
-      return AlertDialog(
-        title: Text("Mount not found"),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text('The mount \'$DEVICE_NAME\' was not found'),
-              Text('Make sure it is turned on or reboot and scan again'),
-            ],
-          ),
+    return !mountConnected.value ? Column(
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
+          onPressed: () {
+            firstScan.value = true;
+            fBlue.startScan(timeout: Duration(seconds: 1));
+          },
+          child: !isScanningSnapshot.data ? Text("Connect", style: TextStyle(color: Colors.black)):
+          Text("Connecting", style: TextStyle(color: Colors.black)),
         ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Rescan'),
-            onPressed: () {
-              fBlue.startScan(timeout: Duration(seconds: 5));
-            },
-          ),
-          TextButton(
-            child: Text('Dismiss'),
-            onPressed: () {
-              alertDismissed.value = true;
-            },
-          ),
-        ],
-      );
-    }
-    return Center(
-      child: SingleChildScrollView(
-        child: Stack(
+        isScanningSnapshot.data || (!isScanningSnapshot.data && isConnecting.value) ?
+        CircularProgressIndicator() :
+        mountConnected.value ?
+        Text("The VidIT mount is connected, you can proceed to tracking.") :
+        firstScan.value ? Column(
           children: [
-            Column(
-                children: [
-                  Row(children: [Text("Scan "), isScanningSnapshot.data ? CircularProgressIndicator() : Icon(Icons.check)]),
-                  Row(children: [Text("Mount "), mountFound.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
-                  Row(children: [Text("Connected           "), mountConnected.value ? Icon(Icons.check) : Icon(Icons.not_interested)]),
-                ]),
-            renderAlertWidget(),
+            Text("The VidIT mount was not found"),
+            Text("Make sure it is turned on or reboot and connect again"),
+            Text("Or you can proceed to tracking without connection to the mount"),
           ],
         )
-        ,
-      ),
-    );
+            : Container()
+      ],
+    ) : Text("The VidIT mount is connected, you can proceed to tracking.");
   }
 }

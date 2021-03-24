@@ -8,17 +8,11 @@ import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
 import 'package:ituvidit/mountRemoteControls.dart';
-import 'package:ituvidit/static.dart';
 import 'package:tflite/tflite.dart';
 import 'camera.dart';
 
-
-
-
 class HomeHooks extends HookWidget{
   final List<CameraDescription> cameras;
-
-
   HomeHooks(this.cameras);
 
   loadModel() async {
@@ -28,39 +22,13 @@ class HomeHooks extends HookWidget{
         labels: "assets/ssd_mobilenet.txt");
     print(res);
   }
-
-  Widget startTrackingButton(ValueNotifier<bool> isTracking){
-    return RaisedButton(
-      color: Colors.teal,
-      child: const Text(
-        "Start Tracking",
-        style: TextStyle(color: Colors.black),
-      ),
-      onPressed: () {
-        loadModel();
-        isTracking.value = true;
-      },
-    );
-  }
-
-  Widget detectImageButton(BuildContext context){
-    return RaisedButton(
-      child: Text("Detect in Image"),
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => StaticImage(),
-        ),
-        );
-      },
-    );
-  }
-
   Widget remoteControls(BuildContext context, BluetoothCharacteristic bleCharacteristic){
-    return RaisedButton(
-      child: Text("Mount Remote Controls"),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
+      child: Text("Mount Remote Controls", style: TextStyle(color: Colors.black),),
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(
-            builder: (context) => MountRemoteControls(bleCharacteristic),
+          builder: (context) => MountRemoteControls(bleCharacteristic),
         ),
         );
       },
@@ -80,14 +48,24 @@ class HomeHooks extends HookWidget{
       bleCharacteristic.value = characteristic;
     }
 
-
     final isTracking = useState(false);
-    var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    Widget renderStartTrackingButton() {
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
+        child: Text(
+          "Start Tracking",
+          style: TextStyle(color: Colors.black),
+        ),
+        onPressed: () {
+          loadModel();
+          isTracking.value = true;
+        },
+      );
+    }
 
     return(
         Scaffold(
-         appBar: AppBar(
-            //Only show backarrow if _model.value is not ""
+          appBar: AppBar(
             leading: isTracking.value ? IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
@@ -101,24 +79,14 @@ class HomeHooks extends HookWidget{
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(
-            child: isPortrait ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                startTrackingButton(isTracking),
-                detectImageButton(context),
-                remoteControls(context, bleCharacteristic.value),
-                FlutterBlueWidget(setCharacteristic),
-              ],
-            ) : Row(children: [
-              FlutterBlueWidget(setCharacteristic),
-              Column(
-                children: [
-                  startTrackingButton(isTracking),
-                  detectImageButton(context),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  renderStartTrackingButton(),
+                  FlutterBlueWidget(setCharacteristic),
                   remoteControls(context, bleCharacteristic.value),
                 ],
               ),
-            ],)
           )
               : Stack(
             children: [

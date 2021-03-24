@@ -67,6 +67,7 @@ class _CameraState extends State<Camera> {
   @override
   void dispose() {
     controller?.dispose();
+    if (isRecording) stopRecording();
     super.dispose();
   }
 
@@ -74,7 +75,7 @@ class _CameraState extends State<Camera> {
   Future<void> waitForSave() async {
     if (currentFrameIndex == currentSavedIndex) return;
     //wait a bit more for last images to be saved
-    await Future.delayed(Duration(milliseconds: 500)); //fixme not good practise
+    await Future.delayed(Duration(milliseconds: 200)); //fixme not good practise
     print('done saving');
     return;
   }
@@ -135,14 +136,15 @@ class _CameraState extends State<Camera> {
             );
 
             imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 300, height: 300);
-            switch (MediaQuery.of(context).orientation) {
-              case Orientation.portrait:
-                deviceRotation = 90;
-                break;
-              case Orientation.landscape:
-                deviceRotation = 0;
-                break;
-            }
+            if (mounted)
+              switch (MediaQuery.of(context).orientation) {
+                case Orientation.portrait:
+                  deviceRotation = 90;
+                  break;
+                case Orientation.landscape:
+                  deviceRotation = 0;
+                  break;
+              }
             imageToBeAnalyzed = imglib.copyRotate(imageToBeAnalyzed, deviceRotation);
             if (useFrontCam == 1) {
               if(Platform.isAndroid){
@@ -159,6 +161,7 @@ class _CameraState extends State<Camera> {
                 }
               }
             }
+
             else if (deviceRotation == 0 && nativeDeviceOrientation == NativeDeviceOrientation.landscapeRight){
               imageToBeAnalyzed = imglib.flipHorizontal(imageToBeAnalyzed);
               imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
@@ -181,7 +184,6 @@ class _CameraState extends State<Camera> {
     Directory getDirectory;
     if (Platform.isIOS) getDirectory = await pathProvider.getTemporaryDirectory();
     else if (Platform.isAndroid) getDirectory = await pathProvider.getExternalStorageDirectory();
-    String time = DateTime.now().toIso8601String();
     videoDirectory = '${getDirectory.path}/tmp';
     await Directory(videoDirectory).create(recursive: true);
     print('Directory created @ $videoDirectory');
@@ -226,7 +228,7 @@ class _CameraState extends State<Camera> {
           isProcessingVideo = false;
           //Delete MP4:
           File(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').delete();
-          setState(() {}); // update state, trigger rerender
+          if(mounted) setState(() {}); // update state, trigger rerender
         });
         // CleanUp
         for (int i = 1; i<currentSavedIndex+1; i++) {
@@ -305,7 +307,7 @@ class _CameraState extends State<Camera> {
       _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
     }
     isDetecting = false;
-    setState(() {}); // update state, trigger rerender
+    if(mounted) setState(() {}); // update state, trigger rerender
   }
 
   @override
@@ -318,14 +320,12 @@ class _CameraState extends State<Camera> {
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
-      else if (isRecording) return Icon(Icons.stop_circle);
-      else return Icon(Icons.slow_motion_video_sharp);
+      else if (isRecording) return Icon(Icons.stop_circle, color: Colors.red,);
+      else return Icon(Icons.slow_motion_video_sharp, color: Colors.white);
     }
 
     return Stack(
-
       children: [
-
         OverflowBox(
           maxHeight: screen.height,
           //minHeight: screen.height,
@@ -367,8 +367,8 @@ class _CameraState extends State<Camera> {
         Container(),
         Container(
           alignment: Alignment.topRight,
-          child: FloatingActionButton(
-            child: Icon(Icons.flip_camera_android),
+          child: IconButton(
+            icon: Icon(Icons.flip_camera_android, color: Colors.white),
             onPressed: () {
               changeCameraLens();
             },
@@ -378,12 +378,14 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        FloatingActionButton(
-            child: renderRecordIcon(),
-            backgroundColor: isRecording ? Colors.red : Colors.green,
-            onPressed: () {
-              isRecording ? stopRecording() : startRecording();
-            }
+        Container(
+          alignment: Alignment.bottomCenter,
+          child: IconButton(
+              icon: renderRecordIcon(),
+              onPressed: () {
+                isRecording ? stopRecording() : startRecording();
+              }
+          ),
         ),
         Text("$recordSeconds"),
       ],
