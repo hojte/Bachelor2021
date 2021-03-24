@@ -9,9 +9,9 @@ import 'package:ituvidit/mountController.dart';
 
 import 'customAppBarDesign.dart';
 
-class MountRemoteControls extends HookWidget {
+class MountManualController extends HookWidget {
   final bleCharacteristic;
-  MountRemoteControls(this.bleCharacteristic);
+  MountManualController(this.bleCharacteristic);
 
   Widget upArrow(BuildContext context){
     return IconButton(
@@ -20,7 +20,7 @@ class MountRemoteControls extends HookWidget {
         onPressed: () {
           var trackingData = TrackingData("1","0","0","0",0,5000);
           var compute = ComputeData(trackingData);
-          print(compute.boundingBoxCenter);
+          //print(compute.boundingBoxCenter);
           MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
         },
     );
@@ -33,7 +33,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("1","0.05","1","1",0,5000);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -45,7 +45,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("1","0.05","1","0.05",0,0);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -57,7 +57,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("0","0","1","0.05",5000,0);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -69,7 +69,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("1","1","1","0.05",5000,0);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -81,7 +81,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("1","1","0","0",5000,5000);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -93,7 +93,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("0","0","0","0",5000,5000);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -105,7 +105,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("1","1","1","1",5000,5000);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
@@ -117,7 +117,7 @@ class MountRemoteControls extends HookWidget {
       onPressed: () {
         var trackingData = TrackingData("0","0","1","1",5000,5000);
         var compute = ComputeData(trackingData);
-        print(compute.boundingBoxCenter);
+        //print(compute.boundingBoxCenter);
         MountController(trackingData, bleCharacteristic).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
     );
