@@ -325,9 +325,7 @@ class _CameraState extends State<Camera> {
     }
 
     return Stack(
-
       children: [
-
         OverflowBox(
           maxHeight: screen.height,
           //minHeight: screen.height,
@@ -358,11 +356,14 @@ class _CameraState extends State<Camera> {
 
         MountController(_trackingData, widget._bleCharacteristic),
 
-        IconButton(
-            icon: renderRecordIcon(),
-            onPressed: () {
-              isRecording ? stopRecording() : startRecording();
-            }
+        Container(
+          alignment: Alignment.bottomCenter,
+          child: IconButton(
+              icon: renderRecordIcon(),
+              onPressed: () {
+                isRecording ? stopRecording() : startRecording();
+              }
+          ),
         ),
         Text("$recordSeconds"),
       ],
