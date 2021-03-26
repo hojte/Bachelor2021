@@ -22,18 +22,6 @@ class HomeHooks extends HookWidget{
         labels: "assets/ssd_mobilenet.txt");
     print(res);
   }
-  Widget remoteControls(BuildContext context, BluetoothCharacteristic bleCharacteristic){
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
-      child: Text("Mount Remote Controls", style: TextStyle(color: Colors.black),),
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => MountManualController(bleCharacteristic),
-        ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +38,36 @@ class HomeHooks extends HookWidget{
 
     final isTracking = useState(false);
     Widget renderStartTrackingButton() {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
-        child: Text(
-          "Start Tracking",
-          style: TextStyle(color: Colors.black),
-        ),
+      return TextButton(
+        style: TextButton.styleFrom(primary: Colors.teal[300].withOpacity(0.1)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+              "Start Tracking",
+              style: TextStyle(color: Colors.black, fontSize: 35),
+            ), Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
         onPressed: () {
           loadModel();
           isTracking.value = true;
+        },
+      );
+    }
+    Widget renderRemoteControlButton() {
+      return TextButton(
+        style: TextButton.styleFrom(primary: Colors.teal[300]),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                "Manual Mount Control",
+                style: TextStyle(color: Colors.black, fontSize: 25),
+              ), Icon(Icons.control_camera, color: Colors.black, size: 80,)]),
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(
+            builder: (context) => MountManualController(bleCharacteristic),
+          ),
+          );
         },
       );
     }
@@ -79,14 +88,17 @@ class HomeHooks extends HookWidget{
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  renderStartTrackingButton(),
-                  FlutterBlueWidget(setCharacteristic),
-                  remoteControls(context, bleCharacteristic.value),
-                ],
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Expanded(child: renderStartTrackingButton()),
+                Divider(thickness: 2,),
+                Expanded(child: FlutterBlueWidget(setCharacteristic)),
+                Divider(thickness: 2,),
+                Expanded(child: renderRemoteControlButton()),
+              ],
+            ),
           )
               : Stack(
             children: [

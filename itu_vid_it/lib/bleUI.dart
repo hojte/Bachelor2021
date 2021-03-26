@@ -132,31 +132,22 @@ class FindESPScreen extends HookWidget {
       waitForConnect().then((value) => null);
     }
 
-    return !mountConnected.value ? Column(
-      children: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(primary: Colors.teal[300]),
-          onPressed: () {
-            firstScan.value = true;
-            fBlue.startScan(timeout: Duration(seconds: 1));
-          },
-          child: !isScanningSnapshot.data ? Text("Connect", style: TextStyle(color: Colors.black)):
-          Text("Connecting", style: TextStyle(color: Colors.black)),
-        ),
-        isScanningSnapshot.data || (!isScanningSnapshot.data && isConnecting.value) ?
-        CircularProgressIndicator() :
-        mountConnected.value ?
-        Text("The VidIT mount is connected, you can proceed to tracking.") :
-        firstScan.value ? Column(
-          children: [
-            Text("The VidIT mount was not found"),
-            Text("Make sure it is turned on or reboot and connect again"),
-            Text("Or you can proceed to the tracking"),
-            Text("without connection to the mount."),
-          ],
-        )
-            : Container()
-      ],
-    ) : Text("The VidIT mount is connected, you can proceed to tracking.");
+    return !mountConnected.value ?
+    TextButton(
+      style: TextButton.styleFrom(backgroundColor: Colors.teal.withOpacity(0.1)),
+      onPressed: () {
+        firstScan.value = true;
+        fBlue.startScan(timeout: Duration(seconds: 1));
+      },
+      child: !isScanningSnapshot.data
+          ? Text("Connect", style: TextStyle(color: Colors.black, fontSize: 45))
+          : CircularProgressIndicator(),
+    )
+        : Text("The VidIT mount is connected, you can proceed to tracking.");
   }
 }
+/*firstScan.value ?
+Text("The VidIT mount was not found. Make sure it is turned on or "
+"reboot and connect again. Or you can proceed to the tracking"
+" without connection to the mount.", style: TextStyle(),)
+: Container()*/
