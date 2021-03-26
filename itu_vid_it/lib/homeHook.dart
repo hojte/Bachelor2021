@@ -43,6 +43,11 @@ class HomeHooks extends HookWidget{
       debugModeValue.value = val;
     }
 
+    final gridViewValue = useState(false);
+    void setGridViewValue(bool val){
+      gridViewValue.value = val;
+    }
+
     final bleCharacteristic = useState();
     void setCharacteristic(BluetoothCharacteristic characteristic){
       bleCharacteristic.value = characteristic;
@@ -75,7 +80,7 @@ class HomeHooks extends HookWidget{
             title: Text("VidIt"),
             flexibleSpace: CustomAppBarDesign(),
           ),
-          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value),
+          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value, setGridViewValue, gridViewValue.value),
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(
@@ -94,6 +99,7 @@ class HomeHooks extends HookWidget{
                 cameras,
                 bleCharacteristic.value,
                 debugModeValue,
+                gridViewValue
               ),
             ],
           ),

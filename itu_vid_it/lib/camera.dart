@@ -27,10 +27,11 @@ class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final BluetoothCharacteristic _bleCharacteristic;
   final debugModeValue;
-  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue);
+  final gridViewValue;
+  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.gridViewValue);
 
   @override
-  _CameraState createState() => new _CameraState(debugModeValue);
+  _CameraState createState() => new _CameraState(debugModeValue, gridViewValue);
 }
 
 class _CameraState extends State<Camera> {
@@ -50,12 +51,13 @@ class _CameraState extends State<Camera> {
   Timer timer;
   int recordSeconds = 0;
   final debugModeValue;
+  final gridViewValue;
   List<dynamic> filteredRecognitions = [];
 
   int deviceRotation;
   int deviceRotationOnRecordStart;
   int recordStartTime;
-  _CameraState(this.debugModeValue);
+  _CameraState(this.debugModeValue, this.gridViewValue);
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
@@ -338,7 +340,7 @@ class _CameraState extends State<Camera> {
           minWidth: screen.width,
           child: CameraPreview(controller),
         ),
-        debugModeValue.value ?
+        if(debugModeValue.value)
         Stack(
           children: [
             BndBox(
@@ -349,12 +351,10 @@ class _CameraState extends State<Camera> {
               screen.width,
             ),
             //Spread operator === ULÆKKERT
-            ...Grids(screen),
+            if (gridViewValue.value) ...Grids(screen) else Container(),
               ],
             )
-
-            :
-        Container(),
+            else if (gridViewValue.value) ...Grids(screen) else Container(),
         Container(
           alignment: Alignment.topRight,
           margin: EdgeInsets.only(top: 20),
