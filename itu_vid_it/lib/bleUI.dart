@@ -63,20 +63,29 @@ class FindESPScreen extends HookWidget {
     isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
 
-    useEffect(() { // call scan once on widget init
+    void checkConnections() {
       fBlue.connectedDevices.then((devices) => {
         if (devices.any((device) => device.name == DEVICE_NAME)) {
           fBlue.stopScan(),
           mountConnected.value = true,
           mountFound.value = true,
         }
+        else {
+          mountConnected.value = false,
+          mountFound.value = false,
+        }
       });
-      //fBlue.startScan(timeout: Duration(seconds: 1));
-      return fBlue.stopScan;
+    }
+
+    if (DateTime.now().millisecond % 10000 == 0) checkConnections();
+
+    useEffect(() { // call scan once on widget init
+      checkConnections();
+      return null;
     },
       [], // call once
     );
-    useEffect(() { // check if our mount is found
+    useEffect(() { // called on new scan results
       try { // catch exception if not found
         espDevice = scanSnapshot.data
             .firstWhere((element) => element.device.name == DEVICE_NAME)
@@ -85,17 +94,8 @@ class FindESPScreen extends HookWidget {
         mountFound.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
-        //print(scanSnapshot.data.length.toString()+">>fault>" + e.toString());
         if(!isScanningSnapshot.data)
-          fBlue.connectedDevices.then((devices) => {
-            if (devices.any((device) => device.name == DEVICE_NAME)) {
-              fBlue.stopScan(),
-              mountConnected.value = true,
-              mountFound.value = true,
-            }
-          });
-        if(!isScanningSnapshot.data)
-          mountFound.value = false;
+          checkConnections();
       }
       return null; // no callback
     },
@@ -120,34 +120,66 @@ class FindESPScreen extends HookWidget {
                 _setBleCharacteristic(characteristic);
                 //var readValue = await characteristic.read();
                 //print("redVal: " + utf8.decode(readValue));
-                await characteristic.write(utf8.encode("initialTest"), withoutResponse: true);
+                await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
               }
             }
         }
       isConnecting.value = false;
       return true;
     }
-    if (espDevice != null && !tryConnect.value) { // run once
+    if (espDevice != null && !tryConnect.value) { // run one at a time
       tryConnect.value = true;
-      waitForConnect().then((value) => null);
+      waitForConnect();
     }
 
-    return !mountConnected.value ?
-    TextButton(
-      style: TextButton.styleFrom(backgroundColor: Colors.teal.withOpacity(0.1)),
-      onPressed: () {
-        firstScan.value = true;
-        fBlue.startScan(timeout: Duration(seconds: 1));
-      },
-      child: !isScanningSnapshot.data
-          ? Text("Connect", style: TextStyle(color: Colors.black, fontSize: 45))
-          : CircularProgressIndicator(),
-    )
-        : Text("The VidIT mount is connected, you can proceed to tracking.");
+    /// Render Section
+    Widget renderIcon() {
+      if (isScanningSnapshot.data || (!isScanningSnapshot.data && isConnecting.value))
+        return SizedBox(
+          child: CircularProgressIndicator(
+            valueColor: new AlwaysStoppedAnimation<Color>(Colors.black),
+            strokeWidth: 10,
+          ),
+          height: 80,
+          width: 80,
+        );
+      return Icon(mountConnected.value ? Icons.bluetooth_connected : Icons.bluetooth,
+          color: Colors.black, size: 80);
+    }
+
+    if (mountConnected.value) return TextButton(
+        onPressed: () {
+          fBlue.startScan(timeout: Duration(seconds: firstScan.value ? 3 : 1));
+          firstScan.value = true;
+        },
+        child:
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                  "Connected",
+                  style: TextStyle(color: Colors.black, fontSize: 35)
+              ),
+              renderIcon()
+            ])
+    );
+    return
+      TextButton(
+          onPressed: () {
+            checkConnections();
+            fBlue.startScan(timeout: Duration(seconds: firstScan.value ? 3 : 1));
+            firstScan.value = true;
+          },
+          child:
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text(
+                    "Connect",
+                    style: TextStyle(color: Colors.black, fontSize: 35)
+                ),
+                renderIcon()
+              ])
+      );
   }
 }
-/*firstScan.value ?
-Text("The VidIT mount was not found. Make sure it is turned on or "
-"reboot and connect again. Or you can proceed to the tracking"
-" without connection to the mount.", style: TextStyle(),)
-: Container()*/
