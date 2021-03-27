@@ -95,6 +95,7 @@ class FindESPScreen extends HookWidget {
       fBlue.connectedDevices.then((devices) {
         if (devices.any((device) => device.name == DEVICE_NAME)) {
           fBlue.stopScan();
+          espDevice = devices.firstWhere((device) => device.name == DEVICE_NAME);
           if (!mountConnected.value) waitForConnect();
           mountConnected.value = true;
           mountFound.value = true;
@@ -102,6 +103,7 @@ class FindESPScreen extends HookWidget {
         else {
           mountConnected.value = false;
           mountFound.value = false;
+          isConnecting.value = false;
           _setBleCharacteristic(null);
         }
       });
