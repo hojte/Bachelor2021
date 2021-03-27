@@ -65,18 +65,44 @@ class FindESPScreen extends HookWidget {
 
     isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
-
+    Future waitForConnect() async {
+      isConnecting.value = true;
+      //print("ran waitForConnect()");
+      try {
+        await espDevice.connect(autoConnect: true);
+      } catch (e) {
+        if (!e.toString().contains("already_connected")) throw e; // unexpected error
+      }
+      mountConnected.value = true;
+      var espServices = await espDevice.discoverServices();
+      if (espServices != null)
+        for (var service in espServices) {
+          if (service.uuid.toString() == "ea411899-d14c-45d5-81f0-ce96b217c64a")
+            for (BluetoothCharacteristic characteristic in service.characteristics) {
+              if (characteristic.uuid.toString() == "91235981-23ee-4bca-b7b2-2aec7d075438") {
+                espCharacteristic = characteristic;
+                _setBleCharacteristic(characteristic);
+                //var readValue = await characteristic.read();
+                //print("redVal: " + utf8.decode(readValue));
+                await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
+              }
+            }
+        }
+      isConnecting.value = false;
+      return true;
+    }
     void checkConnections() {
-      fBlue.connectedDevices.then((devices) => {
+      fBlue.connectedDevices.then((devices) {
         if (devices.any((device) => device.name == DEVICE_NAME)) {
-          fBlue.stopScan(),
-          mountConnected.value = true,
-          mountFound.value = true,
+          fBlue.stopScan();
+          if (!mountConnected.value) waitForConnect();
+          mountConnected.value = true;
+          mountFound.value = true;
         }
         else {
-          mountConnected.value = false,
-          mountFound.value = false,
-          _setBleCharacteristic(null)
+          mountConnected.value = false;
+          mountFound.value = false;
+          _setBleCharacteristic(null);
         }
       });
     }
@@ -107,33 +133,8 @@ class FindESPScreen extends HookWidget {
     },
       [scanSnapshot.data.length],
     );
-    Future waitForConnect() async {
-      isConnecting.value = true;
-      //print("ran waitForConnect()");
-      try {
-        await espDevice.connect(autoConnect: true);
-      } catch (e) {
-        if (!e.toString().contains("already_connected")) throw e; // unexpected error
-      }
-      mountConnected.value = true;
-      var espServices = await espDevice.discoverServices();
-      if (espServices != null)
-        for (var service in espServices) {
-          if (service.uuid.toString() == "ea411899-d14c-45d5-81f0-ce96b217c64a")
-            for (BluetoothCharacteristic characteristic in service.characteristics) {
-              if (characteristic.uuid.toString() == "91235981-23ee-4bca-b7b2-2aec7d075438") {
-                espCharacteristic = characteristic;
-                _setBleCharacteristic(characteristic);
-                //var readValue = await characteristic.read();
-                //print("redVal: " + utf8.decode(readValue));
-                await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
-              }
-            }
-        }
-      isConnecting.value = false;
-      return true;
-    }
-    if (espDevice != null && !tryConnect.value) { // run one at a time
+
+    if (espDevice != null && !tryConnect.value) { // run ONE TIME
       tryConnect.value = true;
       waitForConnect();
     }
