@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/gridView.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
@@ -354,13 +355,20 @@ class _CameraState extends State<Camera> {
         Container(
           alignment: Alignment.topRight,
           margin: EdgeInsets.only(top: 20),
-          child: IconButton(
-            icon: Platform.isAndroid ? Icon(Icons.flip_camera_android, color: Colors.white) : Icon(Icons.flip_camera_ios, color: Colors.white),
-            onPressed: () {
-              changeCameraLens();
-            },
-            iconSize: 40,
-          ) ,
+          child: Column(children: [
+            IconButton(
+              icon: Platform.isAndroid ?
+              Icon(Icons.flip_camera_android, color: Colors.white) :
+              Icon(Icons.flip_camera_ios, color: Colors.white),
+              onPressed: () {
+                changeCameraLens();
+              },
+              iconSize: 40,
+            ),
+             espCharacteristic == null ?
+             Icon(Icons.bluetooth_disabled, color: Colors.white) :
+             Icon(Icons.bluetooth_connected, color: Colors.white),
+          ],)
         ),
 
 
