@@ -76,6 +76,7 @@ class FindESPScreen extends HookWidget {
         else {
           mountConnected.value = false,
           mountFound.value = false,
+          _setBleCharacteristic(null)
         }
       });
     }
