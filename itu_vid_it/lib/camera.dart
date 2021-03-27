@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/gridView.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
@@ -60,6 +59,8 @@ class _CameraState extends State<Camera> {
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
+
+  bool bleValid = false;
 
   @override
   void initState() {
@@ -308,6 +309,9 @@ class _CameraState extends State<Camera> {
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
   }
+  void validateBle(bool bleIsValid) {
+    bleValid = bleIsValid;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -365,14 +369,14 @@ class _CameraState extends State<Camera> {
               },
               iconSize: 40,
             ),
-             espCharacteristic == null ?
-             Icon(Icons.bluetooth_disabled, color: Colors.white) :
-             Icon(Icons.bluetooth_connected, color: Colors.white),
+             bleValid ?
+             Icon(Icons.bluetooth_connected, color: Colors.white) :
+             Icon(Icons.bluetooth_disabled, color: Colors.white),
           ],)
         ),
 
 
-        MountController(_trackingData, widget._bleCharacteristic),
+        MountController(_trackingData, widget._bleCharacteristic, validateBle),
 
         Container(
             alignment: Alignment.bottomCenter,

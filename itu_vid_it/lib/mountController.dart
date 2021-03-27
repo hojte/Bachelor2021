@@ -7,8 +7,9 @@ import 'package:flutter_blue/flutter_blue.dart';
 class MountController extends StatelessWidget{
   TrackingData _trackingData;
   BluetoothCharacteristic bleCharacteristic;
+  var validateBle;
 
-  MountController(this._trackingData, this.bleCharacteristic);
+  MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid));
 
 
   Future<bool> sendDataToESP(List<int> byteList) async {
@@ -27,7 +28,7 @@ class MountController extends StatelessWidget{
 
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
-      sendDataToESP(utf8.encode(cd.boundingBoxCenter));
+      sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
       print(cd.boundingBoxCenter);
 
     }
