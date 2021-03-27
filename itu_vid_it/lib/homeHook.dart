@@ -39,14 +39,13 @@ class HomeHooks extends HookWidget{
     final isTracking = useState(false);
     Widget renderStartTrackingButton() {
       return TextButton(
-        style: TextButton.styleFrom(primary: Colors.teal[300].withOpacity(0.1)),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Text(
-              "Start Tracking",
-              style: TextStyle(color: Colors.black, fontSize: 35),
-            ), Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
+                "Start Tracking",
+                style: TextStyle(color: Colors.black, fontSize: 35),
+              ), Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
         onPressed: () {
           loadModel();
           isTracking.value = true;
@@ -55,15 +54,18 @@ class HomeHooks extends HookWidget{
     }
     Widget renderRemoteControlButton() {
       return TextButton(
-        style: TextButton.styleFrom(primary: Colors.teal[300]),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Text(
-                "Manual Mount Control",
-                style: TextStyle(color: Colors.black, fontSize: 25),
-              ), Icon(Icons.control_camera, color: Colors.black, size: 80,)]),
+                "Controls",
+                style: TextStyle(color: bleCharacteristic.value != null ?
+                Colors.black : Colors.white.withOpacity(0.3), fontSize: 35),
+              ),
+              Icon(Icons.control_camera, color: bleCharacteristic.value != null ?
+              Colors.black : Colors.white.withOpacity(0.3), size: 80)]),
         onPressed: () {
+          if (bleCharacteristic.value == null) return;
           Navigator.push(context, MaterialPageRoute(
             builder: (context) => MountManualController(bleCharacteristic),
           ),
