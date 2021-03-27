@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -48,7 +49,6 @@ class BluetoothOffScreen extends StatelessWidget {
 class FindESPScreen extends HookWidget {
   final _setBleCharacteristic;
   FindESPScreen(this._setBleCharacteristic);
-
   @override
   Widget build(BuildContext context) {
     final scanSnapshot = useStream(fBlue.scanResults);
@@ -59,6 +59,8 @@ class FindESPScreen extends HookWidget {
     final isLoading = useState(true);
     final tryConnect = useState(false);
     final firstScan = useState(false);
+
+
 
     isLoading.value = !isScanningSnapshot.hasData && !scanSnapshot.hasData;
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
@@ -77,13 +79,11 @@ class FindESPScreen extends HookWidget {
       });
     }
 
-    if (DateTime.now().millisecond % 10000 == 0) checkConnections();
-
-    useEffect(() { // call scan once on widget init
-      checkConnections();
+    useEffect(() {
+      // Check connections every 5 seconds
+      Timer.periodic(Duration(seconds: 5), (Timer t) => checkConnections());
       return null;
-    },
-      [], // call once
+    }, [], // call once
     );
     useEffect(() { // called on new scan results
       try { // catch exception if not found
@@ -132,6 +132,14 @@ class FindESPScreen extends HookWidget {
       waitForConnect();
     }
 
+    void onConnectPressed() {
+      if (isScanningSnapshot.data) return;
+      checkConnections();
+      fBlue.startScan(timeout: Duration(seconds: firstScan.value ? 3 : 1))
+          .then((_) => checkConnections());
+      firstScan.value = true;
+    }
+
     /// Render Section
     Widget renderIcon() {
       if (isScanningSnapshot.data || (!isScanningSnapshot.data && isConnecting.value))
@@ -148,10 +156,7 @@ class FindESPScreen extends HookWidget {
     }
 
     if (mountConnected.value) return TextButton(
-        onPressed: () {
-          fBlue.startScan(timeout: Duration(seconds: firstScan.value ? 3 : 1));
-          firstScan.value = true;
-        },
+        onPressed: () => onConnectPressed(),
         child:
         Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -165,11 +170,7 @@ class FindESPScreen extends HookWidget {
     );
     return
       TextButton(
-          onPressed: () {
-            checkConnections();
-            fBlue.startScan(timeout: Duration(seconds: firstScan.value ? 3 : 1));
-            firstScan.value = true;
-          },
+          onPressed: () => onConnectPressed(),
           child:
           Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
