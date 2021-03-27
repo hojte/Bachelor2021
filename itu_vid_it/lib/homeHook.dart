@@ -67,7 +67,7 @@ class HomeHooks extends HookWidget{
         onPressed: () {
           if (bleCharacteristic.value == null) return;
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => MountManualController(bleCharacteristic),
+            builder: (context) => MountManualController(bleCharacteristic.value),
           ),
           );
         },
