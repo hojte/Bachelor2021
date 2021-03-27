@@ -228,14 +228,10 @@ class _CameraState extends State<Camera> {
         GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
           print("saved: $value");
           isProcessingVideo = false;
-          //Delete MP4:
-          File(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').delete();
           if(mounted) setState(() {}); // update state, trigger rerender
         });
         // CleanUp
-        for (int i = 1; i<currentSavedIndex+1; i++) {
-          File("$videoDirectory/VidIT$i.$fileType").delete();
-        }
+        new Directory('$videoDirectory').delete(recursive: true);
         currentFrameIndex = 0;
         currentSavedIndex = 0;
       });
