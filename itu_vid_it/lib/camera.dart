@@ -123,7 +123,6 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              //print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
@@ -272,7 +271,6 @@ class _CameraState extends State<Camera> {
   }
 
   void handleRecognitions(List<dynamic> recognitions) {
-    //print(newRecognitions);
     //making a new list that only contains detectedClass: person
     var tempFilter = [];
     try {

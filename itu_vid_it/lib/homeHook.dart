@@ -20,7 +20,7 @@ class HomeHooks extends HookWidget{
     res = await Tflite.loadModel(
         model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
         labels: "assets/ssd_mobilenet.txt");
-    print(res);
+    //print(res);
   }
   Widget remoteControls(BuildContext context, BluetoothCharacteristic bleCharacteristic){
     return ElevatedButton(
