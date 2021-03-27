@@ -14,8 +14,12 @@ class MountController extends StatelessWidget{
   Future<bool> sendDataToESP(List<int> byteList) async {
 
     if(bleCharacteristic==null) return false;
-    await bleCharacteristic.write(byteList, withoutResponse: true);
-return true;
+    try {
+      await bleCharacteristic.write(byteList, withoutResponse: true);
+    } catch (e) {
+      return false;
+    }
+    return true;
   }
   @override
   Widget build(BuildContext context) {
