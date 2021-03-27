@@ -59,6 +59,7 @@ class FindESPScreen extends HookWidget {
     final isLoading = useState(true);
     final tryConnect = useState(false);
     final firstScan = useState(false);
+    final isMounted = useIsMounted();
 
 
 
@@ -81,7 +82,11 @@ class FindESPScreen extends HookWidget {
 
     useEffect(() {
       // Check connections every 5 seconds
-      Timer.periodic(Duration(seconds: 5), (Timer t) => checkConnections());
+      Timer.periodic(Duration(seconds: 5), (Timer t) {
+        if (isMounted())
+          checkConnections();
+        else t.cancel();
+      });
       return null;
     }, [], // call once
     );
