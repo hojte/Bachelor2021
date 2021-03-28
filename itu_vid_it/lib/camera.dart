@@ -340,37 +340,37 @@ class _CameraState extends State<Camera> {
           child: CameraPreview(controller),
         ),
         if(debugModeValue.value)
-        Stack(
-          children: [
-            BndBox(
-              filteredRecognitions,
-              previewH,
-              previewW,
-              screen.height,
-              screen.width,
-            ),
-            //Spread operator === ULÆKKERT
-            if (gridViewValue.value) ...Grids(screen) else Container(),
-              ],
-            )
-            else if (gridViewValue.value) ...Grids(screen) else Container(),
+          Stack(
+            children: [
+              BndBox(
+                filteredRecognitions,
+                previewH,
+                previewW,
+                screen.height,
+                screen.width,
+              ),
+              //Spread operator === ULÆKKERT
+              if (gridViewValue.value) ...Grids(screen) else Container(),
+            ],
+          )
+        else if (gridViewValue.value) ...Grids(screen) else Container(),
         Container(
-          alignment: Alignment.topRight,
-          margin: EdgeInsets.only(top: 20),
-          child: Column(children: [
-            IconButton(
-              icon: Platform.isAndroid ?
-              Icon(Icons.flip_camera_android, color: Colors.white) :
-              Icon(Icons.flip_camera_ios, color: Colors.white),
-              onPressed: () {
-                changeCameraLens();
-              },
-              iconSize: 40,
-            ),
-             bleValid ?
-             Icon(Icons.bluetooth_connected, color: Colors.white) :
-             Icon(Icons.bluetooth_disabled, color: Colors.white),
-          ],)
+            alignment: Alignment.topRight,
+            margin: EdgeInsets.only(top: 20),
+            child: Column(children: [
+              IconButton(
+                icon: Platform.isAndroid ?
+                Icon(Icons.flip_camera_android, color: Colors.white) :
+                Icon(Icons.flip_camera_ios, color: Colors.white),
+                onPressed: () {
+                  changeCameraLens();
+                },
+                iconSize: 40,
+              ),
+              bleValid ?
+              Icon(Icons.bluetooth_connected, color: Colors.white) :
+              Icon(Icons.bluetooth_disabled, color: Colors.white),
+            ],)
         ),
 
 
