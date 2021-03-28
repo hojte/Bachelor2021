@@ -194,7 +194,7 @@ class FindESPScreen extends HookWidget {
                         width: 250,
                         padding: EdgeInsets.only(top: 100),
                         child: Text(
-                          "No mount found please make sure it's turned on.",
+                          "No mount found, please make sure it's turned on.",
                           style: TextStyle(color: Colors.black, fontStyle: FontStyle.italic),
                         )
                     ),
