@@ -3,12 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:tflite/tflite.dart';
+
 import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/colors.dart';
 import 'package:ituvidit/customAppBarDesign.dart';
 import 'package:ituvidit/customDrawer.dart';
 import 'package:ituvidit/mountManualController.dart';
-import 'package:tflite/tflite.dart';
+
 import 'camera.dart';
 
 class HomeHooks extends HookWidget{
@@ -16,11 +18,9 @@ class HomeHooks extends HookWidget{
   HomeHooks(this.cameras);
 
   loadModel() async {
-    String res;
-    res = await Tflite.loadModel(
+    await Tflite.loadModel(
         model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
         labels: "assets/ssd_mobilenet.txt");
-    //print(res);
   }
 
   @override
