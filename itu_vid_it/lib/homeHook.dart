@@ -47,10 +47,17 @@ class HomeHooks extends HookWidget{
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text(
-                "Start Tracking",
-                style: TextStyle(color: Colors.black, fontSize: 35),
-              ), Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
+              Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Text(
+                    "Start Tracking",
+                    style: TextStyle(color: Colors.black, fontSize: 35),
+                  ),
+                  Container(width: 200, padding: EdgeInsets.only(top: 100))
+                ],
+              ),
+              Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
         onPressed: () {
           loadModel();
           isTracking.value = true;
@@ -62,10 +69,22 @@ class HomeHooks extends HookWidget{
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text(
-                "Controls",
-                style: TextStyle(color: bleCharacteristic.value != null ?
-                Colors.black : Colors.white.withOpacity(0.3), fontSize: 35),
+              Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Text(
+                    "Controls",
+                    style: TextStyle(color: bleCharacteristic.value != null ?
+                    Colors.black : Colors.white.withOpacity(0.3), fontSize: 35),
+                  ),
+                  bleCharacteristic.value == null ? Container(
+                      width: 250,
+                      padding: EdgeInsets.only(top: 100),
+                      child: Text(
+                          "No mount connected",
+                          style: TextStyle(color: Colors.white.withOpacity(0.3)))
+                  ) : Container(width: 200,),
+                ],
               ),
               Icon(Icons.control_camera, color: bleCharacteristic.value != null ?
               Colors.black : Colors.white.withOpacity(0.3), size: 80)]),
@@ -110,10 +129,10 @@ class HomeHooks extends HookWidget{
               : Stack(
             children: [
               Camera(
-                cameras,
-                bleCharacteristic.value,
-                debugModeValue,
-                gridViewValue
+                  cameras,
+                  bleCharacteristic.value,
+                  debugModeValue,
+                  gridViewValue
               ),
             ],
           ),

@@ -67,7 +67,6 @@ class FindESPScreen extends HookWidget {
     if (isLoading.value) return CircularProgressIndicator(); // wait for streams
     Future waitForConnect() async {
       isConnecting.value = true;
-      //print("ran waitForConnect()");
       try {
         await espDevice.connect(autoConnect: true);
       } catch (e) {
@@ -177,16 +176,51 @@ class FindESPScreen extends HookWidget {
               renderIcon()
             ])
     );
+    if (firstScan.value && !isScanningSnapshot.data) return
+      TextButton(
+          onPressed: () => onConnectPressed(),
+          child:
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                  Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      Text(
+                          "Connect",
+                          style: TextStyle(color: Colors.black, fontSize: 35)
+                      ),
+                      Container(
+                          width: 250,
+                          padding: EdgeInsets.only(top: 100),
+                          child: Text(
+                            "No mount found please make sure it's turned on.",
+                            style: TextStyle(color: Colors.black, fontStyle: FontStyle.italic),
+                          )
+                      ),
+                    ],
+                  ),
+                renderIcon()
+              ])
+      );
     return
       TextButton(
           onPressed: () => onConnectPressed(),
           child:
           Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                    "Connect",
-                    style: TextStyle(color: Colors.black, fontSize: 35)
+                Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Text(
+                        "Connect",
+                        style: TextStyle(color: Colors.black, fontSize: 35)
+                    ),
+                    Container(
+                        width: 250,
+                    ),
+                  ],
                 ),
                 renderIcon()
               ])
