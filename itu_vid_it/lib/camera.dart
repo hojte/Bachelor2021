@@ -230,12 +230,11 @@ class _CameraState extends State<Camera> {
           .then((rc) {
         print("FFmpeg process exited with rc $rc");
         GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
-          print("saved: $value");
+          new Directory('$videoDirectory').delete(recursive: true);
           isProcessingVideo = false;
           if(mounted) setState(() {}); // update state, trigger rerender
         });
         // CleanUp
-        new Directory('$videoDirectory').delete(recursive: true);
         currentFrameIndex = 0;
         currentSavedIndex = 0;
       });
