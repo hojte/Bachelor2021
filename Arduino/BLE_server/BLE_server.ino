@@ -106,7 +106,8 @@ void loop() {
   
   if(connectedUsers > 0){
     digitalWrite(ledPin, HIGH);
-
+    //Serial.println(VidItCharacteristic->getValue().c_str());
+    
     //Splitting the input string into direction and speed
     std::string inputFromAPP = VidItCharacteristic->getValue().c_str();
     std::string delimiter = ":"; 
@@ -118,36 +119,44 @@ void loop() {
     double convertedXSpeed = atof(xSpeed.c_str()); 
 
     //Removes the direction from the string and finds the yspeed
-    xSpeed.erase(0, xSpeed.find(delimiter) + delimiter.length());
-    std::string ySpeed = xSpeed.substr(0,xSpeed.find(delimiter));
+    inputFromAPP.erase(0, inputFromAPP.find(delimiter) + delimiter.length());
+    std::string ySpeed = inputFromAPP.substr(0,inputFromAPP.find(delimiter));
     double convertedYSpeed = atof(ySpeed.c_str()); 
+
+    
+
+
     
     //Debug statement - printing in console.
-    if (_direction== "Right"){
+    if (_direction== "R"){
       stepper1.setSpeed(-convertedXSpeed);
+      stepper2.setSpeed(convertedYSpeed);
       }
-      else if (_direction== "Left"){
+      else if (_direction== "L"){
         stepper1.setSpeed(convertedXSpeed); 
-        }
-      else if(_direction== "Up"){
         stepper2.setSpeed(convertedYSpeed);
         }
-      else if(_direction== "Down"){
+      else if(_direction== "U"){
+        stepper1.setSpeed(convertedXSpeed); 
+        stepper2.setSpeed(convertedYSpeed);
+        }
+      else if(_direction== "D"){
+        stepper1.setSpeed(convertedXSpeed); 
         stepper2.setSpeed(-convertedYSpeed); 
         }
-      else if(_direction== "Up & Right"){
+      else if(_direction== "U&R"){
         stepper1.setSpeed(-convertedXSpeed);
         stepper2.setSpeed(convertedYSpeed);
         }
-      else if(_direction== "Up & Left"){
+      else if(_direction== "U&L"){
         stepper1.setSpeed(convertedXSpeed);
         stepper2.setSpeed(convertedYSpeed);
         }
-      else if(_direction== "Down & Right"){
+      else if(_direction== "D&R"){
         stepper1.setSpeed(-convertedXSpeed);
         stepper2.setSpeed(-convertedYSpeed);
         }
-      else if(_direction== "Down & Left"){
+      else if(_direction== "D&L"){
         stepper1.setSpeed(convertedXSpeed);
         stepper2.setSpeed(-convertedYSpeed);
         }

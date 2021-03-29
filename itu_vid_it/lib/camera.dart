@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:ituvidit/bleUI.dart';
 import 'package:ituvidit/gridView.dart';
 import 'package:ituvidit/main.dart';
 import 'package:ituvidit/mountController.dart';
@@ -27,10 +28,11 @@ class Camera extends StatefulWidget {
   final List<CameraDescription> cameras;
   final BluetoothCharacteristic _bleCharacteristic;
   final debugModeValue;
-  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue);
+  final gridViewValue;
+  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.gridViewValue);
 
   @override
-  _CameraState createState() => new _CameraState(debugModeValue);
+  _CameraState createState() => new _CameraState(debugModeValue, gridViewValue);
 }
 
 class _CameraState extends State<Camera> {
@@ -50,15 +52,18 @@ class _CameraState extends State<Camera> {
   Timer timer;
   int recordSeconds = 0;
   final debugModeValue;
+  final gridViewValue;
   List<dynamic> filteredRecognitions = [];
 
   int deviceRotation;
   int deviceRotationOnRecordStart;
   int recordStartTime;
-  _CameraState(this.debugModeValue);
+  _CameraState(this.debugModeValue, this.gridViewValue);
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
+
+  bool bleValid = espCharacteristic!=null;
 
   @override
   void initState() {
@@ -121,7 +126,6 @@ class _CameraState extends State<Camera> {
             currentFrameIndex++;
             isSaving = true;
             saveTemporaryFile(currentFrameIndex, img).then((value) {
-              //print("saved $value/$currentFrameIndex");
               currentSavedIndex = value;
             });
           }
@@ -226,16 +230,11 @@ class _CameraState extends State<Camera> {
           .then((rc) {
         print("FFmpeg process exited with rc $rc");
         GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
-          print("saved: $value");
+          new Directory('$videoDirectory').delete(recursive: true);
           isProcessingVideo = false;
-          //Delete MP4:
-          File(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').delete();
           if(mounted) setState(() {}); // update state, trigger rerender
         });
         // CleanUp
-        for (int i = 1; i<currentSavedIndex+1; i++) {
-          File("$videoDirectory/VidIT$i.$fileType").delete();
-        }
         currentFrameIndex = 0;
         currentSavedIndex = 0;
       });
@@ -270,7 +269,6 @@ class _CameraState extends State<Camera> {
   }
 
   void handleRecognitions(List<dynamic> recognitions) {
-    //print(newRecognitions);
     //making a new list that only contains detectedClass: person
     var tempFilter = [];
     try {
@@ -311,6 +309,9 @@ class _CameraState extends State<Camera> {
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
   }
+  void validateBle(bool bleIsValid) {
+    bleValid = bleIsValid;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -338,37 +339,42 @@ class _CameraState extends State<Camera> {
           minWidth: screen.width,
           child: CameraPreview(controller),
         ),
-        debugModeValue.value ?
-        Stack(
-          children: [
-            BndBox(
-              filteredRecognitions,
-              previewH,
-              previewW,
-              screen.height,
-              screen.width,
-            ),
-            //Spread operator === ULÆKKERT
-            ...Grids(screen),
-              ],
-            )
-
-            :
-        Container(),
+        if(debugModeValue.value)
+          Stack(
+            children: [
+              BndBox(
+                filteredRecognitions,
+                previewH,
+                previewW,
+                screen.height,
+                screen.width,
+              ),
+              //Spread operator === ULÆKKERT
+              if (gridViewValue.value) ...Grids(screen) else Container(),
+            ],
+          )
+        else if (gridViewValue.value) ...Grids(screen) else Container(),
         Container(
-          alignment: Alignment.topRight,
-          margin: EdgeInsets.only(top: 20),
-          child: IconButton(
-            icon: Platform.isAndroid ? Icon(Icons.flip_camera_android, color: Colors.white) : Icon(Icons.flip_camera_ios, color: Colors.white),
-            onPressed: () {
-              changeCameraLens();
-            },
-            iconSize: 40,
-          ) ,
+            alignment: Alignment.topRight,
+            margin: EdgeInsets.only(top: 20),
+            child: Column(children: [
+              IconButton(
+                icon: Platform.isAndroid ?
+                Icon(Icons.flip_camera_android, color: Colors.white) :
+                Icon(Icons.flip_camera_ios, color: Colors.white),
+                onPressed: () {
+                  changeCameraLens();
+                },
+                iconSize: 40,
+              ),
+              bleValid ?
+              Icon(Icons.bluetooth_connected, color: Colors.white) :
+              Icon(Icons.bluetooth_disabled, color: Colors.white),
+            ],)
         ),
 
 
-        MountController(_trackingData, widget._bleCharacteristic),
+        MountController(_trackingData, widget._bleCharacteristic, validateBle),
 
         Container(
             alignment: Alignment.bottomCenter,

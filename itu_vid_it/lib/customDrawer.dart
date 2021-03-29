@@ -17,13 +17,16 @@ Widget renderDetectImageButton(BuildContext context){
 }
 
 class CustomDrawer extends HookWidget{
-  final Function(bool boolValue) setValue;
+  final Function(bool boolValue) setDebugValue;
+  final Function(bool boolValue) setGridViewValue;
   final bool debugModeValue;
-  CustomDrawer(this.setValue, this.debugModeValue);
+  final bool gridViewValue;
+  CustomDrawer(this.setDebugValue, this.debugModeValue, this.setGridViewValue, this.gridViewValue);
 
   @override
   Widget build(BuildContext context) {
-    final switchValue = useState(debugModeValue);
+    final debugValue = useState(debugModeValue);
+    final gridValue = useState(gridViewValue);
     return Drawer(
       child: ListView(
         children: [
@@ -31,12 +34,23 @@ class CustomDrawer extends HookWidget{
               activeColor: Colors.green,
               title: Text("Tracking Boxes"),
               subtitle: Text("Do you want to display the tracking boxes?"),
-              value: switchValue.value,
+              value: debugValue.value,
               onChanged: (bool newValue){
-                switchValue.value = !switchValue.value;
-                newValue = switchValue.value;
-                setValue(switchValue.value);
+                debugValue.value = !debugValue.value;
+                newValue = debugValue.value;
+                setDebugValue(debugValue.value);
           }
+          ),
+          SwitchListTile(
+              activeColor: Colors.green,
+              title: Text("GrivView"),
+              subtitle: Text("Do you want to display the gridview?"),
+              value: gridValue.value,
+              onChanged: (bool newValue){
+                gridValue.value = !gridValue.value;
+                newValue = gridValue.value;
+                setGridViewValue(gridValue.value);
+              }
           ),
           renderDetectImageButton(context),
         ],

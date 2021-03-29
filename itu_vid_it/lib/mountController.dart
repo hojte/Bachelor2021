@@ -7,15 +7,20 @@ import 'package:flutter_blue/flutter_blue.dart';
 class MountController extends StatelessWidget{
   TrackingData _trackingData;
   BluetoothCharacteristic bleCharacteristic;
+  var validateBle;
 
-  MountController(this._trackingData, this.bleCharacteristic);
+  MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid));
 
 
   Future<bool> sendDataToESP(List<int> byteList) async {
 
     if(bleCharacteristic==null) return false;
-    await bleCharacteristic.write(byteList, withoutResponse: true);
-return true;
+    try {
+      await bleCharacteristic.write(byteList, withoutResponse: true);
+    } catch (e) {
+      return false;
+    }
+    return true;
   }
   @override
   Widget build(BuildContext context) {
@@ -23,9 +28,7 @@ return true;
 
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
-      sendDataToESP(utf8.encode(cd.boundingBoxCenter));
-      print(cd.boundingBoxCenter);
-
+      sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
     }
     return Container();
   }
@@ -80,37 +83,36 @@ class ComputeData {
       String xAndYSpeed;
       if(tXSpeed == "0.0" && tYSpeed=="0.0"){
         xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
-        print(xAndYSpeed);
       }
       else{
         xAndYSpeed= tXSpeed+":"+tYSpeed;
       }
 
       if(ycenter<minY && xcenter > maxX){
-        return "Up & Right:"+xAndYSpeed;
+        return "U&R:"+xAndYSpeed;
       }
       else if(ycenter<minY && xcenter<minX){
-        return "Up & Left:"+xAndYSpeed;
+        return "U&L:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter > maxX){
-        return "Down & Right:"+xAndYSpeed;
+        return "D&R:"+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter<minX){
-        return "Down & Left:"+xAndYSpeed;
+        return "D&L:"+xAndYSpeed;
       }
       else if(xcenter > maxX){
-        return "Right:"+xAndYSpeed;
+        return "R:"+xAndYSpeed;
       }
       else if(xcenter<minX){
-        return "Left:"+xAndYSpeed;
+        return "L:"+xAndYSpeed;
       }
       else if(ycenter > maxY){
-        return "Down:"+xAndYSpeed;
+        return "D:"+xAndYSpeed;
       }
       else if(ycenter<minY){
-        return "Up:"+xAndYSpeed;
+        return "U:"+xAndYSpeed;
       }
-      else return "Hold:"+xAndYSpeed;
+      else return "H:"+xAndYSpeed;
     }
     //Dont return anything to keep motor moving
   }
