@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 
 import 'bndbox.dart';
 import 'colors.dart';
@@ -42,6 +43,9 @@ class _CameraState extends State<Camera> {
   TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
   int useFrontCam = 0;
   bool isRecording = false;
+  FlutterAudioRecorder audioRecorder;
+  String audioPath = '/VidIT_Audio';
+  Recording audioFile;
   bool isSaving = false;
   bool isProcessingVideo = false;
   String videoDirectory;
@@ -201,17 +205,32 @@ class _CameraState extends State<Camera> {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
     });
+    initAudioRecording(getDirectory);
+    await audioRecorder.start();
+  }
+  void initAudioRecording(Directory getDirectory) async {
+    audioPath = getDirectory.path + audioPath + recordStartTime.toString();
+    print('audiopath $audioPath');
+    audioRecorder = FlutterAudioRecorder(audioPath, audioFormat: AudioFormat.WAV);
+    print('audiorecorder $audioRecorder');
+    await audioRecorder.initialized;
+  }
+  void stopAudioRecording() async {
+    audioFile = await audioRecorder.stop();
   }
 
   void stopRecording() {
     isRecording = false;
     waitForSave().then((value) {
+      stopAudioRecording();
+      print('audiorecord path ${audioFile.path}');
       isProcessingVideo = true;
       int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
       print('Exact time recorded = $exactTimeRecorded ms');
       int realFrameRate = (currentSavedIndex/(exactTimeRecorded/1000)).floor();
       print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
       String saveTimeStamp = DateTime.now().toIso8601String();
+      //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
         '-i', '$videoDirectory/VidIT%d.$fileType',
@@ -242,6 +261,8 @@ class _CameraState extends State<Camera> {
       timer.cancel();
     });
   }
+
+
 
   void changeCameraLens() {
     // get current lens direction (front / rear)
