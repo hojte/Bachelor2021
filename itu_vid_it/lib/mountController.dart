@@ -5,9 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class MountController extends StatelessWidget{
-  TrackingData _trackingData;
-  BluetoothCharacteristic bleCharacteristic;
-  var validateBle;
+  final TrackingData _trackingData;
+  final BluetoothCharacteristic bleCharacteristic;
+  final validateBle;
 
   MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid));
 
@@ -35,13 +35,13 @@ class MountController extends StatelessWidget{
 }
 
 class TrackingData {
-  String wCoord;
-  String xCoord;
-  String hCoord;
-  String yCoord;
+  double wCoord;
+  double xCoord;
+  double hCoord;
+  double yCoord;
   double xSpeed;
   double ySpeed;
-  TrackingData(this.wCoord, this.xCoord, this.hCoord, this.yCoord, this.xSpeed,this.ySpeed);
+  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0]);
   Map<String,dynamic> get map {
     return {
       "wCoord":wCoord,
@@ -66,10 +66,10 @@ class ComputeData {
       String tYSpeed =  trackingData.ySpeed.toString();
 
 
-      double x = double.parse(trackingData.xCoord);
-      double y = double.parse(trackingData.yCoord);
-      double w = double.parse(trackingData.wCoord);
-      double h = double.parse(trackingData.hCoord);
+      double x = trackingData.xCoord;
+      double y = trackingData.yCoord;
+      double w = trackingData.wCoord;
+      double h = trackingData.hCoord;
 
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
@@ -132,7 +132,7 @@ class ComputeData {
 
 
   String get checkData{
-    if(trackingData.xCoord == "0.0" && trackingData.wCoord =="0.0" && trackingData.yCoord=="0.0" && trackingData.hCoord=="0.0") return "No data";
+    if(trackingData.xCoord == 0 && trackingData.wCoord == 0 && trackingData.yCoord == 0 && trackingData.hCoord == 0) return "No data";
     return "Data looks fine";
   }
 }

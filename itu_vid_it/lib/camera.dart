@@ -39,7 +39,7 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
+  TrackingData _trackingData = new TrackingData();
   int useFrontCam = 0;
   bool isRecording = false;
   bool isSaving = false;
@@ -270,20 +270,20 @@ class _CameraState extends State<Camera> {
   }
 
   void handleRecognitions(List<dynamic> recognitions) {
-    var tempFilter = [];
-    tempFilter = recognitions.where((recognition) => recognition["detectedClass"].toString() == "person" /*|| recognition["detectedClass"] == "bottle"*/).toList();
+    filteredRecognitions = recognitions.where((recognition) => recognition["detectedClass"].toString() == "person" /*|| recognition["detectedClass"] == "bottle"*/).toList();;
 
-    filteredRecognitions = tempFilter;
+
+
     if(filteredRecognitions.length>0){
-      String wCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["w"].toString();
-      String xCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["x"].toString();
-      String hCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["h"].toString();
-      String yCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["y"].toString();
+      double wCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["w"];
+      double xCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["x"];
+      double hCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["h"];
+      double yCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["y"];
 
       _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
     }
     else{
-      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
+      _trackingData = new TrackingData();
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
