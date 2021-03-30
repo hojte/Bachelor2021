@@ -53,7 +53,7 @@ class _CameraState extends State<Camera> {
   int recordSeconds = 0;
   final debugModeValue;
   final gridViewValue;
-  List<dynamic> filteredRecognitions = [];
+  List<List<dynamic>> filteredRecognitionsLists = [[], [], []];
   int recognitionSelectIndex = 0;
 
   int deviceRotation;
@@ -270,15 +270,18 @@ class _CameraState extends State<Camera> {
   }
 
   void handleRecognitions(List<dynamic> recognitions) {
-    filteredRecognitions = recognitions.where((recognition) => recognition["detectedClass"].toString() == "person" /*|| recognition["detectedClass"] == "bottle"*/).toList();;
-
-
-
-    if(filteredRecognitions.length>0){
-      double wCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["w"];
-      double xCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["x"];
-      double hCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["h"];
-      double yCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["y"];
+    // Shift old lists
+    filteredRecognitionsLists[2] = filteredRecognitionsLists[1];
+    filteredRecognitionsLists[1] = filteredRecognitionsLists[0];
+    filteredRecognitionsLists[0] = recognitions.where((recognition) =>
+    recognition["detectedClass"] == "person" /*|| recognition["detectedClass"] == "bottle"*/).toList();
+    for(int i = 0; i < filteredRecognitionsLists[0].length; i++)
+      filteredRecognitionsLists[0][i]["id"] = i;
+    if(filteredRecognitionsLists[0].length>0) {
+      double wCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["w"];
+      double xCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["x"];
+      double hCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["h"];
+      double yCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["y"];
 
       _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
     }
@@ -322,7 +325,7 @@ class _CameraState extends State<Camera> {
           Stack(
             children: [
               BndBox(
-                filteredRecognitions,
+                filteredRecognitionsLists[0],
                 previewH,
                 previewW,
                 screen.height,

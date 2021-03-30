@@ -25,6 +25,7 @@ class BndBox extends StatelessWidget {
         var _w = re["rect"]["w"];
         var _y = re["rect"]["y"];
         var _h = re["rect"]["h"];
+        var _id = re["id"];
         var scaleW, scaleH, x, y, w, h;
 
         if (screenH / screenW > previewH / previewW) {
@@ -61,7 +62,7 @@ class BndBox extends StatelessWidget {
               ),
             ),
             child: Text(
-              "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
+              "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}% id: $_id",
               style: TextStyle(
                 color: Color.fromRGBO(37, 213, 253, 1.0),
                 fontSize: 14.0,
