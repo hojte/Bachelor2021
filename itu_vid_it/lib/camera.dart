@@ -54,6 +54,7 @@ class _CameraState extends State<Camera> {
   final debugModeValue;
   final gridViewValue;
   List<dynamic> filteredRecognitions = [];
+  int recognitionSelectIndex = 0;
 
   int deviceRotation;
   int deviceRotationOnRecordStart;
@@ -285,23 +286,12 @@ class _CameraState extends State<Camera> {
     filteredRecognitions = tempFilter;
 
     if(filteredRecognitions.length>0){
-      if (Platform.isAndroid) { // Android-specific code
-        String wCoord= filteredRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
-        String xCoord= filteredRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
-        String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
-        String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
-
+        String wCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["w"];
+        String xCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["x"];
+        String hCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["h"];
+        String yCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["y"];
 
         _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
-
-      } else if (Platform.isIOS) {
-        String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
-        String xCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
-        String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
-        String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
-
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
-      }
     }
     else{
       _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
