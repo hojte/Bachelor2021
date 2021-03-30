@@ -270,28 +270,17 @@ class _CameraState extends State<Camera> {
   }
 
   void handleRecognitions(List<dynamic> recognitions) {
-    //making a new list that only contains detectedClass: person
     var tempFilter = [];
-    try {
-      int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
-      element.toString().contains("detectedClass: person")
-          //todo --> slet linjen her for kun at tracke personer
-          || element.toString().contains("detectedClass: bottle")));
-
-      tempFilter.add(recognitions[newRecognitionIndex]);
-    } catch(e) {
-      // no person found
-    }
+    tempFilter = recognitions.where((recognition) => recognition["detectedClass"].toString() == "person" /*|| recognition["detectedClass"] == "bottle"*/).toList();
 
     filteredRecognitions = tempFilter;
-
     if(filteredRecognitions.length>0){
-        String wCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["w"];
-        String xCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["x"];
-        String hCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["h"];
-        String yCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["y"];
+      String wCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["w"].toString();
+      String xCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["x"].toString();
+      String hCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["h"].toString();
+      String yCoord = filteredRecognitions[recognitionSelectIndex]["rect"]["y"].toString();
 
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
     }
     else{
       _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
