@@ -17,7 +17,7 @@ class MountManualController extends HookWidget {
         icon: Icon(Icons.north, color: Colors.white, size: 100),
         iconSize: 100,
         onPressed: () {
-          var trackingData = TrackingData(1,0,0,0,0,5000);
+          var trackingData = TrackingData(1,0,0,0,0,500);
           var compute = ComputeData(trackingData);
           MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
         },
@@ -29,7 +29,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.south, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(1,0.05,1,1,0,5000);
+        var trackingData = TrackingData(1,0.05,1,1,0,500);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -51,7 +51,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(0,0,1,0.05,5000,0);
+        var trackingData = TrackingData(0,0,1,0.05,500,0);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -62,7 +62,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(1,1,1,0.05,5000,0);
+        var trackingData = TrackingData(1,1,1,0.05,500,0);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -73,7 +73,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.north_east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(1,1,0,0,5000,5000);
+        var trackingData = TrackingData(1,1,0,0,500,500);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -84,7 +84,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.north_west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(0,0,0,0,5000,5000);
+        var trackingData = TrackingData(0,0,0,0,500,500);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -95,7 +95,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.south_east, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(1,1,1,1,5000,5000);
+        var trackingData = TrackingData(1,1,1,1,500,500);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
@@ -106,7 +106,7 @@ class MountManualController extends HookWidget {
       icon: Icon(Icons.south_west, color: Colors.white, size: 100),
       iconSize: 100,
       onPressed: () {
-        var trackingData = TrackingData(0,0,1,1,5000,5000);
+        var trackingData = TrackingData(0,0,1,1,500,500);
         var compute = ComputeData(trackingData);
         MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
       },
