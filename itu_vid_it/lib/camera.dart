@@ -55,6 +55,7 @@ class _CameraState extends State<Camera> {
   final gridViewValue;
   List<List<dynamic>> filteredRecognitionsLists = [[], [], []];
   int recognitionSelectIndex = 0;
+  int maxID = 0;
 
   int deviceRotation;
   int deviceRotationOnRecordStart;
@@ -269,14 +270,48 @@ class _CameraState extends State<Camera> {
     }
   }
 
+  bool compareRecognition(dynamic r1, dynamic r2) {
+    // center offset check
+    if ((r1["rect"]["x"]-r2["rect"]["x"]).abs() < 0.1)
+      return true;
+    if ((r1["rect"]["y"]-r2["rect"]["y"]).abs() < 0.1)
+      return true;
+    // ...
+    // size check
+    // ...
+    return false;
+  }
+
   void handleRecognitions(List<dynamic> recognitions) {
-    // Shift old lists
+    print("lol");
+
+    // Shift old lists, put newRecognitions as [0]th list, discard oldest list.
     filteredRecognitionsLists[2] = filteredRecognitionsLists[1];
     filteredRecognitionsLists[1] = filteredRecognitionsLists[0];
-    filteredRecognitionsLists[0] = recognitions.where((recognition) =>
-    recognition["detectedClass"] == "person" /*|| recognition["detectedClass"] == "bottle"*/).toList();
-    for(int i = 0; i < filteredRecognitionsLists[0].length; i++)
-      filteredRecognitionsLists[0][i]["id"] = i;
+    filteredRecognitionsLists[0] = recognitions
+        .where((recognition) => recognition["detectedClass"] == "person" /*|| recognition["detectedClass"] == "bottle"*/)
+        .toList();
+    try {
+      maxID = filteredRecognitionsLists[1].reduce((value, element) => value < element ? element : value);
+    } catch (e) {
+      print(e);
+    }
+    bool reIdFound = false;
+    for(int i = 0; i < filteredRecognitionsLists[1].length; i++) { // Loop old list
+      reIdFound = false; // check ID found for all recognitions
+      for (int k = 0; k < filteredRecognitionsLists[0].length; k++) {
+        bool reID = compareRecognition(
+            filteredRecognitionsLists[1][i], filteredRecognitionsLists[0][k]);
+        if (reID) {
+          reIdFound = true;
+          //Assigning old ID to new matched recognition.
+          filteredRecognitionsLists[0][k]["id"] = filteredRecognitionsLists[1][i]["id"];
+        }
+      }
+      if (!reIdFound) print("no reID found, assigning new ID: %newID"); // todo
+    }
+
+
     if(filteredRecognitionsLists[0].length>0) {
       double wCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["w"];
       double xCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["x"];
@@ -352,6 +387,7 @@ class _CameraState extends State<Camera> {
               bleValid ?
               Icon(Icons.bluetooth_connected, color: Colors.white) :
               Icon(Icons.bluetooth_disabled, color: Colors.white),
+              Text("maxID: $maxID"), // todo debug purpose
             ],)
         ),
 
