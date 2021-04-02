@@ -53,8 +53,8 @@ class _CameraState extends State<Camera> {
   int recordSeconds = 0;
   final debugModeValue;
   final gridViewValue;
-  List<List<dynamic>> filteredRecognitionsLists = [[], [], []];
-  int recognitionSelectIndex = 0;
+  List<dynamic> detectedRecognitions = [];
+  List<dynamic> trackedRecognition = []; // Previous locations of tracked object
   int maxID = 0;
 
   int deviceRotation;
@@ -177,8 +177,8 @@ class _CameraState extends State<Camera> {
             Tflite.detectObjectOnBinary(
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
-              numResultsPerClass: 3,
-              threshold: 0.5,
+              numResultsPerClass: 5,
+              threshold: 0.4,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -271,57 +271,58 @@ class _CameraState extends State<Camera> {
   }
 
   bool compareRecognition(dynamic r1, dynamic r2) {
-    // center offset check
-    if ((r1["rect"]["x"]-r2["rect"]["x"]).abs() < 0.1)
+    // topLeft offset check
+    double threshold = 0.15;
+    bool xMatch = (r1["rect"]["x"]-r2["rect"]["x"]).abs() < threshold;
+    bool yMatch = (r1["rect"]["y"]-r2["rect"]["y"]).abs() < threshold;
+    //print('X:$xMatch Y:$yMatch');
+    bool wMatch = (r1["rect"]["w"]-r2["rect"]["w"]).abs() < threshold;
+    bool hMatch = (r1["rect"]["h"]-r2["rect"]["h"]).abs() < threshold;
+    //print('W:$wMatch H:$hMatch');
+    if (xMatch && yMatch && wMatch && hMatch)
       return true;
-    if ((r1["rect"]["y"]-r2["rect"]["y"]).abs() < 0.1)
-      return true;
-    // ...
-    // size check
-    // ...
     return false;
   }
 
-  void handleRecognitions(List<dynamic> recognitions) {
-    print("lol");
+  void setTracked(dynamic recognition) {
+    trackedRecognition.clear();
+    trackedRecognition.add(recognition);
+  }
 
-    // Shift old lists, put newRecognitions as [0]th list, discard oldest list.
-    filteredRecognitionsLists[2] = filteredRecognitionsLists[1];
-    filteredRecognitionsLists[1] = filteredRecognitionsLists[0];
-    filteredRecognitionsLists[0] = recognitions
-        .where((recognition) => recognition["detectedClass"] == "person" /*|| recognition["detectedClass"] == "bottle"*/)
+  void handleRecognitions(List<dynamic> recognitions) {
+    detectedRecognitions = recognitions
+        .where((recognition) => recognition["detectedClass"] == "person" || recognition["detectedClass"] == "bottle")
         .toList();
-    try {
-      maxID = filteredRecognitionsLists[1].reduce((value, element) => value < element ? element : value);
-    } catch (e) {
-      print(e);
-    }
-    bool reIdFound = false;
-    for(int i = 0; i < filteredRecognitionsLists[1].length; i++) { // Loop old list
-      reIdFound = false; // check ID found for all recognitions
-      for (int k = 0; k < filteredRecognitionsLists[0].length; k++) {
-        bool reID = compareRecognition(
-            filteredRecognitionsLists[1][i], filteredRecognitionsLists[0][k]);
-        if (reID) {
-          reIdFound = true;
-          //Assigning old ID to new matched recognition.
-          filteredRecognitionsLists[0][k]["id"] = filteredRecognitionsLists[1][i]["id"];
+    bool matchFound = false;
+    if (trackedRecognition.isNotEmpty) {
+      for(int i = 0; i < detectedRecognitions.length && !matchFound; i++) {
+        dynamic recognition = detectedRecognitions[i];
+        if (compareRecognition(recognition, trackedRecognition.first)) {
+          detectedRecognitions[i]['track'] = true;
+          if(trackedRecognition.length > 3) trackedRecognition.removeLast(); // delete oldest
+          trackedRecognition.insert(0, recognition);
+          matchFound = true;
         }
       }
-      if (!reIdFound) print("no reID found, assigning new ID: %newID"); // todo
     }
 
-
-    if(filteredRecognitionsLists[0].length>0) {
-      double wCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["w"];
-      double xCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["x"];
-      double hCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["h"];
-      double yCoord = filteredRecognitionsLists[0][recognitionSelectIndex]["rect"]["y"];
+    if (detectedRecognitions.isNotEmpty && !matchFound) {
+      trackedRecognition.clear();
+      detectedRecognitions[0]['trackShift'] = true;
+      trackedRecognition.add(detectedRecognitions[0]); // Just track the highest score
+    }
+    if (detectedRecognitions.isEmpty && trackedRecognition.isEmpty) {
+      trackedRecognition.clear();
+      _trackingData = new TrackingData();
+    }
+    maxID = matchFound ? 1:0;
+    if(trackedRecognition.isNotEmpty) {
+      double wCoord = trackedRecognition.first["rect"]["w"];
+      double xCoord = trackedRecognition.first["rect"]["x"];
+      double hCoord = trackedRecognition.first["rect"]["h"];
+      double yCoord = trackedRecognition.first["rect"]["y"];
 
       _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
-    }
-    else{
-      _trackingData = new TrackingData();
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -360,7 +361,8 @@ class _CameraState extends State<Camera> {
           Stack(
             children: [
               BndBox(
-                filteredRecognitionsLists[0],
+                detectedRecognitions,
+                setTracked,
                 previewH,
                 previewW,
                 screen.height,

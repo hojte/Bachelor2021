@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-//Some methods has been taken and we have modified them to our needs
-//https://github.com/ravindu9701/Real-Time-Object-Detection-Mobile/blob/main/lib/camera.dart
+import 'colors.dart';
+
 class BndBox extends StatelessWidget {
   final List<dynamic> results;
   final int previewH;
   final int previewW;
   final double screenH;
   final double screenW;
+  final Function setTracked;
 
   BndBox(
       this.results,
+      this.setTracked(dynamic recognition),
       this.previewH,
       this.previewW,
       this.screenH,
@@ -20,13 +22,18 @@ class BndBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> _renderBox() {
-      return results.map((re) {
-        var _x = re["rect"]["x"];
-        var _w = re["rect"]["w"];
-        var _y = re["rect"]["y"];
-        var _h = re["rect"]["h"];
-        var _id = re["id"];
+      return results.map((recognition) {
+        var _x = recognition["rect"]["x"];
+        var _w = recognition["rect"]["w"];
+        var _y = recognition["rect"]["y"];
+        var _h = recognition["rect"]["h"];
+        bool _track = recognition["track"] ?? false;
+        bool _trackShift = recognition["trackShift"] ?? false;
         var scaleW, scaleH, x, y, w, h;
+
+        Color boxColor = Colors.grey;
+        if (_trackShift) boxColor = Colors.red;
+        if (_track) boxColor = appBarPrimary;
 
         if (screenH / screenW > previewH / previewW) {
           scaleW = screenH / previewH * previewW;
@@ -49,27 +56,32 @@ class BndBox extends StatelessWidget {
         }
 
         return Positioned(
-          left: math.max(0, x),
-          top: math.max(0, y),
-          width: w,
-          height: h,
-          child: Container(
-            padding: EdgeInsets.only(top: 5.0, left: 5.0),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Color.fromRGBO(37, 213, 253, 1.0),
-                width: 3.0,
+            left: math.max(0, x),
+            top: math.max(0, y),
+            width: w,
+            height: h,
+            child: InkWell(
+              onDoubleTap: () {
+                setTracked(recognition);
+              },
+              child: Container(
+                padding: EdgeInsets.only(top: 5.0, left: 5.0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: boxColor,
+                    width: 3.0,
+                  ),
+                ),
+                child: Text(
+                  "${recognition["detectedClass"]} ${(recognition["confidenceInClass"] * 100).toStringAsFixed(0)}%",
+                  style: TextStyle(
+                    color: boxColor,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}% id: $_id",
-              style: TextStyle(
-                color: Color.fromRGBO(37, 213, 253, 1.0),
-                fontSize: 14.0,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ),
+            )
         );
       }).toList();
     }
