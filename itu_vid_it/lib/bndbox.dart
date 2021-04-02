@@ -29,11 +29,13 @@ class BndBox extends StatelessWidget {
         var _h = recognition["rect"]["h"];
         bool _track = recognition["track"] ?? false;
         bool _trackShift = recognition["trackShift"] ?? false;
+        bool _flickerSmoother = recognition['flickerSmoother'] ?? false;
         var scaleW, scaleH, x, y, w, h;
 
         Color boxColor = Colors.grey;
         if (_trackShift) boxColor = Colors.red;
         if (_track) boxColor = appBarPrimary;
+        if (_flickerSmoother) boxColor = Colors.blue[900];
 
         if (screenH / screenW > previewH / previewW) {
           scaleW = screenH / previewH * previewW;

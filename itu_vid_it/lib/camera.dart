@@ -55,7 +55,7 @@ class _CameraState extends State<Camera> {
   final gridViewValue;
   List<dynamic> detectedRecognitions = [];
   List<dynamic> trackedRecognition = []; // Previous locations of tracked object
-  int maxID = 0;
+  int objectMissingCount = 0;
 
   int deviceRotation;
   int deviceRotationOnRecordStart;
@@ -302,7 +302,12 @@ class _CameraState extends State<Camera> {
           if(trackedRecognition.length > 3) trackedRecognition.removeLast(); // delete oldest
           trackedRecognition.insert(0, recognition);
           matchFound = true;
+          objectMissingCount = 0;
         }
+      }
+      if (!matchFound && ++objectMissingCount < 10) { // flicker for 10 consecutive frames ~ 1 sec
+        trackedRecognition.first['flickerSmoother'] = true;
+        detectedRecognitions.add(trackedRecognition.first);
       }
     }
 
@@ -315,7 +320,6 @@ class _CameraState extends State<Camera> {
       trackedRecognition.clear();
       _trackingData = new TrackingData();
     }
-    maxID = matchFound ? 1:0;
     if(trackedRecognition.isNotEmpty) {
       double wCoord = trackedRecognition.first["rect"]["w"];
       double xCoord = trackedRecognition.first["rect"]["x"];
@@ -389,7 +393,6 @@ class _CameraState extends State<Camera> {
               bleValid ?
               Icon(Icons.bluetooth_connected, color: Colors.white) :
               Icon(Icons.bluetooth_disabled, color: Colors.white),
-              Text("maxID: $maxID"), // todo debug purpose
             ],)
         ),
 
