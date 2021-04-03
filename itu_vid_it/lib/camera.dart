@@ -84,6 +84,7 @@ class _CameraState extends State<Camera> {
 
   //Returns when we are done saving images
   Future<void> waitForSave() async {
+    audioFile = await audioRecorder.stop();
     if (currentFrameIndex == currentSavedIndex) return;
     //wait a bit more for last images to be saved
     await Future.delayed(Duration(milliseconds: 200)); //fixme not good practise
@@ -210,19 +211,13 @@ class _CameraState extends State<Camera> {
   }
   Future<void> initAudioRecording() async {
     audioPath = videoDirectory + audioPath + recordStartTime.toString();
-    print('audiopath $audioPath');
     audioRecorder = FlutterAudioRecorder(audioPath, audioFormat: AudioFormat.WAV);
-    print('audiorecorder $audioRecorder');
     await audioRecorder.initialized;
-    var current = await audioRecorder.current(channel: 0);
-    print('current $current');
   }
 
-  void stopRecording() {
+  void stopRecording() async {
     isRecording = false;
-    waitForSave().then((value) async {
-      audioFile = await audioRecorder.stop();
-      print('audiorecord path ${audioFile.path}');
+    waitForSave().then((value) {
       isProcessingVideo = true;
       int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
       print('Exact time recorded = $exactTimeRecorded ms');
@@ -232,8 +227,8 @@ class _CameraState extends State<Camera> {
       //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '$videoDirectory/VidIT%d.$fileType',
         '-i', '${audioFile.path}',
+        '-i', '$videoDirectory/VidIT%d.$fileType',
         '-preset', 'ultrafast',
       ];
       // check if in portrait mode
