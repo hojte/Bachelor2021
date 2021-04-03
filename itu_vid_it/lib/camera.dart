@@ -332,6 +332,7 @@ class _CameraState extends State<Camera> {
     if(mounted) setState(() {}); // update state, trigger rerender
   }
   void validateBle(bool bleIsValid) {
+    // todo: maybe if not valid, notify homeHook -> bleUI -> update connection, instead of going back to front page to reconnect...
     bleValid = bleIsValid;
   }
 

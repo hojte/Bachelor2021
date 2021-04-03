@@ -57,7 +57,7 @@ class FindESPScreen extends HookWidget {
     final mountConnected = useState(false);
     final mountFound = useState(false);
     final isLoading = useState(true);
-    final tryConnect = useState(false);
+    final tryConnect = useState(true);
     final firstScan = useState(false);
     final isMounted = useIsMounted();
 
@@ -87,6 +87,7 @@ class FindESPScreen extends HookWidget {
                   await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
                 } catch (e) {
                   print("Error during BLE initialTestWrite: "+e.toString()); // fixme
+                  espDevice.disconnect(); // faulty connection
                 }
               }
             }
@@ -127,8 +128,9 @@ class FindESPScreen extends HookWidget {
         espDevice = scanSnapshot.data
             .firstWhere((element) => element.device.name == DEVICE_NAME)
             .device;
-        print(DEVICE_NAME + " -> " + espDevice.toString());
+        print("ScanFound: " + espDevice.toString());
         mountFound.value = true;
+        if (!mountConnected.value || !isConnecting.value) tryConnect.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
         if(!isScanningSnapshot.data)
@@ -139,8 +141,8 @@ class FindESPScreen extends HookWidget {
       [scanSnapshot.data.length],
     );
 
-    if (espDevice != null && !tryConnect.value) { // run ONE TIME
-      tryConnect.value = true;
+    if (espDevice != null && tryConnect.value) { // run ONE TIME
+      tryConnect.value = false;
       waitForConnect();
     }
 
