@@ -205,24 +205,23 @@ class _CameraState extends State<Camera> {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
     });
-    initAudioRecording(getDirectory);
+    await initAudioRecording();
     await audioRecorder.start();
   }
-  void initAudioRecording(Directory getDirectory) async {
-    audioPath = getDirectory.path + audioPath + recordStartTime.toString();
+  Future<void> initAudioRecording() async {
+    audioPath = videoDirectory + audioPath + recordStartTime.toString();
     print('audiopath $audioPath');
     audioRecorder = FlutterAudioRecorder(audioPath, audioFormat: AudioFormat.WAV);
     print('audiorecorder $audioRecorder');
     await audioRecorder.initialized;
-  }
-  void stopAudioRecording() async {
-    audioFile = await audioRecorder.stop();
+    var current = await audioRecorder.current(channel: 0);
+    print('current $current');
   }
 
   void stopRecording() {
     isRecording = false;
-    waitForSave().then((value) {
-      stopAudioRecording();
+    waitForSave().then((value) async {
+      audioFile = await audioRecorder.stop();
       print('audiorecord path ${audioFile.path}');
       isProcessingVideo = true;
       int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
@@ -234,6 +233,7 @@ class _CameraState extends State<Camera> {
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
         '-i', '$videoDirectory/VidIT%d.$fileType',
+        '-i', '${audioFile.path}',
         '-preset', 'ultrafast',
       ];
       // check if in portrait mode
