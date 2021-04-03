@@ -84,7 +84,6 @@ class _CameraState extends State<Camera> {
 
   //Returns when we are done saving images
   Future<void> waitForSave() async {
-    audioFile = await audioRecorder.stop();
     if (currentFrameIndex == currentSavedIndex) return;
     //wait a bit more for last images to be saved
     await Future.delayed(Duration(milliseconds: 200)); //fixme not good practise
@@ -200,22 +199,24 @@ class _CameraState extends State<Camera> {
     print('Directory created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
     nativeDeviceOrientationOnStartRec = await NativeDeviceOrientationCommunicator().orientation();
+    await initAudioRecording();
+    await audioRecorder.start();
     isRecording = true;
     recordStartTime = DateTime.now().millisecondsSinceEpoch;
     recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
     });
-    await initAudioRecording();
-    await audioRecorder.start();
+
   }
   Future<void> initAudioRecording() async {
-    audioPath = videoDirectory + audioPath + recordStartTime.toString();
-    audioRecorder = FlutterAudioRecorder(audioPath, audioFormat: AudioFormat.WAV);
+    var path = videoDirectory + audioPath + recordStartTime.toString();
+    audioRecorder = FlutterAudioRecorder(path, audioFormat: AudioFormat.WAV);
     await audioRecorder.initialized;
   }
 
   void stopRecording() async {
+    audioFile = await audioRecorder.stop();
     isRecording = false;
     waitForSave().then((value) {
       isProcessingVideo = true;
