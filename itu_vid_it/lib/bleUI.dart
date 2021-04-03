@@ -83,7 +83,11 @@ class FindESPScreen extends HookWidget {
                 _setBleCharacteristic(characteristic);
                 //var readValue = await characteristic.read();
                 //print("redVal: " + utf8.decode(readValue));
-                await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
+                try {
+                  await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
+                } catch (e) {
+                  print("Error during BLE initialTestWrite: "+e.toString()); // fixme
+                }
               }
             }
         }
