@@ -13,7 +13,7 @@ class Grids extends HookWidget
     final displaceGrid = useState(Offset.zero);
     final scaleGrid = useState(1.0);
     final startOfPinch = useState(Offset.zero);
-    //final initialScale = useState(0.0);
+    //final initialScale = useState(0.0); // todo drag from current pos, not initial
 
     double bottomBase = (screen.height/100)*65;
     double topBase = (screen.height/100)*55;
