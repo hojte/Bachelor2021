@@ -381,11 +381,13 @@ class _CameraState extends State<Camera> {
                 screen.height,
                 screen.width,
               ),
-              //Spread operator === ULÆKKERT
-              if (gridViewValue.value) ...Grids(screen) else Container(),
+              if (gridViewValue.value)
+                Grids(screen)
+
+              else Container(),
             ],
           )
-        else if (gridViewValue.value) ...Grids(screen) else Container(),
+        else if (gridViewValue.value) Grids(screen) else Container(),
         Container(
             alignment: Alignment.topRight,
             margin: EdgeInsets.only(top: 20),
