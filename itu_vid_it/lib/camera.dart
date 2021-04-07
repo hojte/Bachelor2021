@@ -65,7 +65,10 @@ class _CameraState extends State<Camera> {
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
 
+  bool flashOn = false;
+
   bool bleValid = espCharacteristic!=null;
+
 
   @override
   void initState() {
@@ -357,6 +360,11 @@ class _CameraState extends State<Camera> {
     bleValid = bleIsValid;
   }
 
+  void toggleFlash() {
+    flashOn = !flashOn;
+    controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
@@ -402,20 +410,29 @@ class _CameraState extends State<Camera> {
         Container(
             alignment: Alignment.topRight,
             margin: EdgeInsets.only(top: 20),
-            child: Column(children: [
-              IconButton(
-                icon: Platform.isAndroid ?
-                Icon(Icons.flip_camera_android, color: Colors.white) :
-                Icon(Icons.flip_camera_ios, color: Colors.white),
-                onPressed: () {
-                  changeCameraLens();
-                },
-                iconSize: 40,
-              ),
-              bleValid ?
-              Icon(Icons.bluetooth_connected, color: Colors.white) :
-              Icon(Icons.bluetooth_disabled, color: Colors.white),
-            ],)
+            child: Column(
+              children: [
+                IconButton(
+                  icon: Platform.isAndroid ?
+                  Icon(Icons.flip_camera_android, color: Colors.white) :
+                  Icon(Icons.flip_camera_ios, color: Colors.white),
+                  onPressed: () {
+                    changeCameraLens();
+                  },
+                  iconSize: 40,
+                ),
+                IconButton(
+                  icon: flashOn ?
+                  Icon(Icons.flash_on, color: Colors.white) :
+                  Icon(Icons.flash_off, color: Colors.white),
+                  onPressed: () => toggleFlash(),
+                  iconSize: 40,
+                ),
+                bleValid ?
+                Icon(Icons.bluetooth_connected, color: Colors.white) :
+                Icon(Icons.bluetooth_disabled, color: Colors.white),
+              ]
+              ,)
         ),
 
 
