@@ -178,7 +178,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.4,
+              threshold: 0.3,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -293,6 +293,27 @@ class _CameraState extends State<Camera> {
     detectedRecognitions = recognitions
         .where((recognition) => recognition["detectedClass"] == "person" || recognition["detectedClass"] == "bottle")
         .toList();
+
+    // Remove duplicates / whole intersects /unions
+    var toRemove = [];
+    detectedRecognitions.forEach((r1) {
+      detectedRecognitions.forEach((r2) {
+        if (r1['rect']['w'] != r2['rect']['w'] && r1['rect']['h'] != r2['rect']['h']) {
+          bool insideX1 = r1['rect']['x'] - r2['rect']['x'] > 0;
+          bool insideY1 = r1['rect']['y'] - r2['rect']['y'] < 0;
+          bool insideX2 = ((r1['rect']['x'] + r1['rect']['w']) - (r2['rect']['x'] + r1['rect']['w'])) > 0;
+          bool insideY2 = ((r1['rect']['y'] + r1['rect']['h']) - (r2['rect']['y'] + r1['rect']['h'])) < 0;
+          // print('$insideX1, $insideY1, 2: $insideX2, $insideY2');
+          if (insideX1 && insideX2 && insideY1 && insideY2)
+            // print('lol'); // fixme
+          toRemove.add(r1['confidenceInClass']<r2['confidenceInClass'] ? r1 : r2);
+        }
+      });
+    });
+    print('removed ${toRemove.length}');
+    detectedRecognitions.removeWhere((element) => toRemove.contains(element));
+
+
     bool matchFound = false;
     if (trackedRecognition.isNotEmpty) {
       for(int i = 0; i < detectedRecognitions.length && !matchFound; i++) {
