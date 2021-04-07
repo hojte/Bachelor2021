@@ -68,6 +68,7 @@ class _CameraState extends State<Camera> {
   bool flashOn = false;
 
   bool bleValid = espCharacteristic!=null;
+  Size screen;
 
 
   @override
@@ -181,7 +182,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.4,
+              threshold: 0.35,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -329,7 +330,7 @@ class _CameraState extends State<Camera> {
       double hCoord = trackedRecognition.first["rect"]["h"];
       double yCoord = trackedRecognition.first["rect"]["y"];
 
-      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, screen, useFrontCam==1);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -350,7 +351,7 @@ class _CameraState extends State<Camera> {
       return Container();
     }
 
-    Size screen = MediaQuery.of(context).size;
+    screen = MediaQuery.of(context).size;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
