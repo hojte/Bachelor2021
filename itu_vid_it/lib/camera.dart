@@ -454,7 +454,6 @@ class _CameraState extends State<Camera> {
 
         ),
         Text("${(recordSeconds/60/60).floor()}:${(recordSeconds/60).floor()-(recordSeconds/60/60).floor()*60}:${recordSeconds-(recordSeconds/60).floor()*60}"),
-        Text("minX $minX, minY: $minY, maxX: $maxX, maxY: $maxY!!!!",style: TextStyle(color: Colors.white),),
       ],
     );
   }

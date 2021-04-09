@@ -28,7 +28,6 @@ class MountController extends StatelessWidget{
     ComputeData cd = ComputeData(_trackingData);
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
-      print(cd.boundingBoxCenter);
       sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
     }
     return Container();
