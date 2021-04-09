@@ -20,12 +20,12 @@ class Grids extends HookWidget
     double leftBase = (screen.width/100)*40 - displaceGrid.value.dx;
     double rightBase = (screen.width/100)*60 - displaceGrid.value.dx;
 
-    double maxX = bottomBase / (screen.height/100);
-    double minX = topBase / (screen.height/100);
-    double minY = leftBase / (screen.height/100);
-    double maxY = rightBase / (screen.height/100);
+    double maxX = rightBase / (screen.width/100);
+    double minX = leftBase / (screen.width/100);
+    double minY = topBase / (screen.height/100);
+    double maxY = bottomBase / (screen.height/100);
 
-    setGridOffsets(maxX, minX, minY, maxY);
+    setGridOffsets(maxX/100, minX/100, minY/100, maxY/100);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,

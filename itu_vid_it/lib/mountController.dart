@@ -3,18 +3,14 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:native_device_orientation/native_device_orientation.dart';
 
 class MountController extends StatelessWidget{
   final TrackingData _trackingData;
   final BluetoothCharacteristic bleCharacteristic;
   final validateBle;
-  final minX;
-  final minY;
-  final maxX;
-  final maxY;
 
-  MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid), this.minX, this.maxX, this.minY, this.maxY);
+
+  MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid));
 
 
   Future<bool> sendDataToESP(List<int> byteList) async {
@@ -32,6 +28,7 @@ class MountController extends StatelessWidget{
     ComputeData cd = ComputeData(_trackingData);
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
+      print(cd.boundingBoxCenter);
       sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
     }
     return Container();
@@ -46,7 +43,11 @@ class TrackingData {
   double xSpeed;
   double ySpeed;
   bool isFrontCamera;
-  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.isFrontCamera = false, ]);
+  final minX;
+  final minY;
+  final maxX;
+  final maxY;
+  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.isFrontCamera = false, this.minX=0.4, this.maxX=0.6, this.minY=0.5, this.maxY=0.8]);
   Map<String,dynamic> get map {
     return {
       "wCoord":wCoord,
@@ -55,7 +56,11 @@ class TrackingData {
       "yCoord":yCoord,
       "xSpeed":xSpeed,
       "ySpeed":ySpeed,
-      "isFrontCamera": isFrontCamera
+      "isFrontCamera": isFrontCamera,
+      "minX": minX,
+      "minY":minY,
+      "maxX":maxX,
+      "maxY":maxY
     };
   }
 
@@ -71,7 +76,6 @@ class ComputeData {
       String tXSpeed =  trackingData.xSpeed.toString();
       String tYSpeed =  trackingData.ySpeed.toString();
 
-
       double x = trackingData.xCoord;
       double y = trackingData.yCoord;
       double w = trackingData.wCoord;
@@ -80,10 +84,11 @@ class ComputeData {
 
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
-      double minX = 0.40;
-      double maxX = 0.60; // todo replace with maxX etc.
-      double minY = 0.50;
-      double maxY = 0.80;
+
+      double minX = trackingData.minX;
+      double maxX = trackingData.maxX;
+      double minY = trackingData.minY;
+      double maxY = trackingData.maxY;
 
       double xSpeed = calculateSpeed(xcenter, minX, maxX);
       double ySpeed = calculateSpeed(ycenter,minY,maxY);
@@ -130,10 +135,10 @@ class ComputeData {
     double mediumSpeed = 500.0;
     double minSpeed = 300.0;
 
-    double lowQuarter = (((1-minBound)/100)*25);
-    double lowHalf = (((1-minBound)/100)*50);
-    double highQuarter = (((1-maxBound)/100)*25)+maxBound;
-    double highHalf = (((1-maxBound)/100)*50)+maxBound;
+    double lowQuarter = minBound*0.25;
+    double lowHalf = minBound*0.5;
+    double highQuarter = maxBound*1.75;
+    double highHalf = maxBound*1.5;
 
     if(position>0.0 && position<lowQuarter || position>highHalf && position<1.0 ) return maxSpeed;
     else if (position>lowQuarter && position <lowHalf || position>highQuarter && position<highHalf) return mediumSpeed;

@@ -335,7 +335,7 @@ class _CameraState extends State<Camera> {
       double hCoord = trackedRecognition.first["rect"]["h"];
       double yCoord = trackedRecognition.first["rect"]["y"];
 
-      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1);
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -430,7 +430,7 @@ class _CameraState extends State<Camera> {
         ),
 
 
-        MountController(_trackingData, widget._bleCharacteristic, validateBle, minX, maxX, minY, maxY),
+        MountController(_trackingData, widget._bleCharacteristic, validateBle),
 
         Container(
             alignment: Alignment.bottomCenter,
@@ -454,7 +454,7 @@ class _CameraState extends State<Camera> {
 
         ),
         Text("${(recordSeconds/60/60).floor()}:${(recordSeconds/60).floor()-(recordSeconds/60/60).floor()*60}:${recordSeconds-(recordSeconds/60).floor()*60}"),
-        Text("minX $minX, minY: $minY, maxX: $maxX, maxY: $maxY!!!!"),
+        Text("minX $minX, minY: $minY, maxX: $maxX, maxY: $maxY!!!!",style: TextStyle(color: Colors.white),),
       ],
     );
   }
