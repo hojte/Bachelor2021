@@ -13,12 +13,16 @@ class Grids extends HookWidget
     final displaceGrid = useState(Offset.zero);
     final scaleGrid = useState(1.0);
     final startOfPinch = useState(Offset.zero);
-    //final initialScale = useState(0.0); // todo drag from current pos, not initial
 
-    double bottomBase = (screen.height/100)*80;
-    double topBase = (screen.height/100)*50;
-    double leftBase = (screen.width/100)*40;
-    double rightBase = (screen.width/100)*60;
+    final minX = useState(40.0);
+    final maxX = useState(60.0);
+    final minY = useState(50.0);
+    final maxY = useState(80.0);
+
+    double leftBase = (screen.width/100)*minX.value;
+    double rightBase = (screen.width/100)*maxX.value;
+    double topBase = (screen.height/100)*minY.value;
+    double bottomBase = (screen.height/100)*maxY.value;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -31,30 +35,30 @@ class Grids extends HookWidget
       onScaleUpdate: (details) {
         if (details.pointerCount > 1) {
           displaceGrid.value = startOfPinch.value - details.focalPoint;
-          if (topBase * details.scale - displaceGrid.value.dy > bottomBase / details.scale - displaceGrid.value.dy)
-            return;
-          if (leftBase * details.scale - displaceGrid.value.dx > rightBase / details.scale - displaceGrid.value.dx)
-            return;
-          scaleGrid.value = /*initialScale.value * */details.scale;
-          print('scaleUpdate ${scaleGrid.value}');
+
+          minX.value+= displaceGrid.value.dx/100;
+          maxX.value-= displaceGrid.value.dx/100;
+          minY.value+= displaceGrid.value.dy/100;
+          maxY.value-= displaceGrid.value.dy/100;
+
         }
       },
       child: Stack(
         children: [
           Positioned( // Bottom threshold line
-              top: bottomBase / scaleGrid.value - displaceGrid.value.dy,
+              top: bottomBase,
               child: Container(color: Colors.green,width: screen.width,height: 2.0,)
           ),
           Positioned( // Top threshold line
-              top: topBase * scaleGrid.value - displaceGrid.value.dy,
+              top: topBase,
               child: Container(color: Colors.green,width: screen.width,height: 2.0,)
           ),
           Positioned( // Left threshold line
-              left: leftBase * scaleGrid.value - displaceGrid.value.dx,
+              left: leftBase,
               child: Container(color: Colors.green,width: 2.0,height: screen.height,)
           ),
           Positioned( // Right threshold line
-              left: rightBase / scaleGrid.value - displaceGrid.value.dx,
+              left: rightBase,
               child: Container(color: Colors.green,width: 2.0,height: screen.height,)
           )
         ],

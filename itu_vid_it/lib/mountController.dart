@@ -82,7 +82,7 @@ class ComputeData {
       double maxY = 0.80;
 
       double xSpeed = calculateSpeed(xcenter, minX, maxX);
-      double ySpeed = calculateSpeed(ycenter,minY,maxY)/5;
+      double ySpeed = calculateSpeed(ycenter,minY,maxY);
       String xAndYSpeed;
       if(tXSpeed == "0.0" && tYSpeed=="0.0"){
         xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
@@ -124,7 +124,7 @@ class ComputeData {
   double calculateSpeed(double position, double minBound, double maxBound){
     double maxSpeed = 750.0;
     double mediumSpeed = 500.0;
-    double minSpeed = 250.0;
+    double minSpeed = 300.0;
 
     double lowQuarter = (((1-minBound)/100)*25);
     double lowHalf = (((1-minBound)/100)*50);
