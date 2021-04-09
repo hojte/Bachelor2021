@@ -5,42 +5,39 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 class Grids extends HookWidget
 {
   final screen;
-  Grids(this.screen);
+  final setGridOffsets;
+  Grids(this.screen, this.setGridOffsets(maxX, minX, minY, maxY));
 
 
   @override
   Widget build(BuildContext context) {
     final displaceGrid = useState(Offset.zero);
-    final scaleGrid = useState(1.0);
-    final startOfPinch = useState(Offset.zero);
+    final startOfPinchOffset = useState(Offset.zero);
+    final displaceOnStartPinch = useState(Offset.zero);
 
-    final minX = useState(40.0);
-    final maxX = useState(60.0);
-    final minY = useState(50.0);
-    final maxY = useState(80.0);
+    double bottomBase = (screen.height/100)*80 - displaceGrid.value.dy;
+    double topBase = (screen.height/100)*50 - displaceGrid.value.dy;
+    double leftBase = (screen.width/100)*40 - displaceGrid.value.dx;
+    double rightBase = (screen.width/100)*60 - displaceGrid.value.dx;
 
-    double leftBase = (screen.width/100)*minX.value;
-    double rightBase = (screen.width/100)*maxX.value;
-    double topBase = (screen.height/100)*minY.value;
-    double bottomBase = (screen.height/100)*maxY.value;
+    double maxX = bottomBase / (screen.height/100);
+    double minX = topBase / (screen.height/100);
+    double minY = leftBase / (screen.height/100);
+    double maxY = rightBase / (screen.height/100);
+
+    setGridOffsets(maxX, minX, minY, maxY);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onScaleStart: (details) {
         if (details.pointerCount > 1) {
-          startOfPinch.value = details.focalPoint;
-          //initialScale.value = scaleGrid.value;
+          startOfPinchOffset.value = details.focalPoint;
+          displaceOnStartPinch.value = displaceGrid.value; // todo
         }
       },
       onScaleUpdate: (details) {
         if (details.pointerCount > 1) {
-          displaceGrid.value = startOfPinch.value - details.focalPoint;
-
-          minX.value+= displaceGrid.value.dx/100;
-          maxX.value-= displaceGrid.value.dx/100;
-          minY.value+= displaceGrid.value.dy/100;
-          maxY.value-= displaceGrid.value.dy/100;
-
+          displaceGrid.value = startOfPinchOffset.value - details.focalPoint;
         }
       },
       child: Stack(

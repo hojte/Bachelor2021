@@ -70,6 +70,11 @@ class _CameraState extends State<Camera> {
   bool bleValid = espCharacteristic!=null;
   Size screen;
 
+  double maxX = 80;
+  double minX = 50;
+  double minY = 40;
+  double maxY = 60;
+
 
   @override
   void initState() {
@@ -345,6 +350,13 @@ class _CameraState extends State<Camera> {
     controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off);
   }
 
+  void setGridOffsets(_maxX, _minX, _minY, _maxY) {
+    maxX = _maxX;
+    maxY = _maxY;
+    minY = _minY;
+    minX = _minX;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
@@ -383,12 +395,12 @@ class _CameraState extends State<Camera> {
                 screen.width,
               ),
               if (gridViewValue.value)
-                Grids(screen)
+                Grids(screen, setGridOffsets)
 
               else Container(),
             ],
           )
-        else if (gridViewValue.value) Grids(screen) else Container(),
+        else if (gridViewValue.value) Grids(screen, setGridOffsets) else Container(),
         Container(
             alignment: Alignment.topRight,
             margin: EdgeInsets.only(top: 20),
@@ -418,7 +430,7 @@ class _CameraState extends State<Camera> {
         ),
 
 
-        MountController(_trackingData, widget._bleCharacteristic, validateBle),
+        MountController(_trackingData, widget._bleCharacteristic, validateBle, minX, maxX, minY, maxY),
 
         Container(
             alignment: Alignment.bottomCenter,
@@ -442,6 +454,7 @@ class _CameraState extends State<Camera> {
 
         ),
         Text("${(recordSeconds/60/60).floor()}:${(recordSeconds/60).floor()-(recordSeconds/60/60).floor()*60}:${recordSeconds-(recordSeconds/60).floor()*60}"),
+        Text("minX $minX, minY: $minY, maxX: $maxX, maxY: $maxY!!!!"),
       ],
     );
   }

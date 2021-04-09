@@ -9,8 +9,12 @@ class MountController extends StatelessWidget{
   final TrackingData _trackingData;
   final BluetoothCharacteristic bleCharacteristic;
   final validateBle;
+  final minX;
+  final minY;
+  final maxX;
+  final maxY;
 
-  MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid));
+  MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid), this.minX, this.maxX, this.minY, this.maxY);
 
 
   Future<bool> sendDataToESP(List<int> byteList) async {
@@ -77,7 +81,7 @@ class ComputeData {
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
       double minX = 0.40;
-      double maxX = 0.60;
+      double maxX = 0.60; // todo replace with maxX etc.
       double minY = 0.50;
       double maxY = 0.80;
 
