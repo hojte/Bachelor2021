@@ -14,13 +14,13 @@ class MountManualController extends HookWidget {
 
   Widget upArrow(BuildContext context){
     return IconButton(
-        icon: Icon(Icons.north, color: Colors.white, size: 100),
-        iconSize: 100,
-        onPressed: () {
-          var trackingData = TrackingData(1,0,0,0,0,500);
-          var compute = ComputeData(trackingData);
-          MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
-        },
+      icon: Icon(Icons.north, color: Colors.white, size: 100),
+      iconSize: 100,
+      onPressed: () {
+        var trackingData = TrackingData(1,0,0,0,0,500);
+        var compute = ComputeData(trackingData);
+        MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
+      },
     );
   }
 
@@ -115,6 +115,7 @@ class MountManualController extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: appBarPrimary,
       appBar: AppBar(
@@ -127,36 +128,67 @@ class MountManualController extends HookWidget {
         ),
         flexibleSpace: CustomAppBarDesign(),
       ),
-      body: Container(
-
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  upLeftArrow(context),
-                  leftArrow(context),
-                  downLeftArrow(context)
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  upArrow(context),
-                  stop(context),
-                  downArrow(context)
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  upRightArrow(context),
-                  rightArrow(context),
-                  downRightArrow(context)
-                ],
-              ),
-            ],
+      body: mediaQuery.orientation == Orientation.landscape ?
+      Container(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(child: upLeftArrow(context)),
+                Expanded(child: leftArrow(context)),
+                Expanded(child: downLeftArrow(context))
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(child: upArrow(context)),
+                Expanded(child: stop(context)),
+                Expanded(child: downArrow(context))
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(child: upRightArrow(context)),
+                Expanded(child: rightArrow(context)),
+                Expanded(child: downRightArrow(context))
+              ],
+            ),
+          ],
+        ),
+      ) :
+      Container(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                upLeftArrow(context),
+                leftArrow(context),
+                downLeftArrow(context)
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                upArrow(context),
+                stop(context),
+                downArrow(context)
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                upRightArrow(context),
+                rightArrow(context),
+                downRightArrow(context)
+              ],
+            ),
+          ],
         ),
       ),
     );
