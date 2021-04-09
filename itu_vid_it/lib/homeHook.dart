@@ -117,7 +117,7 @@ class HomeHooks extends HookWidget{
               Icon(Icons.control_camera, color: bleCharacteristic.value != null ?
               Colors.black : Colors.white.withOpacity(0.3), size: 80)]),
         onPressed: () {
-          if (bleCharacteristic.value == null) return;
+          //if (bleCharacteristic.value == null) return;
           Navigator.push(context, MaterialPageRoute(
             builder: (context) => MountManualController(bleCharacteristic.value),
           ),
