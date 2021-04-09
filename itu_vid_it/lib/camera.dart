@@ -68,6 +68,12 @@ class _CameraState extends State<Camera> {
   bool flashOn = false;
 
   bool bleValid = espCharacteristic!=null;
+  Size screen;
+
+  double maxX = 80;
+  double minX = 50;
+  double minY = 40;
+  double maxY = 60;
 
 
   @override
@@ -181,7 +187,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.4,
+              threshold: 0.35,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -329,7 +335,7 @@ class _CameraState extends State<Camera> {
       double hCoord = trackedRecognition.first["rect"]["h"];
       double yCoord = trackedRecognition.first["rect"]["y"];
 
-      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -344,13 +350,20 @@ class _CameraState extends State<Camera> {
     controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off);
   }
 
+  void setGridOffsets(_maxX, _minX, _minY, _maxY) {
+    maxX = _maxX;
+    maxY = _maxY;
+    minY = _minY;
+    minX = _minX;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
       return Container();
     }
 
-    Size screen = MediaQuery.of(context).size;
+    screen = MediaQuery.of(context).size;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -381,11 +394,13 @@ class _CameraState extends State<Camera> {
                 screen.height,
                 screen.width,
               ),
-              //Spread operator === ULÆKKERT
-              if (gridViewValue.value) ...Grids(screen) else Container(),
+              if (gridViewValue.value)
+                Grids(screen, setGridOffsets)
+
+              else Container(),
             ],
           )
-        else if (gridViewValue.value) ...Grids(screen) else Container(),
+        else if (gridViewValue.value) Grids(screen, setGridOffsets) else Container(),
         Container(
             alignment: Alignment.topRight,
             margin: EdgeInsets.only(top: 20),
