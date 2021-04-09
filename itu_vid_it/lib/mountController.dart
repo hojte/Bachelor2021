@@ -26,10 +26,8 @@ class MountController extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     ComputeData cd = ComputeData(_trackingData);
-
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
-      //print(cd.boundingBoxCenter);
       sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
     }
     return Container();
@@ -44,8 +42,7 @@ class TrackingData {
   double xSpeed;
   double ySpeed;
   bool isFrontCamera;
-  Size screen;
-  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.screen, this.isFrontCamera = false, ]);
+  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.isFrontCamera = false, ]);
   Map<String,dynamic> get map {
     return {
       "wCoord":wCoord,
@@ -54,7 +51,6 @@ class TrackingData {
       "yCoord":yCoord,
       "xSpeed":xSpeed,
       "ySpeed":ySpeed,
-      "screen": screen,
       "isFrontCamera": isFrontCamera
     };
   }
@@ -80,13 +76,13 @@ class ComputeData {
 
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
-      double minX = (trackingData.screen.width/100)*40;
-      double maxX = (trackingData.screen.width/100)*60;
-      double minY = (trackingData.screen.height/100)*50;
-      double maxY = (trackingData.screen.height/100)*70;
+      double minX = 0.40;
+      double maxX = 0.60;
+      double minY = 0.50;
+      double maxY = 0.80;
 
-      double xSpeed = calculateSpeed(xcenter);
-      double ySpeed = calculateSpeed(ycenter)/5;
+      double xSpeed = calculateSpeed(xcenter, minX, maxX);
+      double ySpeed = calculateSpeed(ycenter,minY,maxY)/5;
       String xAndYSpeed;
       if(tXSpeed == "0.0" && tYSpeed=="0.0"){
         xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
@@ -96,7 +92,6 @@ class ComputeData {
       }
 
       if(ycenter<minY && xcenter > maxX){
-
         return (isFrontCam ? "U&L:" : "U&R:")+xAndYSpeed ;
       }
       else if(ycenter<minY && xcenter<minX){
@@ -114,32 +109,33 @@ class ComputeData {
       else if(xcenter<minX){
         return (isFrontCam ? "R:" : "L:")+xAndYSpeed;
       }
+      else if(ycenter < minY){
+        return "U:"+xAndYSpeed;
+      }
       else if(ycenter > maxY){
         return "D:"+xAndYSpeed;
-      }
-      else if(ycenter<minY){
-        return "U:"+xAndYSpeed;
       }
       else return "H:"+xAndYSpeed;
     }
     //Dont return anything to keep motor moving
-     return "H:"+"0.0";
+    return "H:"+"0.0";
   }
 
-  double calculateSpeed(double position){
-    //print(position);
+  double calculateSpeed(double position, double minBound, double maxBound){
     double maxSpeed = 750.0;
     double mediumSpeed = 500.0;
     double minSpeed = 250.0;
 
-    if(position>0.0 && position<0.125 || position>0.875 && position<1.0 ) return maxSpeed;
-    else if (position>0.125 && position <0.25 || position>0.75 && position<0.875) return mediumSpeed;
-    else if (position>0.25 && position <0.4 || position>0.60 && position<0.75) return minSpeed;
-    //else if (position>0.375 && position <0.5 || position>0.5 && position<0.625) return minSpeed;
+    double lowQuarter = (((1-minBound)/100)*25);
+    double lowHalf = (((1-minBound)/100)*50);
+    double highQuarter = (((1-maxBound)/100)*25)+maxBound;
+    double highHalf = (((1-maxBound)/100)*50)+maxBound;
+
+    if(position>0.0 && position<lowQuarter || position>highHalf && position<1.0 ) return maxSpeed;
+    else if (position>lowQuarter && position <lowHalf || position>highQuarter && position<highHalf) return mediumSpeed;
+    else if (position>lowHalf && position <minBound || position>maxBound && position<highQuarter) return minSpeed;
     else return 0.0;
   }
-
-
 
   String get checkData{
     if(trackingData.xCoord == 0 && trackingData.wCoord == 0 && trackingData.yCoord == 0 && trackingData.hCoord == 0) return "No data";

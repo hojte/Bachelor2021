@@ -15,10 +15,10 @@ class Grids extends HookWidget
     final startOfPinch = useState(Offset.zero);
     //final initialScale = useState(0.0); // todo drag from current pos, not initial
 
-    double bottomBase = (screen.height/100)*65;
-    double topBase = (screen.height/100)*55;
-    double leftBase = (screen.width/100)*45;
-    double rightBase = (screen.width/100)*55;
+    double bottomBase = (screen.height/100)*80;
+    double topBase = (screen.height/100)*50;
+    double leftBase = (screen.width/100)*40;
+    double rightBase = (screen.width/100)*60;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -61,6 +61,4 @@ class Grids extends HookWidget
       ),
     );
   }
-
-
 }

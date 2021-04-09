@@ -330,7 +330,7 @@ class _CameraState extends State<Camera> {
       double hCoord = trackedRecognition.first["rect"]["h"];
       double yCoord = trackedRecognition.first["rect"]["y"];
 
-      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, screen, useFrontCam==1);
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
