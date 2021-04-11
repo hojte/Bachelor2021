@@ -346,8 +346,9 @@ class _CameraState extends State<Camera> {
   }
 
   void toggleFlash() {
-    flashOn = !flashOn;
-    controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off);
+    controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off)
+        .then((value) => flashOn = !flashOn)
+        .catchError(() => null);
   }
 
   void setGridOffsets(_maxX, _minX, _minY, _maxY) {
@@ -359,9 +360,16 @@ class _CameraState extends State<Camera> {
 
   @override
   Widget build(BuildContext context) {
-    if (controller == null || !controller.value.isInitialized) {
-      return Container();
+    if (!controller.value.isInitialized) {
+      return Center(
+          child: SizedBox(
+            child: CircularProgressIndicator(),
+            height: 60,
+            width: 60,
+          ),
+      );
     }
+    if(controller == null) print('lolololololllo');
 
     screen = MediaQuery.of(context).size;
 
