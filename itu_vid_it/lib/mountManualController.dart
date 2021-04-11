@@ -12,11 +12,6 @@ class MountManualController extends HookWidget {
   final bleCharacteristic;
   MountManualController(this.bleCharacteristic);
 
-
-
-
-//SPEED SET TO 750 FOR MAX FOR SLIDER
-  //DOUBLE X OG Y
   @override
   Widget build(BuildContext context) {
     var speedValue = useState(0.0);
