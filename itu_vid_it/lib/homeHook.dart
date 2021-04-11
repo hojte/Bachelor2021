@@ -77,7 +77,9 @@ class HomeHooks extends HookWidget{
                   Container(width: 200, padding: EdgeInsets.only(top: 100))
                 ],
               ),
-              Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
+              ImageIcon(AssetImage('assets/images/VidItIconMenu.png'), size: 80, color: Colors.black,),
+            ],
+        ),
         onPressed: () async {
           if(permission.isDenied || permission.isUndetermined || permission.isPermanentlyDenied || permission.isLimited){
             await checkPermissions();
@@ -125,7 +127,6 @@ class HomeHooks extends HookWidget{
         },
       );
     }
-
     return(
         Scaffold(
           appBar: AppBar(
