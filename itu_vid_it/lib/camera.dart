@@ -17,11 +17,14 @@ import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
+import 'package:just_audio/just_audio.dart';
+
 
 import 'bndbox.dart';
 import 'colors.dart';
 
 final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
+final player = AudioPlayer();
 
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
@@ -74,10 +77,10 @@ class _CameraState extends State<Camera> {
   bool bleValid = espCharacteristic!=null;
   Size screen;
 
-  double maxX = 0.8;
-  double minX = 0.5;
-  double minY = 0.4;
-  double maxY = 0.6;
+  double maxX = 0.4;
+  double minX = 0.6;
+  double minY = 0.7;
+  double maxY = 0.5;
 
 
   @override
@@ -221,7 +224,9 @@ class _CameraState extends State<Camera> {
 
   }
   Future<void> initAudioRecording() async {
-    var path = videoDirectory + audioPath + recordStartTime.toString();
+    int recordAudioTime = DateTime.now().millisecondsSinceEpoch;
+
+    var path = videoDirectory + audioPath + recordAudioTime.toString();
     audioRecorder = FlutterAudioRecorder(path, audioFormat: AudioFormat.WAV);
     await audioRecorder.initialized;
   }
@@ -229,6 +234,13 @@ class _CameraState extends State<Camera> {
   void stopRecording() async {
     audioFile = await audioRecorder.stop();
     isRecording = false;
+
+    //print(audioFile.path);
+
+    //var duration = await player.setUrl(audioFile.path);
+    //print(duration);
+
+    print('Exact time audio = ${audioFile.duration.inMilliseconds} ms');
     waitForSave().then((value) {
       isProcessingVideo = true;
       int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
@@ -239,8 +251,8 @@ class _CameraState extends State<Camera> {
       //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '${audioFile.path}',
         '-i', '$videoDirectory/VidIT%d.$fileType',
+        '-i', '${audioFile.path}',
         '-preset', 'ultrafast',
       ];
       // check if in portrait mode

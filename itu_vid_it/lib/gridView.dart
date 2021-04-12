@@ -15,7 +15,7 @@ class Grids extends HookWidget
     final startOfPinchOffset = useState(Offset.zero);
     final displaceOnStartPinch = useState(Offset.zero);
 
-    double bottomBase = (screen.height/100)*80 - displaceGrid.value.dy;
+    double bottomBase = (screen.height/100)*70 - displaceGrid.value.dy;
     double topBase = (screen.height/100)*50 - displaceGrid.value.dy;
     double leftBase = (screen.width/100)*40 - displaceGrid.value.dx;
     double rightBase = (screen.width/100)*60 - displaceGrid.value.dx;
