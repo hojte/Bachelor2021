@@ -33,6 +33,7 @@ dependencies:
   image_picker: ^0.6.7+22
   flutter_ffmpeg: ^0.3.1
   native_device_orientation: ^0.4.3
+  permission_handler: ^5.1.0+2
 
 flutter_launcher_icons:
   path: ../..
@@ -65,6 +66,7 @@ flutter:
     - assets/ssd_mobilenet.tflite
     - assets/ssd_mobilenet.txt
     - assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite
+    - assets/images/VidItIconMenu.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

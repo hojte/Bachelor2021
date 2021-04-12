@@ -67,6 +67,7 @@ class BndBox extends StatelessWidget {
                 setTracked(recognition);
               },
               child: Container(
+                alignment: Alignment.center,
                 padding: EdgeInsets.only(top: 5.0, left: 5.0),
                 decoration: BoxDecoration(
                   border: Border.all(

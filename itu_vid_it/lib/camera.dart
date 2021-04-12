@@ -68,6 +68,12 @@ class _CameraState extends State<Camera> {
   bool flashOn = false;
 
   bool bleValid = espCharacteristic!=null;
+  Size screen;
+
+  double maxX = 0.8;
+  double minX = 0.5;
+  double minY = 0.4;
+  double maxY = 0.6;
 
 
   @override
@@ -181,7 +187,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.3,
+              threshold: 0.45,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -275,7 +281,7 @@ class _CameraState extends State<Camera> {
 
   bool compareRecognition(dynamic r1, dynamic r2) {
     // topLeft offset check
-    double threshold = 0.15;
+    double threshold = 0.15; // todo could be calibrated better
     bool xMatch = (r1["rect"]["x"]-r2["rect"]["x"]).abs() < threshold;
     bool yMatch = (r1["rect"]["y"]-r2["rect"]["y"]).abs() < threshold;
     //print('X:$xMatch Y:$yMatch');
@@ -331,7 +337,11 @@ class _CameraState extends State<Camera> {
       }
       if (!matchFound && ++objectMissingCount < 10) { // flicker for 10 consecutive frames ~ 1 sec
         trackedRecognition.first['flickerSmoother'] = true;
-        detectedRecognitions.add(trackedRecognition.first);
+        detectedRecognitions.insert(0, trackedRecognition.first);
+      }
+      else if(objectMissingCount >= 10) {
+        trackedRecognition.clear();
+        _trackingData = new TrackingData();
       }
     }
 
@@ -350,7 +360,7 @@ class _CameraState extends State<Camera> {
       double hCoord = trackedRecognition.first["rect"]["h"];
       double yCoord = trackedRecognition.first["rect"]["y"];
 
-      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0);
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -361,17 +371,30 @@ class _CameraState extends State<Camera> {
   }
 
   void toggleFlash() {
-    flashOn = !flashOn;
-    controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off);
+    controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off)
+        .then((value) => flashOn = !flashOn)
+        .onError((error, stackTrace) => null); // ignore failed flash toggle
+  }
+
+  void setGridOffsets(_maxX, _minX, _minY, _maxY) {
+    maxX = _maxX;
+    maxY = _maxY;
+    minY = _minY;
+    minX = _minX;
   }
 
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
-      return Container();
+      return Center(
+          child: SizedBox(
+            child: CircularProgressIndicator(),
+            height: 60,
+            width: 60,
+          ),
+      );
     }
-
-    Size screen = MediaQuery.of(context).size;
+    screen = MediaQuery.of(context).size;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -402,11 +425,13 @@ class _CameraState extends State<Camera> {
                 screen.height,
                 screen.width,
               ),
-              //Spread operator === ULÆKKERT
-              if (gridViewValue.value) ...Grids(screen) else Container(),
+              if (gridViewValue.value)
+                Grids(screen, setGridOffsets)
+
+              else Container(),
             ],
           )
-        else if (gridViewValue.value) ...Grids(screen) else Container(),
+        else if (gridViewValue.value) Grids(screen, setGridOffsets) else Container(),
         Container(
             alignment: Alignment.topRight,
             margin: EdgeInsets.only(top: 20),
