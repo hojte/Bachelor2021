@@ -245,7 +245,7 @@ class _CameraState extends State<Camera> {
     var audioDuration = await lengthOfAudio(File(audioFile.path));
     print('Exact time audio = $audioDuration ms');
     print('Exact time recorded = $exactTimeRecorded ms');
-    int realFrameRate = (currentSavedIndex/(audioDuration/1000)).ceil();
+    int realFrameRate = (currentSavedIndex/(audioDuration/1000)).floor();
     print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
 
     String saveTimeStamp = DateTime.now().toIso8601String();
