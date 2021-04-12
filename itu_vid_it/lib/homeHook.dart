@@ -23,7 +23,7 @@ class HomeHooks extends HookWidget{
   loadModel() async {
     await Tflite.loadModel(
         numThreads: 4, // unsure if this helps performance
-        useGpuDelegate: true, // only release
+        //useGpuDelegate: true, // only release
         model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
         labels: "assets/ssd_mobilenet.txt");
   }
