@@ -74,10 +74,10 @@ class _CameraState extends State<Camera> {
   bool bleValid = espCharacteristic!=null;
   Size screen;
 
-  double maxX = 80;
-  double minX = 50;
-  double minY = 40;
-  double maxY = 60;
+  double maxX = 0.8;
+  double minX = 0.5;
+  double minY = 0.4;
+  double maxY = 0.6;
 
 
   @override
@@ -191,7 +191,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.35,
+              threshold: 0.45,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -298,7 +298,7 @@ class _CameraState extends State<Camera> {
 
   bool compareRecognition(dynamic r1, dynamic r2) {
     // topLeft offset check
-    double threshold = 0.15;
+    double threshold = 0.15; // todo could be calibrated better
     bool xMatch = (r1["rect"]["x"]-r2["rect"]["x"]).abs() < threshold;
     bool yMatch = (r1["rect"]["y"]-r2["rect"]["y"]).abs() < threshold;
     //print('X:$xMatch Y:$yMatch');
@@ -333,7 +333,11 @@ class _CameraState extends State<Camera> {
       }
       if (!matchFound && ++objectMissingCount < 10) { // flicker for 10 consecutive frames ~ 1 sec
         trackedRecognition.first['flickerSmoother'] = true;
-        detectedRecognitions.add(trackedRecognition.first);
+        detectedRecognitions.insert(0, trackedRecognition.first);
+      }
+      else if(objectMissingCount >= 10) {
+        trackedRecognition.clear();
+        _trackingData = new TrackingData();
       }
     }
 
