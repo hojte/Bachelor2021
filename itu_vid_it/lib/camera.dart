@@ -314,11 +314,12 @@ class _CameraState extends State<Camera> {
           objectMissingCount = 0;
         }
       }
-      if (!matchFound && ++objectMissingCount < 10) { // flicker for 10 consecutive frames ~ 1 sec
+      int smoothDuration = 20;
+      if (!matchFound && ++objectMissingCount < smoothDuration) { // flicker for 10 consecutive frames ~ 1 sec
         trackedRecognition.first['flickerSmoother'] = true;
         detectedRecognitions.insert(0, trackedRecognition.first);
       }
-      else if(objectMissingCount >= 10) {
+      else if(objectMissingCount >= smoothDuration) {
         trackedRecognition.clear();
         _trackingData = new TrackingData();
       }
