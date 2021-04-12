@@ -5,9 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class MountController extends StatelessWidget{
-  TrackingData _trackingData;
-  BluetoothCharacteristic bleCharacteristic;
-  var validateBle;
+  final TrackingData _trackingData;
+  final BluetoothCharacteristic bleCharacteristic;
+  final validateBle;
+
 
   MountController(this._trackingData, this.bleCharacteristic, this.validateBle(bool isBleValid));
 
@@ -25,7 +26,6 @@ class MountController extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     ComputeData cd = ComputeData(_trackingData);
-
     //If no data is computed then it just keeps rotating to the direction of the previous direction
     if(cd.checkData == "Data looks fine"){
       sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
@@ -35,13 +35,18 @@ class MountController extends StatelessWidget{
 }
 
 class TrackingData {
-  String wCoord;
-  String xCoord;
-  String hCoord;
-  String yCoord;
+  double wCoord;
+  double xCoord;
+  double hCoord;
+  double yCoord;
   double xSpeed;
   double ySpeed;
-  TrackingData(this.wCoord, this.xCoord, this.hCoord, this.yCoord, this.xSpeed,this.ySpeed);
+  bool isFrontCamera;
+  final minX;
+  final minY;
+  final maxX;
+  final maxY;
+  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.isFrontCamera = false, this.minX=0.4, this.maxX=0.6, this.minY=0.5, this.maxY=0.8]);
   Map<String,dynamic> get map {
     return {
       "wCoord":wCoord,
@@ -49,7 +54,12 @@ class TrackingData {
       "hCoord":hCoord,
       "yCoord":yCoord,
       "xSpeed":xSpeed,
-      "ySpeed":ySpeed
+      "ySpeed":ySpeed,
+      "isFrontCamera": isFrontCamera,
+      "minX": minX,
+      "minY":minY,
+      "maxX":maxX,
+      "maxY":maxY
     };
   }
 
@@ -65,21 +75,22 @@ class ComputeData {
       String tXSpeed =  trackingData.xSpeed.toString();
       String tYSpeed =  trackingData.ySpeed.toString();
 
-
-      double x = double.parse(trackingData.xCoord);
-      double y = double.parse(trackingData.yCoord);
-      double w = double.parse(trackingData.wCoord);
-      double h = double.parse(trackingData.hCoord);
+      double x = trackingData.xCoord;
+      double y = trackingData.yCoord;
+      double w = trackingData.wCoord;
+      double h = trackingData.hCoord;
+      bool isFrontCam = trackingData.isFrontCamera;
 
       double xcenter = x + w/2.0;
       double ycenter = y + h/2.0;
-      double minX = 0.45;
-      double maxX = 0.55;
-      double minY = 0.55;
-      double maxY = 0.65;
 
-      double xSpeed = calculateSpeed(xcenter);
-      double ySpeed = calculateSpeed(ycenter);
+      double minX = trackingData.minX;
+      double maxX = trackingData.maxX;
+      double minY = trackingData.minY;
+      double maxY = trackingData.maxY;
+
+      double xSpeed = calculateSpeed(xcenter, minX, maxX);
+      double ySpeed = calculateSpeed(ycenter,minY,maxY);
       String xAndYSpeed;
       if(tXSpeed == "0.0" && tYSpeed=="0.0"){
         xAndYSpeed = xSpeed.toString()+":"+ySpeed.toString();
@@ -89,50 +100,53 @@ class ComputeData {
       }
 
       if(ycenter<minY && xcenter > maxX){
-        return "U&R:"+xAndYSpeed;
+        return (isFrontCam ? "U&L:" : "U&R:")+xAndYSpeed ;
       }
       else if(ycenter<minY && xcenter<minX){
-        return "U&L:"+xAndYSpeed;
+        return (isFrontCam ? "U&R:" : "U&L:")+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter > maxX){
-        return "D&R:"+xAndYSpeed;
+        return (isFrontCam ? "D&L:" : "D&R:")+xAndYSpeed;
       }
       else if(ycenter > maxY && xcenter<minX){
-        return "D&L:"+xAndYSpeed;
+        return (isFrontCam ? "D&R:" : "D&L:")+xAndYSpeed;
       }
       else if(xcenter > maxX){
-        return "R:"+xAndYSpeed;
+        return (isFrontCam ? "L:" : "R:")+xAndYSpeed;
       }
       else if(xcenter<minX){
-        return "L:"+xAndYSpeed;
+        return (isFrontCam ? "R:" : "L:")+xAndYSpeed;
+      }
+      else if(ycenter < minY){
+        return "U:"+xAndYSpeed;
       }
       else if(ycenter > maxY){
         return "D:"+xAndYSpeed;
       }
-      else if(ycenter<minY){
-        return "U:"+xAndYSpeed;
-      }
       else return "H:"+xAndYSpeed;
     }
     //Dont return anything to keep motor moving
+    return "H:"+"0.0";
   }
 
-  double calculateSpeed(double position){
-    double maxSpeed = 10000.0;
-    double mediumMaxSpeed = 7500.0;
-    double mediumMinSpeed = 5000.0;
-    double minSpeed = 2500.0;
-    if(position>0.0 && position<0.125 || position>0.875 && position<1.0 ) return maxSpeed;
-    else if (position>0.125 && position <0.25 || position>0.75 && position<0.875) return mediumMaxSpeed;
-    else if (position>0.25 && position <0.375 || position>0.625 && position<0.75) return mediumMinSpeed;
-    else if (position>0.375 && position <0.5 || position>0.5 && position<0.625) return minSpeed;
+  double calculateSpeed(double position, double minBound, double maxBound){
+    double maxSpeed = 750.0;
+    double mediumSpeed = 500.0;
+    double minSpeed = 300.0;
+
+    double lowQuarter = minBound*0.25;
+    double lowHalf = minBound*0.5;
+    double highQuarter = maxBound*1.75;
+    double highHalf = maxBound*1.5;
+
+    if(position>0.0 && position<lowQuarter || position>highHalf && position<1.0 ) return maxSpeed;
+    else if (position>lowQuarter && position <lowHalf || position>highQuarter && position<highHalf) return mediumSpeed;
+    else if (position>lowHalf && position <minBound || position>maxBound && position<highQuarter) return minSpeed;
     else return 0.0;
   }
 
-
-
   String get checkData{
-    if(trackingData.xCoord == "0.0" && trackingData.wCoord =="0.0" && trackingData.yCoord=="0.0" && trackingData.hCoord=="0.0") return "No data";
+    if(trackingData.xCoord == 0 && trackingData.wCoord == 0 && trackingData.yCoord == 0 && trackingData.hCoord == 0) return "No data";
     return "Data looks fine";
   }
 }

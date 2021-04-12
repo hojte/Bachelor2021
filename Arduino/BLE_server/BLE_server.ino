@@ -49,7 +49,7 @@ AccelStepper stepper2(motorInterfaceType, stepPin_2, dirPin_2);
 
 void setup() {
   Serial.begin(115200);
-  //Serial.println("STARTING BLE FOR VIDIT");
+  Serial.println("STARTING BLE FOR VIDIT");
   pinMode(ledPin, OUTPUT);
 
   //Init the BLE device with the name.
@@ -68,7 +68,7 @@ void setup() {
                                        );
                                        
   //The setValue should be changed in the future to display the state
-  //VidItCharacteristic->setValue("LOL");
+  VidItCharacteristic->setValue("startVal");
   VidItService->start();
   //The following sets the attributes for the advertising. Such as the UUID, the scan response and start 
   //the BLE adverstising so BT devices can find it. 
@@ -79,7 +79,7 @@ void setup() {
   VidItAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
   
-  //Serial.println("READY TO BE PAIRED");
+  Serial.println("READY TO BE PAIRED");
   
   pinMode(MS3_1,OUTPUT);
   pinMode(MS2_1,OUTPUT);
@@ -169,5 +169,6 @@ void loop() {
   }
   else{
     digitalWrite(ledPin, LOW);
+    delay(2);
   }
 }

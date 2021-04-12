@@ -26,19 +26,33 @@ class BluetoothOffScreen extends StatelessWidget {
   const BluetoothOffScreen({Key key, this.state}) : super(key: key);
 
   final BluetoothState state;
+
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          mediaQuery.orientation == Orientation.landscape ?
+          Icon(
+            Icons.bluetooth_disabled,
+            size: 80.0,
+            color: Colors.white54,
+          ):
           Icon(
             Icons.bluetooth_disabled,
             size: 200.0,
             color: Colors.white54,
           ),
+          mediaQuery.orientation == Orientation.landscape ?
           Text(
             'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+            textScaleFactor: 0.8,
+          ):
+          Text(
+            'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+            textScaleFactor: 1.0,
           ),
         ],
       ),
@@ -57,7 +71,7 @@ class FindESPScreen extends HookWidget {
     final mountConnected = useState(false);
     final mountFound = useState(false);
     final isLoading = useState(true);
-    final tryConnect = useState(false);
+    final tryConnect = useState(true);
     final firstScan = useState(false);
     final isMounted = useIsMounted();
 
@@ -83,7 +97,12 @@ class FindESPScreen extends HookWidget {
                 _setBleCharacteristic(characteristic);
                 //var readValue = await characteristic.read();
                 //print("redVal: " + utf8.decode(readValue));
-                await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
+                try {
+                  await characteristic.write(utf8.encode("initialTestWrite"), withoutResponse: true);
+                } catch (e) {
+                  print("Error during BLE initialTestWrite: "+e.toString()); // fixme
+                  espDevice.disconnect(); // faulty connection
+                }
               }
             }
         }
@@ -123,8 +142,9 @@ class FindESPScreen extends HookWidget {
         espDevice = scanSnapshot.data
             .firstWhere((element) => element.device.name == DEVICE_NAME)
             .device;
-        print(DEVICE_NAME + " -> " + espDevice.toString());
+        print("ScanFound: " + espDevice.toString());
         mountFound.value = true;
+        if (!mountConnected.value || !isConnecting.value) tryConnect.value = true;
         if (isScanningSnapshot.data) fBlue.stopScan();
       } catch (e) { // when ESP is not found
         if(!isScanningSnapshot.data)
@@ -135,8 +155,8 @@ class FindESPScreen extends HookWidget {
       [scanSnapshot.data.length],
     );
 
-    if (espDevice != null && !tryConnect.value) { // run ONE TIME
-      tryConnect.value = true;
+    if (espDevice != null && tryConnect.value) { // run ONE TIME
+      tryConnect.value = false;
       waitForConnect();
     }
 
