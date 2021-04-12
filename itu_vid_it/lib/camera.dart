@@ -22,6 +22,7 @@ import 'bndbox.dart';
 import 'colors.dart';
 
 final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
+final FlutterFFprobe _flutterFFprobe = new FlutterFFprobe();
 
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
@@ -132,6 +133,7 @@ class _CameraState extends State<Camera> {
             saveTemporaryFile(currentFrameIndex, img).then((value) {
               currentSavedIndex = value;
             });
+            //if (DateTime.now().millisecondsSinceEpoch - recordStartTime > 10000) stopRecording();
           }
           if (!isDetecting) {
             isDetecting = true;
@@ -207,58 +209,67 @@ class _CameraState extends State<Camera> {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
     });
-
   }
+
   Future<void> initAudioRecording() async {
     var path = videoDirectory + audioPath + recordStartTime.toString();
     audioRecorder = FlutterAudioRecorder(path, audioFormat: AudioFormat.WAV);
     await audioRecorder.initialized;
   }
 
-  void stopRecording() async {
-    audioFile = await audioRecorder.stop();
-    isRecording = false;
-    waitForSave().then((value) {
-      isProcessingVideo = true;
-      int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
-      print('Exact time recorded = $exactTimeRecorded ms');
-      int realFrameRate = (currentSavedIndex/(exactTimeRecorded/1000)).floor();
-      print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
-      String saveTimeStamp = DateTime.now().toIso8601String();
-      //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
-      var argumentsFFMPEG = [
-        '-r', realFrameRate.toString(), // Frames saved/recorded
-        '-i', '${audioFile.path}',
-        '-i', '$videoDirectory/VidIT%d.$fileType',
-        '-preset', 'ultrafast',
-      ];
-      // check if in portrait mode
-      if(deviceRotationOnRecordStart==90 && useFrontCam == 1)
-        argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
-      else if(deviceRotationOnRecordStart==90)
-        argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
-      else if(nativeDeviceOrientationOnStartRec == NativeDeviceOrientation.landscapeRight)
-        argumentsFFMPEG.addAll(['-vf', 'transpose=2,transpose=2']); //upside down 180
-      argumentsFFMPEG.add('$videoDirectory/aVidITCapture$saveTimeStamp.mp4');
-
-      _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
-          .then((rc) {
-        print("FFmpeg process exited with rc $rc");
-        GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
-          new Directory('$videoDirectory').delete(recursive: true);
-          isProcessingVideo = false;
-          if(mounted) setState(() {}); // update state, trigger rerender
-        });
-        // CleanUp
-        currentFrameIndex = 0;
-        currentSavedIndex = 0;
-      });
-      recordSeconds = 0;
-      timer.cancel();
-    });
+  Future<int> lengthOfAudio(File audio) async{
+    var info = await _flutterFFprobe.getMediaInformation(audio.path);
+    var properties = info.getMediaProperties();
+// the given duration is in milliseconds, assuming you want to have seconds I divide by 1000
+    return (double.parse(properties['duration'])*1000).toInt();
   }
 
+  void stopRecording() async {
+    isRecording = false;
+    isProcessingVideo = true;
+    int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
+    audioRecorder.stop().then((value) => audioFile = value);
+    await waitForSave();
+    var audioDuration = await lengthOfAudio(File(audioFile.path));
+    print('Exact time audio = $audioDuration ms');
+    print('Exact time recorded = $exactTimeRecorded ms');
+    int realFrameRate = (currentSavedIndex/(audioDuration/1000)).ceil();
+    print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
 
+    String saveTimeStamp = DateTime.now().toIso8601String();
+    //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
+    var argumentsFFMPEG = [
+      '-r', realFrameRate.toString(),
+      '-i', '$videoDirectory/VidIT%d.$fileType',
+      '-i', '${audioFile.path}',
+      '-r', realFrameRate.toString(), // Frames saved/recorded
+      '-t', (audioDuration/1000).toString(),
+      '-preset', 'ultrafast',
+    ];
+    // check if in portrait mode
+    if(deviceRotationOnRecordStart==90 && useFrontCam == 1)
+      argumentsFFMPEG.addAll(['-vf', 'transpose=2']); //90 counter clockwise
+    else if(deviceRotationOnRecordStart==90)
+      argumentsFFMPEG.addAll(['-vf', 'transpose=1']); // 90 clockwise
+    else if(nativeDeviceOrientationOnStartRec == NativeDeviceOrientation.landscapeRight)
+      argumentsFFMPEG.addAll(['-vf', 'transpose=2,transpose=2']); //upside down 180
+    argumentsFFMPEG.add('$videoDirectory/aVidITCapture$saveTimeStamp.mp4');
+
+    _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
+        .then((rc) {
+      print("FFmpeg process exited with rc $rc");
+      GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
+        new Directory('$videoDirectory').delete(recursive: true);
+        isProcessingVideo = false;
+        if(mounted) setState(() {}); // update state, trigger rerender
+      });
+      // CleanUp
+      currentFrameIndex = 0;
+      currentSavedIndex = 0;
+    });
+    recordSeconds = 0;
+    timer.cancel();
+  }
 
   void changeCameraLens() {
     // get current lens direction (front / rear)
