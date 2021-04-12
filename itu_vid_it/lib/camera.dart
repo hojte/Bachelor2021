@@ -341,6 +341,8 @@ class _CameraState extends State<Camera> {
       double yCoord = trackedRecognition.first["rect"]["y"];
 
       _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
+
+      zoom(controller, wCoord, hCoord);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -361,6 +363,13 @@ class _CameraState extends State<Camera> {
     maxY = _maxY;
     minY = _minY;
     minX = _minX;
+  }
+  void zoom(CameraController controller, double wCoord, double hCoord){
+    var area = wCoord * hCoord;
+    print('area: $area');
+
+    //controller.setZoomLevel(4.0);
+
   }
 
   @override
