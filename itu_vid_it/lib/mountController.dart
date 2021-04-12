@@ -30,6 +30,9 @@ class MountController extends StatelessWidget{
     if(cd.checkData == "Data looks fine"){
       sendDataToESP(utf8.encode(cd.boundingBoxCenter)).then((value) => validateBle(value));
     }
+    else {
+      sendDataToESP(utf8.encode("H:0.0")).then((value) => validateBle(value));
+    }
     return Container();
   }
 }
@@ -125,8 +128,7 @@ class ComputeData {
       }
       else return "H:"+xAndYSpeed;
     }
-    //Dont return anything to keep motor moving
-    return "H:"+"0.0";
+    return "H:0.0:0.0";
   }
 
   double calculateSpeed(double position, double minBound, double maxBound){
