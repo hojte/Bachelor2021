@@ -136,10 +136,10 @@ class ComputeData {
     double mediumSpeed = 500.0;
     double minSpeed = 300.0;
 
-    double lowQuarter = minBound*0.25;
-    double lowHalf = minBound*0.5;
-    double highQuarter = maxBound*1.75;
-    double highHalf = maxBound*1.5;
+    double lowQuarter = minBound*0.5;
+    double lowHalf = minBound*0.75;
+    double highQuarter = maxBound*1.5;
+    double highHalf = maxBound*1.25;
 
     if(position>0.0 && position<lowQuarter || position>highHalf && position<1.0 ) return maxSpeed;
     else if (position>lowQuarter && position <lowHalf || position>highQuarter && position<highHalf) return mediumSpeed;

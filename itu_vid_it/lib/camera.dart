@@ -16,11 +16,15 @@ import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:image/image.dart' as imglib;
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
+import 'package:just_audio/just_audio.dart';
+
 
 import 'bndbox.dart';
 import 'colors.dart';
 
 final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
+final player = AudioPlayer();
 
 typedef void Callback(List<dynamic> list, int h, int w, TrackingData trackingData);
 
@@ -42,6 +46,9 @@ class _CameraState extends State<Camera> {
   TrackingData _trackingData = new TrackingData();
   int useFrontCam = 0;
   bool isRecording = false;
+  FlutterAudioRecorder audioRecorder;
+  String audioPath = '/VidIT_Audio';
+  Recording audioFile;
   bool isSaving = false;
   bool isProcessingVideo = false;
   String videoDirectory;
@@ -70,10 +77,10 @@ class _CameraState extends State<Camera> {
   bool bleValid = espCharacteristic!=null;
   Size screen;
 
-  double maxX = 0.8;
-  double minX = 0.5;
-  double minY = 0.4;
-  double maxY = 0.6;
+  double maxX = 0.4;
+  double minX = 0.6;
+  double minY = 0.7;
+  double maxY = 0.5;
 
 
   @override
@@ -206,16 +213,34 @@ class _CameraState extends State<Camera> {
     print('Directory created @ $videoDirectory');
     deviceRotationOnRecordStart = deviceRotation;
     nativeDeviceOrientationOnStartRec = await NativeDeviceOrientationCommunicator().orientation();
+    await initAudioRecording();
+    await audioRecorder.start();
     isRecording = true;
     recordStartTime = DateTime.now().millisecondsSinceEpoch;
     recordSeconds = 0;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       recordSeconds++;
     });
+
+  }
+  Future<void> initAudioRecording() async {
+    int recordAudioTime = DateTime.now().millisecondsSinceEpoch;
+
+    var path = videoDirectory + audioPath + recordAudioTime.toString();
+    audioRecorder = FlutterAudioRecorder(path, audioFormat: AudioFormat.WAV);
+    await audioRecorder.initialized;
   }
 
-  void stopRecording() {
+  void stopRecording() async {
+    audioFile = await audioRecorder.stop();
     isRecording = false;
+
+    //print(audioFile.path);
+
+    //var duration = await player.setUrl(audioFile.path);
+    //print(duration);
+
+    print('Exact time audio = ${audioFile.duration.inMilliseconds} ms');
     waitForSave().then((value) {
       isProcessingVideo = true;
       int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
@@ -223,9 +248,11 @@ class _CameraState extends State<Camera> {
       int realFrameRate = (currentSavedIndex/(exactTimeRecorded/1000)).floor();
       print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
       String saveTimeStamp = DateTime.now().toIso8601String();
+      //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
       var argumentsFFMPEG = [
         '-r', realFrameRate.toString(), // Frames saved/recorded
         '-i', '$videoDirectory/VidIT%d.$fileType',
+        '-i', '${audioFile.path}',
         '-preset', 'ultrafast',
       ];
       // check if in portrait mode
@@ -253,6 +280,8 @@ class _CameraState extends State<Camera> {
       timer.cancel();
     });
   }
+
+
 
   void changeCameraLens() {
     // get current lens direction (front / rear)
