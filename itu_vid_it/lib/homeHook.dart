@@ -77,7 +77,9 @@ class HomeHooks extends HookWidget{
                   Container(width: 200, padding: EdgeInsets.only(top: 100))
                 ],
               ),
-              Icon(Icons.send_sharp, color: Colors.black, size: 80,)]),
+              ImageIcon(AssetImage('assets/images/VidItIconMenu.png'), size: 80, color: Colors.black,),
+            ],
+        ),
         onPressed: () async {
           if(permission.isDenied || permission.isUndetermined || permission.isPermanentlyDenied || permission.isLimited){
             await checkPermissions();
@@ -117,7 +119,7 @@ class HomeHooks extends HookWidget{
               Icon(Icons.control_camera, color: bleCharacteristic.value != null ?
               Colors.black : Colors.white.withOpacity(0.3), size: 80)]),
         onPressed: () {
-          if (bleCharacteristic.value == null) return;
+        if (bleCharacteristic.value == null) return;
           Navigator.push(context, MaterialPageRoute(
             builder: (context) => MountManualController(bleCharacteristic.value),
           ),
@@ -125,7 +127,6 @@ class HomeHooks extends HookWidget{
         },
       );
     }
-
     return(
         Scaffold(
           appBar: AppBar(

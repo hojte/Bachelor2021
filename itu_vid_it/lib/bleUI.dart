@@ -26,19 +26,33 @@ class BluetoothOffScreen extends StatelessWidget {
   const BluetoothOffScreen({Key key, this.state}) : super(key: key);
 
   final BluetoothState state;
+
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          mediaQuery.orientation == Orientation.landscape ?
+          Icon(
+            Icons.bluetooth_disabled,
+            size: 80.0,
+            color: Colors.white54,
+          ):
           Icon(
             Icons.bluetooth_disabled,
             size: 200.0,
             color: Colors.white54,
           ),
+          mediaQuery.orientation == Orientation.landscape ?
           Text(
             'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+            textScaleFactor: 0.8,
+          ):
+          Text(
+            'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+            textScaleFactor: 1.0,
           ),
         ],
       ),
