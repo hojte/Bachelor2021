@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -16,6 +15,7 @@ class MountManualController extends HookWidget {
   Widget build(BuildContext context) {
     var speedValue = useState(0.0);
     final mediaQuery = MediaQuery.of(context);
+
 
     Widget customSlider(var speedValue){
       return Container(
@@ -144,6 +144,9 @@ class MountManualController extends HookWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
+            var trackingData = TrackingData(1,0.05,1,0.05,1,1);
+            var compute = ComputeData(trackingData);
+            MountController(trackingData, bleCharacteristic, null).sendDataToESP(utf8.encode(compute.boundingBoxCenter));
             Navigator.pop(context);
           },
         ),
