@@ -166,7 +166,8 @@ class HomeHooks extends HookWidget{
                   cameras,
                   bleCharacteristic.value,
                   debugModeValue,
-                  gridViewValue
+                  gridViewValue,
+                  autoZoomValue
               ),
             ],
           ),

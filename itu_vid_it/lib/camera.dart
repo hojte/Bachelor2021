@@ -33,10 +33,11 @@ class Camera extends StatefulWidget {
   final BluetoothCharacteristic _bleCharacteristic;
   final debugModeValue;
   final gridViewValue;
-  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.gridViewValue);
+  final autoZoomValue;
+  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.gridViewValue, this.autoZoomValue);
 
   @override
-  _CameraState createState() => new _CameraState(debugModeValue, gridViewValue);
+  _CameraState createState() => new _CameraState(debugModeValue, gridViewValue, autoZoomValue);
 }
 
 class _CameraState extends State<Camera> {
@@ -60,6 +61,7 @@ class _CameraState extends State<Camera> {
   int recordSeconds = 0;
   final debugModeValue;
   final gridViewValue;
+  final autoZoomValue;
   List<dynamic> detectedRecognitions = [];
   List<dynamic> trackedRecognition = []; // Previous locations of tracked object
   int objectMissingCount = 0;
@@ -67,7 +69,7 @@ class _CameraState extends State<Camera> {
   int deviceRotation;
   int deviceRotationOnRecordStart;
   int recordStartTime;
-  _CameraState(this.debugModeValue, this.gridViewValue);
+  _CameraState(this.debugModeValue, this.gridViewValue, this.autoZoomValue);
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
@@ -81,6 +83,8 @@ class _CameraState extends State<Camera> {
   double minX = 0.6;
   double minY = 0.7;
   double maxY = 0.5;
+
+  double zoomVal = 1.0;
 
 
   @override
@@ -343,7 +347,7 @@ class _CameraState extends State<Camera> {
           objectMissingCount = 0;
         }
       }
-      int smoothDuration = 20;
+      int smoothDuration = 10;
       if (!matchFound && ++objectMissingCount < smoothDuration) { // flicker for 10 consecutive frames ~ 1 sec
         trackedRecognition.first['flickerSmoother'] = true;
         detectedRecognitions.insert(0, trackedRecognition.first);
@@ -371,7 +375,14 @@ class _CameraState extends State<Camera> {
 
       _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
 
-      zoom(controller, wCoord, hCoord);
+      if(autoZoomValue.value){
+        zoom(controller, wCoord, hCoord, xCoord, yCoord);
+      }
+      else {
+        zoomVal = 1.0;
+        if(mounted) controller.setZoomLevel(zoomVal);
+      }
+
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
@@ -393,23 +404,51 @@ class _CameraState extends State<Camera> {
     minY = _minY;
     minX = _minX;
   }
-  void zoom(CameraController controller, double wCoord, double hCoord){
+  void zoom(CameraController controller, double wCoord, double hCoord, double xCoord, double yCoord){
     var area = wCoord * hCoord;
-    print('area: $area');
+    //print('width $wCoord');
+    double zoomInAndOutValue = 0.1;
+    double minimumZoomInArea;
+    double maximumZoomInArea;
+    double maximumZoomOutArea;
 
-    //controller.setZoomLevel(4.0);
+    double xcenter = xCoord + wCoord/2.0;
+    print('XCOORD:  $xcenter');
 
+    if(MediaQuery.of(context).orientation == Orientation.portrait){
+      minimumZoomInArea = 0.0;
+      maximumZoomInArea = 0.2;
+      maximumZoomOutArea = 0.4;
+    }
+    else{
+      minimumZoomInArea = 0.0;
+      maximumZoomInArea = 0.1;
+      maximumZoomOutArea = 0.2;
+    }
+
+    if (area>minimumZoomInArea && area<maximumZoomInArea && zoomVal < 8.0 && (xcenter>0.25 && xcenter<0.75) ){
+      zoomVal = zoomVal+zoomInAndOutValue;
+      controller.setZoomLevel(zoomVal);
+      // print('zoom in: $zoomVal');
+    } else {
+      if(zoomVal > 1.0 && area>maximumZoomOutArea) {
+        zoomVal = zoomVal-zoomInAndOutValue;
+        controller.setZoomLevel(zoomVal);
+        // print('zoom out: $zoomVal');
+      }
+    }
+    // print('area: $area');
   }
 
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
       return Center(
-          child: SizedBox(
-            child: CircularProgressIndicator(),
-            height: 60,
-            width: 60,
-          ),
+        child: SizedBox(
+          child: CircularProgressIndicator(),
+          height: 60,
+          width: 60,
+        ),
       );
     }
     screen = MediaQuery.of(context).size;
