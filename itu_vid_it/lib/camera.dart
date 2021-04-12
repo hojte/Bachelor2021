@@ -41,7 +41,7 @@ class _CameraState extends State<Camera> {
   CameraController controller;
   bool isDetecting = false;
   CameraDescription camera;
-  TrackingData _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
+  TrackingData _trackingData = new TrackingData();
   int useFrontCam = 0;
   bool isRecording = false;
   FlutterAudioRecorder audioRecorder;
@@ -58,7 +58,9 @@ class _CameraState extends State<Camera> {
   int recordSeconds = 0;
   final debugModeValue;
   final gridViewValue;
-  List<dynamic> filteredRecognitions = [];
+  List<dynamic> detectedRecognitions = [];
+  List<dynamic> trackedRecognition = []; // Previous locations of tracked object
+  int objectMissingCount = 0;
 
   int deviceRotation;
   int deviceRotationOnRecordStart;
@@ -68,7 +70,16 @@ class _CameraState extends State<Camera> {
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
 
+  bool flashOn = false;
+
   bool bleValid = espCharacteristic!=null;
+  Size screen;
+
+  double maxX = 0.4;
+  double minX = 0.6;
+  double minY = 0.7;
+  double maxY = 0.5;
+
 
   @override
   void initState() {
@@ -133,7 +144,6 @@ class _CameraState extends State<Camera> {
             saveTemporaryFile(currentFrameIndex, img).then((value) {
               currentSavedIndex = value;
             });
-            //if (DateTime.now().millisecondsSinceEpoch - recordStartTime > 10000) stopRecording();
           }
           if (!isDetecting) {
             isDetecting = true;
@@ -181,7 +191,7 @@ class _CameraState extends State<Camera> {
             Tflite.detectObjectOnBinary(
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
-              numResultsPerClass: 3,
+              numResultsPerClass: 5,
               threshold: 0.45,
             ).then((recognitions) {
               handleRecognitions(recognitions);
@@ -212,7 +222,9 @@ class _CameraState extends State<Camera> {
   }
 
   Future<void> initAudioRecording() async {
-    var path = videoDirectory + audioPath + recordStartTime.toString();
+    int recordAudioTime = DateTime.now().millisecondsSinceEpoch;
+
+    var path = videoDirectory + audioPath + recordAudioTime.toString();
     audioRecorder = FlutterAudioRecorder(path, audioFormat: AudioFormat.WAV);
     await audioRecorder.initialized;
   }
@@ -296,58 +308,101 @@ class _CameraState extends State<Camera> {
     }
   }
 
+  bool compareRecognition(dynamic r1, dynamic r2) {
+    // topLeft offset check
+    double threshold = 0.15; // todo could be calibrated better
+    bool xMatch = (r1["rect"]["x"]-r2["rect"]["x"]).abs() < threshold;
+    bool yMatch = (r1["rect"]["y"]-r2["rect"]["y"]).abs() < threshold;
+    //print('X:$xMatch Y:$yMatch');
+    bool wMatch = (r1["rect"]["w"]-r2["rect"]["w"]).abs() < threshold;
+    bool hMatch = (r1["rect"]["h"]-r2["rect"]["h"]).abs() < threshold;
+    //print('W:$wMatch H:$hMatch');
+    if (xMatch && yMatch && wMatch && hMatch)
+      return true;
+    return false;
+  }
+
+  void setTracked(dynamic recognition) {
+    trackedRecognition.clear();
+    trackedRecognition.add(recognition);
+  }
+
   void handleRecognitions(List<dynamic> recognitions) {
-    //making a new list that only contains detectedClass: person
-    var tempFilter = [];
-    try {
-      int newRecognitionIndex= recognitions.indexOf(recognitions.firstWhere((element) =>
-      element.toString().contains("detectedClass: person")
-          //todo --> slet linjen her for kun at tracke personer
-          || element.toString().contains("detectedClass: bottle")));
-
-      tempFilter.add(recognitions[newRecognitionIndex]);
-    } catch(e) {
-      // no person found
-    }
-
-    filteredRecognitions = tempFilter;
-
-    if(filteredRecognitions.length>0){
-      if (Platform.isAndroid) { // Android-specific code
-        String wCoord= filteredRecognitions[0].toString().split(",")[0].replaceFirst("{rect: {w: ", "").trim();
-        String xCoord= filteredRecognitions[0].toString().split(",")[1].replaceFirst("x: ", "").trim();
-        String hCoord= filteredRecognitions[0].toString().split(",")[2].replaceFirst("h: ", "").trim();
-        String yCoord= filteredRecognitions[0].toString().split(",")[3].replaceFirst("y: ", "").replaceFirst("}", "").trim();
-
-
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
-
-      } else if (Platform.isIOS) {
-        String wCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[1].replaceFirst("w: ", "").trim();
-        String xCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[2].replaceFirst("x: ", "").trim();
-        String hCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[3].replaceFirst("h: ", "").replaceFirst("}}", "").trim();
-        String yCoord= filteredRecognitions[0].toString().split("rect:")[1].split(",")[0].replaceFirst("{y: ","").trim();
-
-        _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0,0.0);
+    detectedRecognitions = recognitions
+        .where((recognition) => recognition["detectedClass"] == "person" || recognition["detectedClass"] == "bottle")
+        .toList();
+    bool matchFound = false;
+    if (trackedRecognition.isNotEmpty) {
+      for(int i = 0; i < detectedRecognitions.length && !matchFound; i++) {
+        dynamic recognition = detectedRecognitions[i];
+        if (compareRecognition(recognition, trackedRecognition.first)) {
+          detectedRecognitions[i]['track'] = true;
+          if(trackedRecognition.length > 3) trackedRecognition.removeLast(); // delete oldest
+          trackedRecognition.insert(0, recognition);
+          matchFound = true;
+          objectMissingCount = 0;
+        }
+      }
+      if (!matchFound && ++objectMissingCount < 10) { // flicker for 10 consecutive frames ~ 1 sec
+        trackedRecognition.first['flickerSmoother'] = true;
+        detectedRecognitions.insert(0, trackedRecognition.first);
+      }
+      else if(objectMissingCount >= 10) {
+        trackedRecognition.clear();
+        _trackingData = new TrackingData();
       }
     }
-    else{
-      _trackingData = new TrackingData("0.0", "0.0", "0.0", "0.0", 0.0,0.0);
+
+    if (detectedRecognitions.isNotEmpty && !matchFound) {
+      trackedRecognition.clear();
+      detectedRecognitions[0]['trackShift'] = true;
+      trackedRecognition.add(detectedRecognitions[0]); // Just track the highest score
+    }
+    if (detectedRecognitions.isEmpty && trackedRecognition.isEmpty) {
+      trackedRecognition.clear();
+      _trackingData = new TrackingData();
+    }
+    if(trackedRecognition.isNotEmpty) {
+      double wCoord = trackedRecognition.first["rect"]["w"];
+      double xCoord = trackedRecognition.first["rect"]["x"];
+      double hCoord = trackedRecognition.first["rect"]["h"];
+      double yCoord = trackedRecognition.first["rect"]["y"];
+
+      _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
     }
     isDetecting = false;
     if(mounted) setState(() {}); // update state, trigger rerender
   }
   void validateBle(bool bleIsValid) {
+    // todo: maybe if not valid, notify homeHook -> bleUI -> update connection, instead of going back to front page to reconnect...
     bleValid = bleIsValid;
+  }
+
+  void toggleFlash() {
+    controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off)
+        .then((value) => flashOn = !flashOn)
+        .onError((error, stackTrace) => null); // ignore failed flash toggle
+  }
+
+  void setGridOffsets(_maxX, _minX, _minY, _maxY) {
+    maxX = _maxX;
+    maxY = _maxY;
+    minY = _minY;
+    minX = _minX;
   }
 
   @override
   Widget build(BuildContext context) {
     if (controller == null || !controller.value.isInitialized) {
-      return Container();
+      return Center(
+          child: SizedBox(
+            child: CircularProgressIndicator(),
+            height: 60,
+            width: 60,
+          ),
+      );
     }
-
-    Size screen = MediaQuery.of(context).size;
+    screen = MediaQuery.of(context).size;
 
     Widget renderRecordIcon() {
       if (isProcessingVideo) return CircularProgressIndicator();
@@ -371,34 +426,46 @@ class _CameraState extends State<Camera> {
           Stack(
             children: [
               BndBox(
-                filteredRecognitions,
+                detectedRecognitions,
+                setTracked,
                 previewH,
                 previewW,
                 screen.height,
                 screen.width,
               ),
-              //Spread operator === ULÆKKERT
-              if (gridViewValue.value) ...Grids(screen) else Container(),
+              if (gridViewValue.value)
+                Grids(screen, setGridOffsets)
+
+              else Container(),
             ],
           )
-        else if (gridViewValue.value) ...Grids(screen) else Container(),
+        else if (gridViewValue.value) Grids(screen, setGridOffsets) else Container(),
         Container(
             alignment: Alignment.topRight,
             margin: EdgeInsets.only(top: 20),
-            child: Column(children: [
-              IconButton(
-                icon: Platform.isAndroid ?
-                Icon(Icons.flip_camera_android, color: Colors.white) :
-                Icon(Icons.flip_camera_ios, color: Colors.white),
-                onPressed: () {
-                  changeCameraLens();
-                },
-                iconSize: 40,
-              ),
-              bleValid ?
-              Icon(Icons.bluetooth_connected, color: Colors.white) :
-              Icon(Icons.bluetooth_disabled, color: Colors.white),
-            ],)
+            child: Column(
+              children: [
+                IconButton(
+                  icon: Platform.isAndroid ?
+                  Icon(Icons.flip_camera_android, color: Colors.white) :
+                  Icon(Icons.flip_camera_ios, color: Colors.white),
+                  onPressed: () {
+                    changeCameraLens();
+                  },
+                  iconSize: 40,
+                ),
+                IconButton(
+                  icon: flashOn ?
+                  Icon(Icons.flash_on, color: Colors.white) :
+                  Icon(Icons.flash_off, color: Colors.white),
+                  onPressed: () => toggleFlash(),
+                  iconSize: 40,
+                ),
+                bleValid ?
+                Icon(Icons.bluetooth_connected, color: Colors.white) :
+                Icon(Icons.bluetooth_disabled, color: Colors.white),
+              ]
+              ,)
         ),
 
 
