@@ -187,7 +187,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.35,
+              threshold: 0.45,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
