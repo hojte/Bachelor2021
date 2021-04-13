@@ -370,6 +370,9 @@ class _CameraState extends State<Camera> {
     if (detectedRecognitions.isEmpty && trackedRecognition.isEmpty) {
       trackedRecognition.clear();
       _trackingData = new TrackingData();
+
+      //Used to zoom out if there is not detection
+      zoom(controller, 0.0, 0.0, 0.0, 0.0);
     }
     if(trackedRecognition.isNotEmpty) {
       double wCoord = trackedRecognition.first["rect"]["w"];
@@ -410,32 +413,44 @@ class _CameraState extends State<Camera> {
   }
   void zoom(CameraController controller, double wCoord, double hCoord, double xCoord, double yCoord){
     var area = wCoord * hCoord;
-    //print('width $wCoord');
     double zoomInAndOutValue = 0.1;
     double minimumZoomInArea;
     double maximumZoomInArea;
     double maximumZoomOutArea;
+    double maximumHeight;
+    double minimumHeight;
 
     double xcenter = xCoord + wCoord/2.0;
-    print('XCOORD:  $xcenter');
 
     if(MediaQuery.of(context).orientation == Orientation.portrait){
       minimumZoomInArea = 0.0;
       maximumZoomInArea = 0.2;
       maximumZoomOutArea = 0.4;
+      maximumHeight = 0.7;
+      minimumHeight = 0.8;
     }
     else{
       minimumZoomInArea = 0.0;
       maximumZoomInArea = 0.1;
       maximumZoomOutArea = 0.2;
+      maximumHeight = 0.4;
+      minimumHeight = 0.8;
     }
+    print(trackedRecognition.isEmpty);
+    //print(trackedRecognition.first);
+    //print(detectedRecognitions.first);
+    if(objectMissingCount>8 && zoomVal > 1.0){
 
-    if (area>minimumZoomInArea && area<maximumZoomInArea && zoomVal < 8.0 && (xcenter>0.25 && xcenter<0.75) ){
+
+      zoomVal = zoomVal-zoomInAndOutValue;
+      if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
+    }
+    else if (area>minimumZoomInArea && area<maximumZoomInArea && zoomVal < 8.0 && (xcenter>0.25 && xcenter<0.75) && hCoord<maximumHeight ){
       zoomVal = zoomVal+zoomInAndOutValue;
       if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
       // print('zoom in: $zoomVal');
     } else {
-      if(zoomVal > 1.0 && area>maximumZoomOutArea) {
+      if((zoomVal > 1.0 && area>maximumZoomOutArea) || (zoomVal > 1.0 && hCoord>minimumHeight)) {
         zoomVal = zoomVal-zoomInAndOutValue;
         if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
         // print('zoom out: $zoomVal');
