@@ -55,6 +55,11 @@ class HomeHooks extends HookWidget{
       gridViewValue.value = val;
     }
 
+    final autoZoomValue = useState(false);
+    void setAutoZoom(bool val){
+      autoZoomValue.value = val;
+    }
+
     final bleCharacteristic = useState();
     void setCharacteristic(BluetoothCharacteristic characteristic){
       bleCharacteristic.value = characteristic;
@@ -139,7 +144,7 @@ class HomeHooks extends HookWidget{
             title: Text("VidIt"),
             flexibleSpace: CustomAppBarDesign(),
           ),
-          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value, setGridViewValue, gridViewValue.value),
+          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value, setGridViewValue, gridViewValue.value, setAutoZoom,autoZoomValue.value),
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(
@@ -161,7 +166,8 @@ class HomeHooks extends HookWidget{
                   cameras,
                   bleCharacteristic.value,
                   debugModeValue,
-                  gridViewValue
+                  gridViewValue,
+                  autoZoomValue
               ),
             ],
           ),

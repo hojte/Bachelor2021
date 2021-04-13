@@ -19,14 +19,17 @@ Widget renderDetectImageButton(BuildContext context){
 class CustomDrawer extends HookWidget{
   final Function(bool boolValue) setDebugValue;
   final Function(bool boolValue) setGridViewValue;
+  final Function(bool boolValue) setAutoZoomValue;
   final bool debugModeValue;
   final bool gridViewValue;
-  CustomDrawer(this.setDebugValue, this.debugModeValue, this.setGridViewValue, this.gridViewValue);
+  final bool autoZoomValue;
+  CustomDrawer(this.setDebugValue, this.debugModeValue, this.setGridViewValue, this.gridViewValue, this.setAutoZoomValue, this.autoZoomValue);
 
   @override
   Widget build(BuildContext context) {
     final debugValue = useState(debugModeValue);
     final gridValue = useState(gridViewValue);
+    final zoomValue = useState(autoZoomValue);
     return Drawer(
       child: ListView(
         children: [
@@ -50,6 +53,17 @@ class CustomDrawer extends HookWidget{
                 gridValue.value = !gridValue.value;
                 newValue = gridValue.value;
                 setGridViewValue(gridValue.value);
+              }
+          ),
+          SwitchListTile(
+              activeColor: Colors.green,
+              title: Text("AutoZoom"),
+              subtitle: Text("Do you want the camera to zoom automatically?"),
+              value: zoomValue.value,
+              onChanged: (bool newValue){
+                zoomValue.value = !zoomValue.value;
+                newValue = zoomValue.value;
+                setAutoZoomValue(zoomValue.value);
               }
           ),
           renderDetectImageButton(context),
