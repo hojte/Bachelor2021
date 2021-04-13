@@ -84,6 +84,9 @@ class _CameraState extends State<Camera> {
 
   double zoomVal = 1.0;
 
+  int saveStartMillis = 0;
+  double estimatedSaveTime = 5;
+
 
   @override
   void initState() {
@@ -252,8 +255,8 @@ class _CameraState extends State<Camera> {
     int durationForFPSCalculation = audioDuration ?? exactTimeRecorded;
     int realFrameRate = (currentSavedIndex/(durationForFPSCalculation/1000)).floor();
     print("Frames per second = $currentSavedIndex/${(durationForFPSCalculation/1000)} = $realFrameRate");
-
-    int saveStart = DateTime.now().millisecondsSinceEpoch;
+    estimatedSaveTime = 0.461*exactTimeRecorded - 844;
+    saveStartMillis = DateTime.now().millisecondsSinceEpoch;
 
     String saveTimeStamp = DateTime.now().toIso8601String();
     //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
@@ -277,10 +280,10 @@ class _CameraState extends State<Camera> {
     _flutterFFmpeg.executeWithArguments(argumentsFFMPEG)
         .then((rc) {
       print("FFmpeg process exited with rc $rc");
-      GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
+      GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4', albumName: "VidIt").then((value) {
         new Directory('$videoDirectory').delete(recursive: true);
         isProcessingVideo = false;
-        print('save time rec = ${DateTime.now().millisecondsSinceEpoch-saveStart} ms');
+        print('save time rec = ${DateTime.now().millisecondsSinceEpoch-saveStartMillis} ms');
         if(mounted) setState(() {}); // update state, trigger rerender
       });
       // CleanUp
@@ -457,8 +460,9 @@ class _CameraState extends State<Camera> {
     }
     screen = MediaQuery.of(context).size;
 
+    double progression = (DateTime.now().millisecondsSinceEpoch-saveStartMillis)/estimatedSaveTime;
     Widget renderRecordIcon() {
-      if (isProcessingVideo) return CircularProgressIndicator();
+      if (isProcessingVideo) return CircularProgressIndicator(value: progression < 1 ? progression : null);
       else if (isRecording) return Icon(Icons.stop, color: Colors.red);
       else return Icon(Icons.fiber_manual_record_rounded, color: Colors.red);
     }
