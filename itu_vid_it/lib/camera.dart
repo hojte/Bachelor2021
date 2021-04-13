@@ -244,13 +244,16 @@ class _CameraState extends State<Camera> {
     isRecording = false;
     isProcessingVideo = true;
     int exactTimeRecorded = DateTime.now().millisecondsSinceEpoch - recordStartTime;
-    audioRecorder.stop().then((value) => audioFile = value);
+    audioFile = await audioRecorder.stop();
     await waitForSave();
-    var audioDuration = await lengthOfAudio(File(audioFile.path));
+    int audioDuration = await lengthOfAudio(File(audioFile.path));
     print('Exact time audio = $audioDuration ms');
     print('Exact time recorded = $exactTimeRecorded ms');
-    int realFrameRate = (currentSavedIndex/(audioDuration/1000)).floor();
-    print("Frames per second = $currentSavedIndex/${(exactTimeRecorded/1000)} = $realFrameRate");
+    int durationForFPSCalculation = audioDuration ?? exactTimeRecorded;
+    int realFrameRate = (currentSavedIndex/(durationForFPSCalculation/1000)).floor();
+    print("Frames per second = $currentSavedIndex/${(durationForFPSCalculation/1000)} = $realFrameRate");
+
+    int saveStart = DateTime.now().millisecondsSinceEpoch;
 
     String saveTimeStamp = DateTime.now().toIso8601String();
     //ffmpeg -loop 1 -i image.jpg -i audio.wav -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest out.mp4
@@ -277,6 +280,7 @@ class _CameraState extends State<Camera> {
       GallerySaver.saveVideo(videoDirectory+'/aVidITCapture$saveTimeStamp.mp4').then((value) {
         new Directory('$videoDirectory').delete(recursive: true);
         isProcessingVideo = false;
+        print('save time rec = ${DateTime.now().millisecondsSinceEpoch-saveStart} ms');
         if(mounted) setState(() {}); // update state, trigger rerender
       });
       // CleanUp
@@ -380,7 +384,7 @@ class _CameraState extends State<Camera> {
       }
       else {
         zoomVal = 1.0;
-        if(mounted) controller.setZoomLevel(zoomVal);
+        if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
       }
 
     }
@@ -428,12 +432,12 @@ class _CameraState extends State<Camera> {
 
     if (area>minimumZoomInArea && area<maximumZoomInArea && zoomVal < 8.0 && (xcenter>0.25 && xcenter<0.75) ){
       zoomVal = zoomVal+zoomInAndOutValue;
-      controller.setZoomLevel(zoomVal);
+      if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
       // print('zoom in: $zoomVal');
     } else {
       if(zoomVal > 1.0 && area>maximumZoomOutArea) {
         zoomVal = zoomVal-zoomInAndOutValue;
-        controller.setZoomLevel(zoomVal);
+        if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
         // print('zoom out: $zoomVal');
       }
     }
