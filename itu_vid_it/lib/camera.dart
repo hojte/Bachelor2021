@@ -438,27 +438,20 @@ class _CameraState extends State<Camera> {
       maximumHeight = 0.4;
       minimumHeight = 0.8;
     }
-    print(trackedRecognition.isEmpty);
-    //print(trackedRecognition.first);
-    //print(detectedRecognitions.first);
     if(objectMissingCount>8 && zoomVal > 1.0){
-
-
       zoomVal = zoomVal-zoomInAndOutValue;
       if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
     }
     else if (area>minimumZoomInArea && area<maximumZoomInArea && zoomVal < 8.0 && (xcenter>0.25 && xcenter<0.75) && hCoord<maximumHeight ){
       zoomVal = zoomVal+zoomInAndOutValue;
       if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
-      // print('zoom in: $zoomVal');
-    } else {
+    }
+    else {
       if((zoomVal > 1.0 && area>maximumZoomOutArea) || (zoomVal > 1.0 && hCoord>minimumHeight)) {
         zoomVal = zoomVal-zoomInAndOutValue;
         if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
-        // print('zoom out: $zoomVal');
       }
     }
-    // print('area: $area');
   }
 
   @override
