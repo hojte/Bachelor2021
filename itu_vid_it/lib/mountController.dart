@@ -49,7 +49,7 @@ class TrackingData {
   final minY;
   final maxX;
   final maxY;
-  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.isFrontCamera = false, this.minX=0.4, this.maxX=0.6, this.minY=0.5, this.maxY=0.8]);
+  TrackingData([this.wCoord = 0, this.xCoord = 0, this.hCoord = 0, this.yCoord = 0, this.xSpeed = 0, this.ySpeed = 0, this.isFrontCamera = false, this.minX=0.4, this.maxX=0.6, this.minY=0.5, this.maxY=0.7]);
   Map<String,dynamic> get map {
     return {
       "wCoord":wCoord,
