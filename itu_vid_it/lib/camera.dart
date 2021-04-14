@@ -199,7 +199,7 @@ class _CameraState extends State<Camera> {
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
               model: "SSDMobileNet",
               numResultsPerClass: 5,
-              threshold: 0.45,
+              threshold: 0.35,
             ).then((recognitions) {
               handleRecognitions(recognitions);
             });
@@ -339,7 +339,7 @@ class _CameraState extends State<Camera> {
 
   void handleRecognitions(List<dynamic> recognitions) {
     detectedRecognitions = recognitions
-        .where((recognition) => recognition["detectedClass"] == "person" || recognition["detectedClass"] == "bottle" || recognition["detectedClass"] == "stop sign")
+        .where((recognition) => (recognition["detectedClass"] == "person" && recognition["confidenceInClass"]>0.45) || recognition["detectedClass"] == "bottle" || recognition["detectedClass"] == "stop sign")
         .toList();
     bool matchFound = false;
     if (trackedRecognition.isNotEmpty) {
