@@ -37,7 +37,7 @@ class BluetoothOffScreen extends StatelessWidget {
           mediaQuery.orientation == Orientation.landscape ?
           Icon(
             Icons.bluetooth_disabled,
-            size: 80.0,
+            size: 65.0,
             color: Colors.white54,
           ):
           Icon(
