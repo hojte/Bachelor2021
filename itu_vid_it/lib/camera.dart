@@ -339,7 +339,7 @@ class _CameraState extends State<Camera> {
 
   void handleRecognitions(List<dynamic> recognitions) {
     detectedRecognitions = recognitions
-        .where((recognition) => recognition["detectedClass"] == "person" || recognition["detectedClass"] == "bottle")
+        .where((recognition) => recognition["detectedClass"] == "person" || recognition["detectedClass"] == "bottle" || recognition["detectedClass"] == "stop sign")
         .toList();
     bool matchFound = false;
     if (trackedRecognition.isNotEmpty) {
@@ -413,7 +413,8 @@ class _CameraState extends State<Camera> {
     minY = _minY;
     minX = _minX;
   }
-  void zoom(CameraController controller, double wCoord, double hCoord, double xCoord, double yCoord){
+  void zoom(CameraController controller, double wCoord, double hCoord, double xCoord, double yCoord) {
+    if(!mounted) return;
     var area = wCoord * hCoord;
     double zoomInAndOutValue = 0.1;
     double minimumZoomInArea;
@@ -440,16 +441,16 @@ class _CameraState extends State<Camera> {
     }
     if(objectMissingCount>8 && zoomVal > 1.0){
       zoomVal = zoomVal-zoomInAndOutValue;
-      if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
+      if(controller.value.isInitialized) controller.setZoomLevel(zoomVal);
     }
     else if (area>minimumZoomInArea && area<maximumZoomInArea && zoomVal < 8.0 && (xcenter>0.25 && xcenter<0.75) && hCoord<maximumHeight ){
       zoomVal = zoomVal+zoomInAndOutValue;
-      if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
+      if(controller.value.isInitialized) controller.setZoomLevel(zoomVal);
     }
     else {
       if((zoomVal > 1.0 && area>maximumZoomOutArea) || (zoomVal > 1.0 && hCoord>minimumHeight)) {
         zoomVal = zoomVal-zoomInAndOutValue;
-        if(mounted && controller.value.isInitialized) controller.setZoomLevel(zoomVal);
+        if(controller.value.isInitialized) controller.setZoomLevel(zoomVal);
       }
     }
   }
