@@ -79,8 +79,8 @@ class _CameraState extends State<Camera> {
 
   double maxX = 0.4;
   double minX = 0.6;
-  double minY = 0.7;
-  double maxY = 0.5;
+  double minY = 0.5;
+  double maxY = 0.7;
 
   double zoomVal = 1.0;
 
