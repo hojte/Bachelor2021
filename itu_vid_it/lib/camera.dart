@@ -77,8 +77,8 @@ class _CameraState extends State<Camera> {
   bool bleValid = espCharacteristic!=null;
   Size screen;
 
-  double maxX = 0.4;
-  double minX = 0.6;
+  double maxX = 0.6;
+  double minX = 0.4;
   double minY = 0.5;
   double maxY = 0.7;
 
