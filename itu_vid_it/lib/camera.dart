@@ -322,7 +322,7 @@ class _CameraState extends State<Camera> {
 
   bool compareRecognition(dynamic r1, dynamic r2) {
     // topLeft offset check
-    double threshold = 0.15; // todo could be calibrated better
+    double threshold = motEnabled.value ? 0.2 : 0.5;
     bool xMatch = (r1["rect"]["x"]-r2["rect"]["x"]).abs() < threshold;
     bool yMatch = (r1["rect"]["y"]-r2["rect"]["y"]).abs() < threshold;
     //print('X:$xMatch Y:$yMatch');
@@ -343,6 +343,8 @@ class _CameraState extends State<Camera> {
     detectedRecognitions = recognitions
         .where((recognition) => (recognition["detectedClass"] == "person" && recognition["confidenceInClass"]>0.45) || recognition["detectedClass"] == "bottle" || recognition["detectedClass"] == "stop sign")
         .toList();
+    if(!motEnabled.value && detectedRecognitions.length > 1)
+      detectedRecognitions = detectedRecognitions.sublist(0, 1);
     bool matchFound = false;
     if (trackedRecognition.isNotEmpty) {
       for(int i = 0; i < detectedRecognitions.length && !matchFound; i++) {
