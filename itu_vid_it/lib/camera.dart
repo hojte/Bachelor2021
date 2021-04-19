@@ -32,10 +32,11 @@ class Camera extends StatefulWidget {
   final debugModeValue;
   final gridViewValue;
   final autoZoomValue;
-  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.gridViewValue, this.autoZoomValue);
+  final motEnabled;
+  Camera(this.cameras, this._bleCharacteristic, this.debugModeValue, this.gridViewValue, this.autoZoomValue, this.motEnabled);
 
   @override
-  _CameraState createState() => new _CameraState(debugModeValue, gridViewValue, autoZoomValue);
+  _CameraState createState() => new _CameraState(debugModeValue, gridViewValue, autoZoomValue, motEnabled);
 }
 
 class _CameraState extends State<Camera> {
@@ -60,6 +61,7 @@ class _CameraState extends State<Camera> {
   final debugModeValue;
   final gridViewValue;
   final autoZoomValue;
+  final motEnabled;
   List<dynamic> detectedRecognitions = [];
   List<dynamic> trackedRecognition = []; // Previous locations of tracked object
   int objectMissingCount = 0;
@@ -67,7 +69,7 @@ class _CameraState extends State<Camera> {
   int deviceRotation;
   int deviceRotationOnRecordStart;
   int recordStartTime;
-  _CameraState(this.debugModeValue, this.gridViewValue, this.autoZoomValue);
+  _CameraState(this.debugModeValue, this.gridViewValue, this.autoZoomValue, this.motEnabled);
   String fileType = Platform.isAndroid ? 'jpg' : 'bgra';
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;

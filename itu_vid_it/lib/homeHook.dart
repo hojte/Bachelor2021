@@ -33,7 +33,7 @@ class HomeHooks extends HookWidget{
     if (permission.isGranted) {
       // do nothing
     } else{
-      Map<Permission, PermissionStatus> statuses = await [
+      await [
         Permission.microphone,
         Permission.storage,
         Permission.camera,
@@ -58,6 +58,10 @@ class HomeHooks extends HookWidget{
     final autoZoomValue = useState(false);
     void setAutoZoom(bool val){
       autoZoomValue.value = val;
+    }
+    final motEnabled = useState(false);
+    void setMotEnabled(bool val){
+      motEnabled.value = val;
     }
 
     final bleCharacteristic = useState();
@@ -144,7 +148,7 @@ class HomeHooks extends HookWidget{
             title: Text("VidIt"),
             flexibleSpace: CustomAppBarDesign(),
           ),
-          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value, setGridViewValue, gridViewValue.value, setAutoZoom,autoZoomValue.value),
+          endDrawer: CustomDrawer(setDebugModeValue, debugModeValue.value, setGridViewValue, gridViewValue.value, setAutoZoom,autoZoomValue.value, setMotEnabled, motEnabled.value),
           backgroundColor: appBarPrimary,
           body: !isTracking.value ?
           Center(
@@ -167,7 +171,8 @@ class HomeHooks extends HookWidget{
                   bleCharacteristic.value,
                   debugModeValue,
                   gridViewValue,
-                  autoZoomValue
+                  autoZoomValue,
+                  motEnabled,
               ),
             ],
           ),

@@ -20,16 +20,19 @@ class CustomDrawer extends HookWidget{
   final Function(bool boolValue) setDebugValue;
   final Function(bool boolValue) setGridViewValue;
   final Function(bool boolValue) setAutoZoomValue;
+  final Function(bool boolValue) setMotEnabled;
   final bool debugModeValue;
   final bool gridViewValue;
   final bool autoZoomValue;
-  CustomDrawer(this.setDebugValue, this.debugModeValue, this.setGridViewValue, this.gridViewValue, this.setAutoZoomValue, this.autoZoomValue);
+  final bool motEnabled;
+  CustomDrawer(this.setDebugValue, this.debugModeValue, this.setGridViewValue, this.gridViewValue, this.setAutoZoomValue, this.autoZoomValue, this.setMotEnabled, this.motEnabled);
 
   @override
   Widget build(BuildContext context) {
     final debugValue = useState(debugModeValue);
     final gridValue = useState(gridViewValue);
     final zoomValue = useState(autoZoomValue);
+    final motEnabledValue = useState(motEnabled);
     return Drawer(
       child: ListView(
         children: [
@@ -64,6 +67,17 @@ class CustomDrawer extends HookWidget{
                 zoomValue.value = !zoomValue.value;
                 newValue = zoomValue.value;
                 setAutoZoomValue(zoomValue.value);
+              }
+          ),
+          SwitchListTile(
+              activeColor: Colors.green,
+              title: Text("Multi Tracking"),
+              subtitle: Text("Is multiple people present in the frame?"),
+              value: motEnabledValue.value,
+              onChanged: (bool newValue) {
+                motEnabledValue.value = !motEnabledValue.value;
+                newValue = motEnabledValue.value;
+                setMotEnabled(motEnabledValue.value);
               }
           ),
           renderDetectImageButton(context),
