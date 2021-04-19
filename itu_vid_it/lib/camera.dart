@@ -378,7 +378,7 @@ class _CameraState extends State<Camera> {
       _trackingData = new TrackingData();
 
       //Used to zoom out if there is not detection
-      zoom(controller, 0.0, 0.0, 0.0, 0.0);
+      zoom(0.0, 0.0, 0.0, 0.0);
     }
     if(trackedRecognition.isNotEmpty) {
       double wCoord = trackedRecognition.first["rect"]["w"];
@@ -389,7 +389,7 @@ class _CameraState extends State<Camera> {
       _trackingData = new TrackingData(wCoord, xCoord, hCoord, yCoord, 0.0, 0.0, useFrontCam==1, minX, maxX, minY, maxY);
 
       if(autoZoomValue.value){
-        zoom(controller, wCoord, hCoord, xCoord, yCoord);
+        zoom(wCoord, hCoord, xCoord, yCoord);
       }
       else {
         zoomVal = 1.0;
@@ -417,7 +417,7 @@ class _CameraState extends State<Camera> {
     minY = _minY;
     minX = _minX;
   }
-  void zoom(CameraController controller, double wCoord, double hCoord, double xCoord, double yCoord) {
+  void zoom(double wCoord, double hCoord, double xCoord, double yCoord) {
     if(!mounted) return;
     var area = wCoord * hCoord;
     double zoomInAndOutValue = 0.1;
