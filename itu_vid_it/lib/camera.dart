@@ -44,7 +44,7 @@ class _CameraState extends State<Camera> {
   bool isDetecting = false;
   CameraDescription camera;
   TrackingData _trackingData = new TrackingData();
-  int useFrontCam = 0;
+  int useFrontCam = 1;
   bool isRecording = false;
   FlutterAudioRecorder audioRecorder;
   String audioPath = '/VidIT_Audio';
