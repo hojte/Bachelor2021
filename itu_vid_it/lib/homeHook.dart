@@ -24,8 +24,10 @@ class HomeHooks extends HookWidget{
     await Tflite.loadModel(
         numThreads: 4, // unsure if this helps performance
         //useGpuDelegate: true, // only release
-        model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
-        labels: "assets/ssd_mobilenet.txt");
+        // model: "assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite",
+        model: "assets/yolov2_tiny.tflite",
+        //labels: "assets/ssd_mobilenet.txt");
+        labels: "assets/yolov2_tiny.txt");
   }
 
   Future<void> checkPermissions() async {
