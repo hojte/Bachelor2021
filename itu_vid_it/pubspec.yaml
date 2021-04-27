@@ -67,6 +67,8 @@ flutter:
     - assets/ssd_mobilenet.txt
     - assets/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite
     - assets/images/VidItIconMenu.png
+    - assets/yolov2_tiny.tflite
+    - assets/yolov2_tiny.txt
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
