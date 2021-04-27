@@ -166,7 +166,7 @@ class _CameraState extends State<Camera> {
               format: imglib.Format.bgra,
             );
 
-            imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 300, height: 300);
+            imageToBeAnalyzed = imglib.copyResize(imageToBeAnalyzed, width: 416, height: 416);
             if (mounted)
               switch (MediaQuery.of(context).orientation) {
                 case Orientation.portrait:
@@ -198,7 +198,7 @@ class _CameraState extends State<Camera> {
               imageToBeAnalyzed = imglib.flipVertical(imageToBeAnalyzed);
             }
             Tflite.detectObjectOnBinary(
-              binary: imageToByteListUint8(imageToBeAnalyzed, 300),
+              binary: imageToByteListFloat32(imageToBeAnalyzed, 416, 0.0, 255.0),
               model: "YOLO",
               numResultsPerClass: 5,
               threshold: 0.35,
@@ -577,6 +577,21 @@ Uint8List imageToByteListUint8(imglib.Image image, int inputSize) {
       buffer[pixelIndex++] = imglib.getRed(pixel);
       buffer[pixelIndex++] = imglib.getGreen(pixel);
       buffer[pixelIndex++] = imglib.getBlue(pixel);
+    }
+  }
+  return convertedBytes.buffer.asUint8List();
+}
+Uint8List imageToByteListFloat32(
+    imglib.Image image, int inputSize, double mean, double std) {
+  var convertedBytes = Float32List(1 * inputSize * inputSize * 3);
+  var buffer = Float32List.view(convertedBytes.buffer);
+  int pixelIndex = 0;
+  for (var i = 0; i < inputSize; i++) {
+    for (var j = 0; j < inputSize; j++) {
+      var pixel = image.getPixel(j, i);
+      buffer[pixelIndex++] = (imglib.getRed(pixel) - mean) / std;
+      buffer[pixelIndex++] = (imglib.getGreen(pixel) - mean) / std;
+      buffer[pixelIndex++] = (imglib.getBlue(pixel) - mean) / std;
     }
   }
   return convertedBytes.buffer.asUint8List();
