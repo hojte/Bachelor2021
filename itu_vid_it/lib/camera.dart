@@ -199,7 +199,7 @@ class _CameraState extends State<Camera> {
             }
             Tflite.detectObjectOnBinary(
               binary: imageToByteListUint8(imageToBeAnalyzed, 300),
-              model: "SSDMobileNet",
+              model: "YOLO",
               numResultsPerClass: 5,
               threshold: 0.35,
             ).then((recognitions) {
