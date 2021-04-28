@@ -74,7 +74,7 @@ class _CameraState extends State<Camera> {
   NativeDeviceOrientation nativeDeviceOrientation;
   NativeDeviceOrientation nativeDeviceOrientationOnStartRec;
 
-  bool flashOn = false;
+  bool flashOn = true;
 
   bool bleValid = espCharacteristic!=null;
   Size screen;
@@ -408,7 +408,10 @@ class _CameraState extends State<Camera> {
   void toggleFlash() {
     controller.setFlashMode(flashOn ? FlashMode.torch : FlashMode.off)
         .then((value) => flashOn = !flashOn)
-        .onError((error, stackTrace) => null); // ignore failed flash toggle
+        .catchError((e) {
+      print("Got error: $e");     // Finally, callback fires.
+    });
+
   }
 
   void setGridOffsets(_maxX, _minX, _minY, _maxY) {
