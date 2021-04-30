@@ -13,7 +13,7 @@ class MountManualController extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    var speedValue = useState(0.0);
+    var speedValue = useState(200.0);
     final mediaQuery = MediaQuery.of(context);
 
 
