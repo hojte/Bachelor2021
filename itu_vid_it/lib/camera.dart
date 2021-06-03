@@ -341,7 +341,7 @@ class _CameraState extends State<Camera> {
 
   void handleRecognitions(List<dynamic> recognitions) {
     detectedRecognitions = recognitions
-        .where((recognition) => (recognition["detectedClass"] == "person" && recognition["confidenceInClass"]>0.45) || recognition["detectedClass"] == "bottle" || recognition["detectedClass"] == "stop sign")
+        .where((recognition) => (recognition["detectedClass"] == "person" && recognition["confidenceInClass"]>0.45) || recognition["detectedClass"] == "horse")
         .toList();
     if(!motEnabled.value && detectedRecognitions.length > 1)
       detectedRecognitions = detectedRecognitions.sublist(0, 1);
